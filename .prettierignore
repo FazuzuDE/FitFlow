@@ -1,0 +1,7 @@
+node_modules/
+.expo/
+dist/
+coverage/
+.npm-cache/
+package-lock.json
+.tools/
