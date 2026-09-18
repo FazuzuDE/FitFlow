@@ -21,7 +21,9 @@ GitHub. Первый исполнимый этап — подготовка ре
 владельца данных, миграции и sync должны быть спроектированы и протестированы
 независимо от выбора. `BE-*`, `AUTH-*`, RLS-тесты и путь `supabase/` будут уточнены
 после архитектурного решения. Локальные проверки и CI workflow подготовлены;
-запуск на GitHub и deployment на Oracle ещё не подтверждены.
+[первый запуск GitHub CI](https://github.com/FazuzuDE/FitFlow/actions/runs/35393598107)
+прошёл успешно. Открыт [PR №1](https://github.com/FazuzuDE/FitFlow/pull/1),
+настроена защита `main`/`develop`. Deployment на Oracle ещё не настроен.
 
 Сроки в таблице ниже — исходная оценка, которую нужно пересмотреть после этого
 решения. Переход на собственный API не считается бесплатной заменой Supabase.
@@ -120,17 +122,17 @@ FitFlow — мобильный дневник силовых тренирово�
 
 #### Архитектура и tooling
 
-- [ ] `FND-01` Зафиксировать Node/package-manager version и добавить lockfile.
-- [ ] `FND-02` Добавить scripts: `typecheck`, `lint`, `format`, `test`, `test:watch`.
+- [x] `FND-01` Зафиксировать Node/package-manager version и добавить lockfile.
+- [x] `FND-02` Добавить scripts: `typecheck`, `lint`, `format`, `test`, `test:watch`.
 - [ ] `FND-03` Настроить ESLint, Prettier, Jest и React Native Testing Library.
-- [ ] `FND-04` Ввести CI: install → typecheck → lint → test → Expo config validation.
-- [ ] `FND-05` Синхронизировать версии в `package.json`, `app.json` и build config.
+- [x] `FND-04` Ввести CI: install → typecheck → lint → test → Expo config validation.
+- [x] `FND-05` Синхронизировать версии в `package.json`, `app.json`; проверять их совпадение автоматически. Отдельной native build config пока нет.
 
 #### Декомпозиция монолита
 
 - [ ] `ARC-01` Вынести доменные типы: Exercise, Workout, WorkoutExercise, Set, Template, UserSettings.
 - [ ] `ARC-02` Разделить routes, feature-компоненты, shared UI, hooks, services и repositories.
-- [ ] `ARC-03` Вынести расчёты volume/e1RM в чистые функции с unit-тестами.
+- [x] `ARC-03` Вынести расчёты volume/e1RM в чистые функции с unit-тестами.
 - [ ] `ARC-04` Создать единый workout store с явными actions вместо глубокого JSON-clone.
 - [ ] `ARC-05` Создать storage interface, чтобы AsyncStorage и Supabase не использовались напрямую из UI.
 
