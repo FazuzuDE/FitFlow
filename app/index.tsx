@@ -1,77 +1,40 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, useSyncExternalStore } from 'react';
 import {
+  ActivityIndicator,
   Alert,
-  Modal,
   Pressable,
-  SafeAreaView,
   ScrollView,
   StyleSheet,
   Text,
   TextInput,
   View,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import * as Haptics from 'expo-haptics';
 import { GlassCard } from '@/components/GlassCard';
 import { Dock } from '@/components/Dock';
+import { AppButton } from '@/components/AppButton';
+import { Confirmation } from '@/components/Confirmation';
+import { Workout, duration, successHaptic } from '@/components/Workout';
 import { volume, epley } from '@/lib/workout-metrics';
+import { completedSetCount, workoutIsComplete } from '@/lib/workout-engine';
+import {
+  WorkoutSession as Session,
+  WorkoutTemplate as Template,
+  isSetComplete,
+} from '@/lib/workout-model';
+import {
+  defaultTemplates,
+  exerciseLibrary as library,
+} from '@/lib/workout-catalog';
+import { WorkoutRepository } from '@/lib/workout-repository';
+import { WorkoutStore } from '@/lib/workout-store';
+import { colors, radius, spacing, typography } from '@/lib/theme';
 
-const blue = '#0A84FF',
-  white = '#FFF',
-  secondary = '#A1A1A6',
-  green = '#30D158';
-type SetRow = { id: string; weight: string; reps: string; done: boolean };
-type Exercise = { id: string; name: string; muscle: string; sets: SetRow[] };
-type Session = {
-  id: string;
-  name: string;
-  startedAt: number;
-  finishedAt?: number;
-  exercises: Exercise[];
-};
-type Template = { id: string; name: string; exerciseIds: string[] };
-type LibraryItem = { id: string; name: string; muscle: string };
-const library: LibraryItem[] = [
-  { id: 'bench', name: 'Barbell Bench Press', muscle: 'Chest' },
-  { id: 'incline', name: 'Incline Dumbbell Press', muscle: 'Chest' },
-  { id: 'row', name: 'Seated Cable Row', muscle: 'Back' },
-  { id: 'pulldown', name: 'Lat Pulldown', muscle: 'Back' },
-  { id: 'press', name: 'Shoulder Press', muscle: 'Shoulders' },
-  { id: 'lateral', name: 'Lateral Raise', muscle: 'Shoulders' },
-  { id: 'squat', name: 'Barbell Squat', muscle: 'Legs' },
-  { id: 'legpress', name: 'Leg Press', muscle: 'Legs' },
-  { id: 'deadlift', name: 'Deadlift', muscle: 'Back' },
-  { id: 'curl', name: 'Biceps Curl', muscle: 'Arms' },
-  { id: 'triceps', name: 'Triceps Pushdown', muscle: 'Arms' },
-  { id: 'calf', name: 'Standing Calf Raise', muscle: 'Legs' },
-];
-const defaultTemplates: Template[] = [
-  {
-    id: 'upper',
-    name: 'Upper Body',
-    exerciseIds: ['bench', 'row', 'press', 'pulldown'],
-  },
-  {
-    id: 'push',
-    name: 'Push Day',
-    exerciseIds: ['bench', 'incline', 'press', 'lateral', 'triceps'],
-  },
-  { id: 'legs', name: 'Leg Day', exerciseIds: ['squat', 'legpress', 'calf'] },
-];
-const newExercise = (x: LibraryItem): Exercise => ({
-  id: x.id + '-' + Date.now() + '-' + Math.random(),
-  name: x.name,
-  muscle: x.muscle,
-  sets: [1, 2, 3].map((i) => ({
-    id: String(Date.now() + i + Math.random()),
-    weight: '',
-    reps: '10',
-    done: false,
-  })),
-});
-
+const blue = colors.primary,
+  white = colors.surface;
 function Home({
   history,
   startTemplate,
@@ -85,9 +48,9 @@ function Home({
   const last = history[0];
   return (
     <ScrollView contentContainerStyle={s.content}>
-      <Text style={s.eyebrow}>FITFLOW · V0.3</Text>
+      <Text style={s.eyebrow}>FITFLOW CORE</Text>
       <View style={s.head}>
-        <View>
+        <View style={{ flex: 1 }}>
           <Text style={s.title}>Good afternoon</Text>
           <Text style={s.sub}>Ready to get stronger?</Text>
         </View>
@@ -108,7 +71,7 @@ function Home({
         <GlassCard style={{ flex: 1 }}>
           <Text style={s.cardLabel}>WORKOUTS</Text>
           <Text style={s.metric}>{history.length}</Text>
-          <Ionicons name="flame" size={22} color="#FF9F0A" />
+          <Ionicons name="flame" size={22} color={colors.warning} />
         </GlassCard>
         <GlassCard style={{ flex: 1 }}>
           <Text style={s.cardLabel}>LAST VOLUME</Text>
@@ -116,7 +79,7 @@ function Home({
             {last ? Math.round(volume(last)).toLocaleString() : '—'}{' '}
             <Text style={s.unit}>kg</Text>
           </Text>
-          <Ionicons name="trophy" size={22} color="#FF9F0A" />
+          <Ionicons name="trophy" size={22} color={colors.warning} />
         </GlassCard>
       </View>
       <Text style={s.section}>Quick start</Text>
@@ -133,199 +96,18 @@ function Home({
                   .join(' · ')}
               </Text>
             </View>
-            <Pressable onPress={() => startTemplate(t)} style={s.play}>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={'Start ' + t.name}
+              onPress={() => startTemplate(t)}
+              style={s.play}
+            >
               <Ionicons name="play" size={22} color={white} />
             </Pressable>
           </View>
         </GlassCard>
       ))}
     </ScrollView>
-  );
-}
-
-function Workout({
-  session,
-  setSession,
-  finish,
-}: {
-  session: Session | null;
-  setSession: (x: Session) => void;
-  finish: () => void;
-}) {
-  const [rest, setRest] = useState(90);
-  const [picker, setPicker] = useState(false);
-  const [search, setSearch] = useState('');
-  useEffect(() => {
-    if (!session) return;
-    const t = setInterval(() => setRest((x) => Math.max(0, x - 1)), 1000);
-    return () => clearInterval(t);
-  }, [session]);
-  if (!session)
-    return (
-      <View style={s.empty}>
-        <Ionicons name="barbell-outline" size={46} color={secondary} />
-        <Text style={s.h3}>No active workout</Text>
-        <Text style={s.sub}>Start a template from Home.</Text>
-      </View>
-    );
-  const mutate = (fn: (n: Session) => void) => {
-    const n = JSON.parse(JSON.stringify(session)) as Session;
-    fn(n);
-    setSession(n);
-  };
-  const toggle = (ei: number, si: number) => {
-    mutate(
-      (n) => (n.exercises[ei].sets[si].done = !n.exercises[ei].sets[si].done),
-    );
-    setRest(90);
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-  };
-  const filtered = library.filter((x) =>
-    (x.name + ' ' + x.muscle).toLowerCase().includes(search.toLowerCase()),
-  );
-  return (
-    <>
-      <ScrollView contentContainerStyle={s.content}>
-        <Text style={s.eyebrow}>ACTIVE WORKOUT</Text>
-        <View style={s.head}>
-          <View>
-            <Text style={s.title}>{session.name}</Text>
-            <Text style={s.sub}>
-              {session.exercises.length} exercises ·{' '}
-              {Math.round(volume(session)).toLocaleString()} kg
-            </Text>
-          </View>
-          <Pressable onPress={() => setRest(90)} style={s.timer}>
-            <Text style={s.timerText}>
-              {String(Math.floor(rest / 60)).padStart(2, '0')}:
-              {String(rest % 60).padStart(2, '0')}
-            </Text>
-          </Pressable>
-        </View>
-        {session.exercises.map((e, ei) => (
-          <GlassCard key={e.id}>
-            <View style={s.exerciseHead}>
-              <View>
-                <Text style={s.h3}>{e.name}</Text>
-                <Text style={s.sub}>{e.muscle}</Text>
-              </View>
-              <Text style={s.pr}>
-                {e.sets.filter((x) => x.done).length}/{e.sets.length} DONE
-              </Text>
-            </View>
-            <View style={s.labels}>
-              <Text style={s.mini}>SET</Text>
-              <Text style={[s.mini, { flex: 1 }]}>WEIGHT KG</Text>
-              <Text style={[s.mini, { flex: 1 }]}>REPS</Text>
-              <Text style={s.mini}>DONE</Text>
-            </View>
-            {e.sets.map((x, si) => (
-              <Pressable
-                key={x.id}
-                onLongPress={() =>
-                  mutate((n) => n.exercises[ei].sets.splice(si, 1))
-                }
-                style={[s.setRow, x.done && s.done]}
-              >
-                <Text style={s.setNum}>{si + 1}</Text>
-                <TextInput
-                  keyboardType="decimal-pad"
-                  value={x.weight}
-                  onChangeText={(v) =>
-                    mutate((n) => (n.exercises[ei].sets[si].weight = v))
-                  }
-                  style={s.input}
-                />
-                <TextInput
-                  keyboardType="number-pad"
-                  value={x.reps}
-                  onChangeText={(v) =>
-                    mutate((n) => (n.exercises[ei].sets[si].reps = v))
-                  }
-                  style={s.input}
-                />
-                <Pressable
-                  onPress={() => toggle(ei, si)}
-                  style={[s.check, x.done && s.checked]}
-                >
-                  <Ionicons
-                    name={x.done ? 'checkmark' : 'ellipse-outline'}
-                    size={18}
-                    color={x.done ? white : blue}
-                  />
-                </Pressable>
-              </Pressable>
-            ))}
-            <Pressable
-              onPress={() =>
-                mutate((n) => {
-                  const p = n.exercises[ei].sets.at(-1);
-                  n.exercises[ei].sets.push({
-                    id: String(Date.now()),
-                    weight: p?.weight || '',
-                    reps: p?.reps || '10',
-                    done: false,
-                  });
-                })
-              }
-              style={s.add}
-            >
-              <Ionicons name="add" size={18} color={blue} />
-              <Text style={s.blueText}>ADD SET</Text>
-            </Pressable>
-          </GlassCard>
-        ))}
-        <Pressable onPress={() => setPicker(true)} style={s.secondaryButton}>
-          <Ionicons name="add-circle-outline" size={20} color={blue} />
-          <Text style={s.blueButtonText}>Add Exercise</Text>
-        </Pressable>
-        <Pressable onPress={finish} style={s.finish}>
-          <Ionicons name="checkmark-circle" size={21} color={white} />
-          <Text style={s.primaryText}>Finish Workout</Text>
-        </Pressable>
-        <Text style={s.hint}>Long-press a set to delete it.</Text>
-      </ScrollView>
-      <Modal
-        visible={picker}
-        animationType="slide"
-        presentationStyle="pageSheet"
-      >
-        <SafeAreaView style={s.modal}>
-          <View style={s.modalHead}>
-            <Text style={s.title}>Exercise Library</Text>
-            <Pressable onPress={() => setPicker(false)}>
-              <Text style={s.blueButtonText}>Done</Text>
-            </Pressable>
-          </View>
-          <TextInput
-            value={search}
-            onChangeText={setSearch}
-            placeholder="Search exercises or muscle"
-            placeholderTextColor="#636366"
-            style={s.search}
-          />
-          <ScrollView>
-            {filtered.map((x) => (
-              <Pressable
-                key={x.id}
-                style={s.libraryRow}
-                onPress={() => {
-                  mutate((n) => n.exercises.push(newExercise(x)));
-                  setPicker(false);
-                  setSearch('');
-                }}
-              >
-                <View>
-                  <Text style={s.h3}>{x.name}</Text>
-                  <Text style={s.sub}>{x.muscle}</Text>
-                </View>
-                <Ionicons name="add-circle" size={28} color={blue} />
-              </Pressable>
-            ))}
-          </ScrollView>
-        </SafeAreaView>
-      </Modal>
-    </>
   );
 }
 
@@ -337,15 +119,13 @@ function Stats({ history }: { history: Session[] }) {
     > = {};
     history.forEach((h) =>
       h.exercises.forEach((e) =>
-        e.sets
-          .filter((x) => x.done)
-          .forEach((x) => {
-            const w = Number(x.weight) || 0,
-              r = Number(x.reps) || 0,
-              v = epley(w, r);
-            if (!m[e.name] || v > m[e.name].oneRM)
-              m[e.name] = { name: e.name, oneRM: v, weight: w, reps: r };
-          }),
+        e.sets.filter(isSetComplete).forEach((x) => {
+          const w = Number(x.weight) || 0,
+            r = Number(x.reps) || 0,
+            v = epley(w, r);
+          if (!m[e.name] || v > m[e.name].oneRM)
+            m[e.name] = { name: e.name, oneRM: v, weight: w, reps: r };
+        }),
       ),
     );
     return Object.values(m).sort((a, b) => b.oneRM - a.oneRM);
@@ -355,7 +135,7 @@ function Stats({ history }: { history: Session[] }) {
   return (
     <ScrollView contentContainerStyle={s.content}>
       <Text style={s.eyebrow}>YOUR PROGRESS</Text>
-      <Text style={s.title}>Analytics</Text>
+      <Text style={s.title}>Progress</Text>
       <Text style={s.sub}>Volume and estimated strength records</Text>
       <GlassCard>
         <Text style={s.cardLabel}>TRAINING VOLUME</Text>
@@ -365,7 +145,12 @@ function Stats({ history }: { history: Session[] }) {
           ).toLocaleString()}{' '}
           <Text style={s.unit}>kg</Text>
         </Text>
-        <View style={s.bars}>
+        <View
+          accessibilityLabel={
+            'Recent workout volumes in kilograms: ' + vols.join(', ')
+          }
+          style={s.bars}
+        >
           {(vols.length ? vols : [0]).map((v, i) => (
             <View key={i} style={s.barCol}>
               <View
@@ -373,7 +158,8 @@ function Stats({ history }: { history: Session[] }) {
                   s.bar,
                   {
                     height: Math.max(4, (60 * v) / max),
-                    backgroundColor: i === vols.length - 1 ? blue : '#48484A',
+                    backgroundColor:
+                      i === vols.length - 1 ? blue : colors.secondary,
                   },
                 ]}
               />
@@ -404,28 +190,41 @@ function Stats({ history }: { history: Session[] }) {
           ))
         )}
       </GlassCard>
-      <GlassCard>
-        <Text style={s.h3}>Recent workouts</Text>
-        {history.length === 0 ? (
-          <Text style={s.sub}>
-            Finish your first workout to unlock analytics.
-          </Text>
-        ) : (
-          history.slice(0, 6).map((x) => (
-            <View key={x.id} style={s.history}>
-              <View>
-                <Text style={s.h3}>{x.name}</Text>
+      <Text style={s.section}>History</Text>
+      {history.length === 0 ? (
+        <GlassCard>
+          <Text style={s.sub}>Finish your first workout to see it here.</Text>
+        </GlassCard>
+      ) : (
+        history.map((workout) => (
+          <GlassCard key={workout.id}>
+            <Text style={s.h3}>{workout.name}</Text>
+            <Text style={s.sub}>
+              {new Date(
+                workout.finishedAt ?? workout.startedAt,
+              ).toLocaleString()}
+            </Text>
+            <Text style={s.sub}>
+              {duration(
+                (workout.finishedAt ?? workout.startedAt) - workout.startedAt,
+              )}{' '}
+              elapsed · {completedSetCount(workout)} sets ·{' '}
+              {volume(workout).toLocaleString()} kg
+            </Text>
+            {workout.exercises.map((exercise) => (
+              <View key={exercise.id} style={s.historyDetail}>
+                <Text style={s.h3}>{exercise.name}</Text>
                 <Text style={s.sub}>
-                  {new Date(x.finishedAt || x.startedAt).toLocaleDateString()}
+                  {exercise.sets
+                    .filter(isSetComplete)
+                    .map((set) => set.weight + ' kg × ' + set.reps)
+                    .join(' · ') || 'No completed sets'}
                 </Text>
               </View>
-              <Text style={s.value2}>
-                {Math.round(volume(x)).toLocaleString()} kg
-              </Text>
-            </View>
-          ))
-        )}
-      </GlassCard>
+            ))}
+          </GlassCard>
+        ))
+      )}
     </ScrollView>
   );
 }
@@ -452,11 +251,11 @@ function Profile({
     setTemplates(n);
     setSelected([]);
     setName('My Workout');
-    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    successHaptic();
   };
   return (
     <ScrollView contentContainerStyle={s.content}>
-      <Text style={s.eyebrow}>ACCOUNT & TEMPLATES</Text>
+      <Text style={s.eyebrow}>YOUR TEMPLATES</Text>
       <View style={s.profile}>
         <View style={s.bigAvatar}>
           <Ionicons name="person" size={34} color={white} />
@@ -507,7 +306,11 @@ function Profile({
                   setTemplates(templates.filter((x) => x.id !== t.id))
                 }
               >
-                <Ionicons name="trash-outline" size={20} color="#FF453A" />
+                <Ionicons
+                  name="trash-outline"
+                  size={20}
+                  color={colors.danger}
+                />
               </Pressable>
             )}
           </View>
@@ -518,297 +321,282 @@ function Profile({
 }
 
 export default function App() {
+  const [store] = useState(
+    () => new WorkoutStore(new WorkoutRepository(AsyncStorage)),
+  );
+  const { data, ready, busy, error } = useSyncExternalStore(
+    store.subscribe,
+    store.getSnapshot,
+  );
   const [tab, setTab] = useState('home');
-  const [session, setSessionState] = useState<Session | null>(null);
-  const [history, setHistory] = useState<Session[]>([]);
-  const [templates, setTemplatesState] = useState<Template[]>(defaultTemplates);
+  const [summary, setSummary] = useState<Session | null>(null);
+  const [confirmFinish, setConfirmFinish] = useState(false);
   useEffect(() => {
-    Promise.all([
-      AsyncStorage.getItem('fitflow_history'),
-      AsyncStorage.getItem('fitflow_active'),
-      AsyncStorage.getItem('fitflow_templates'),
-    ])
-      .then(([h, a, t]) => {
-        if (h) setHistory(JSON.parse(h));
-        if (a) setSessionState(JSON.parse(a));
-        if (t) setTemplatesState(JSON.parse(t));
-      })
-      .catch(() => {});
-  }, []);
-  const setSession = (x: Session) => {
-    setSessionState(x);
-    AsyncStorage.setItem('fitflow_active', JSON.stringify(x));
+    void store.load();
+  }, [store]);
+  const startTemplate = (template: Template) => {
+    if (data.activeWorkout) {
+      setTab('workout');
+      return;
+    }
+    try {
+      store.start(template);
+      setTab('workout');
+    } catch (problem) {
+      Alert.alert('Cannot start workout', (problem as Error).message);
+    }
   };
-  const setTemplates = (x: Template[]) => {
-    setTemplatesState(x);
-    AsyncStorage.setItem('fitflow_templates', JSON.stringify(x));
+  const finish = async () => {
+    if (!data.activeWorkout || busy) return;
+    const completed = await store.finish();
+    if (!completed) return;
+    successHaptic();
+    setConfirmFinish(false);
+    setSummary(completed);
+    setTab('progress');
   };
-  const startTemplate = (t: Template) => {
-    const ex = t.exerciseIds
-      .map((id) => library.find((x) => x.id === id))
-      .filter(Boolean)
-      .map((x) => newExercise(x!));
-    const n = {
-      id: String(Date.now()),
-      name: t.name,
-      startedAt: Date.now(),
-      exercises: ex,
-    };
-    setSession(n);
-    setTab('workout');
-  };
-  const finish = () => {
-    if (!session) return;
-    const completed = { ...session, finishedAt: Date.now() };
-    const next = [completed, ...history];
-    setHistory(next);
-    AsyncStorage.setItem('fitflow_history', JSON.stringify(next));
-    AsyncStorage.removeItem('fitflow_active');
-    setSessionState(null);
-    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-    Alert.alert(
-      'Workout complete',
-      `${Math.round(volume(completed)).toLocaleString()} kg total volume saved.`,
-    );
-    setTab('stats');
-  };
-  const render =
-    tab === 'home' ? (
-      <Home
-        history={history}
-        startTemplate={startTemplate}
-        templates={templates}
-      />
-    ) : tab === 'workout' ? (
-      <Workout session={session} setSession={setSession} finish={finish} />
-    ) : tab === 'stats' ? (
-      <Stats history={history} />
-    ) : (
-      <Profile templates={templates} setTemplates={setTemplates} />
-    );
   return (
     <SafeAreaView style={s.root}>
-      <StatusBar style="light" />
-      {render}
-      <Dock active={tab} onChange={setTab} />
+      <StatusBar style="dark" />
+      <Confirmation
+        visible={confirmFinish}
+        title="Finish workout?"
+        message={
+          data.activeWorkout && workoutIsComplete(data.activeWorkout)
+            ? 'Save your completed workout to History and Progress?'
+            : 'Some sets are incomplete. Only completed sets count toward your progress.'
+        }
+        confirmLabel="Finish and save"
+        cancelLabel="Keep training"
+        busy={busy}
+        error={error}
+        onConfirm={() => {
+          void finish();
+        }}
+        onCancel={() => setConfirmFinish(false)}
+      />
+      {error ? (
+        <View style={s.notice} accessibilityRole="alert">
+          <Text style={s.sub}>{error}</Text>
+          <AppButton
+            title="Retry saving or loading"
+            secondary
+            disabled={busy}
+            onPress={() => {
+              void store.retry();
+            }}
+          />
+        </View>
+      ) : null}
+      {!ready ? (
+        <View style={s.empty}>
+          {busy ? <ActivityIndicator color={blue} /> : null}
+          <Text style={s.sub}>
+            {busy
+              ? 'Loading your workouts…'
+              : 'Saved workouts are unavailable. Retry above.'}
+          </Text>
+        </View>
+      ) : (
+        <>
+          {tab === 'home' ? (
+            <>
+              {data.activeWorkout && (
+                <View style={s.notice}>
+                  <AppButton
+                    title={'Resume ' + data.activeWorkout.name}
+                    onPress={() => setTab('workout')}
+                  />
+                </View>
+              )}
+              <Home
+                history={data.history}
+                templates={data.templates}
+                startTemplate={startTemplate}
+              />
+            </>
+          ) : tab === 'workout' ? (
+            <Workout
+              session={data.activeWorkout}
+              history={data.history}
+              update={(transform) => store.updateWorkout(transform)}
+              finish={() => setConfirmFinish(true)}
+              busy={busy}
+            />
+          ) : tab === 'progress' ? (
+            <>
+              {summary && (
+                <View style={s.notice}>
+                  <Text style={s.h3}>Workout saved</Text>
+                  <Text style={s.sub}>
+                    {completedSetCount(summary)} sets ·{' '}
+                    {volume(summary).toLocaleString()} kg ·{' '}
+                    {duration(
+                      (summary.finishedAt ?? summary.startedAt) -
+                        summary.startedAt,
+                    )}
+                  </Text>
+                  <AppButton
+                    title="Done"
+                    secondary
+                    onPress={() => setSummary(null)}
+                  />
+                </View>
+              )}
+              <Stats history={data.history} />
+            </>
+          ) : (
+            <Profile
+              templates={data.templates}
+              setTemplates={(templates) => store.setTemplates(templates)}
+            />
+          )}
+          <Dock active={tab} onChange={setTab} />
+        </>
+      )}
     </SafeAreaView>
   );
 }
-
 const s = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#000' },
-  content: { padding: 20, paddingBottom: 120, gap: 12 },
-  empty: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 10 },
-  eyebrow: {
-    fontSize: 11,
-    color: '#8E8E93',
-    fontWeight: '700',
-    letterSpacing: 1.2,
-    marginTop: 4,
+  root: { flex: 1, backgroundColor: colors.background },
+  content: { padding: spacing.md, gap: spacing.lg },
+  notice: { padding: spacing.md, gap: spacing.xs },
+  empty: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.sm,
   },
+  eyebrow: { ...typography.caption, color: colors.textSecondary },
   head: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 8,
+    gap: spacing.xs,
   },
-  title: { fontSize: 30, fontWeight: '700', color: white, letterSpacing: -0.6 },
-  sub: { fontSize: 14, color: secondary, marginTop: 3, lineHeight: 21 },
+  title: { ...typography.largeTitle, color: colors.textPrimary },
+  sub: { ...typography.footnote, color: colors.textSecondary },
   avatar: {
-    width: 42,
-    height: 42,
-    borderRadius: 21,
-    backgroundColor: '#1C1C1E',
+    flexShrink: 0,
+    width: 44,
+    height: 44,
+    borderRadius: radius.pill,
+    backgroundColor: colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
   },
   bigAvatar: {
-    width: 82,
-    height: 82,
-    borderRadius: 41,
-    backgroundColor: '#1C1C1E',
+    width: 80,
+    height: 80,
+    borderRadius: radius.pill,
+    backgroundColor: colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 12,
+    marginBottom: spacing.sm,
   },
-  profile: { alignItems: 'center', paddingVertical: 16 },
-  row: { flexDirection: 'row', gap: 12 },
+  profile: { alignItems: 'center', paddingVertical: spacing.md },
+  row: { flexDirection: 'row', gap: spacing.sm },
   cardLabel: {
-    fontSize: 11,
-    color: secondary,
-    fontWeight: '700',
-    letterSpacing: 0.8,
-    marginBottom: 8,
+    ...typography.caption,
+    color: colors.textSecondary,
+    marginBottom: spacing.xs,
   },
-  big: { fontSize: 34, color: white, fontWeight: '700', letterSpacing: -1 },
-  metric: { fontSize: 26, color: white, fontWeight: '700', marginBottom: 6 },
-  unit: { fontSize: 14, color: secondary, fontWeight: '500' },
-  green: { fontSize: 12, color: green, fontWeight: '600' },
+  big: {
+    ...typography.largeTitle,
+    color: colors.textPrimary,
+    fontVariant: ['tabular-nums'],
+  },
+  metric: {
+    ...typography.title1,
+    color: colors.textPrimary,
+    fontVariant: ['tabular-nums'],
+    marginBottom: spacing.xs,
+  },
+  unit: { ...typography.footnote, color: colors.textSecondary },
+  green: { ...typography.caption, color: colors.textSecondary },
   quick: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    gap: 10,
+    gap: spacing.sm,
   },
-  blueText: {
-    color: blue,
-    fontSize: 11,
-    fontWeight: '700',
-    letterSpacing: 0.8,
-  },
-  blueButtonText: { color: blue, fontSize: 16, fontWeight: '700' },
-  h3: { fontSize: 17, color: white, fontWeight: '600' },
+  blueText: { ...typography.caption, color: colors.primary },
+  blueButtonText: { ...typography.headline, color: colors.primary },
+  h3: { ...typography.headline, color: colors.textPrimary },
   play: {
-    width: 54,
-    height: 54,
-    borderRadius: 27,
-    backgroundColor: blue,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  section: { fontSize: 20, color: white, fontWeight: '700', marginTop: 12 },
-  timer: {
-    paddingHorizontal: 14,
-    paddingVertical: 9,
-    borderRadius: 20,
-    backgroundColor: 'rgba(255,149,0,.14)',
-  },
-  timerText: {
-    color: '#FF9F0A',
-    fontWeight: '700',
-    fontVariant: ['tabular-nums'],
-  },
-  exerciseHead: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 12,
-  },
-  pr: { color: '#FF9F0A', fontSize: 11, fontWeight: '700' },
-  labels: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 10,
-    gap: 8,
-  },
-  mini: { width: 36, fontSize: 9, color: '#636366', fontWeight: '700' },
-  setRow: {
+    width: 56,
     height: 56,
-    borderRadius: 16,
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 8,
-    paddingHorizontal: 10,
-    backgroundColor: 'rgba(255,255,255,.04)',
-    gap: 8,
-  },
-  done: { backgroundColor: 'rgba(48,209,88,.08)' },
-  setNum: { width: 28, color: white, fontWeight: '700' },
-  input: {
-    flex: 1,
-    height: 40,
-    borderRadius: 12,
-    backgroundColor: 'rgba(255,255,255,.06)',
-    color: white,
-    textAlign: 'center',
-    fontSize: 16,
-    fontWeight: '700',
-  },
-  check: {
-    width: 40,
-    height: 40,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: 'rgba(10,132,255,.4)',
+    borderRadius: radius.pill,
+    backgroundColor: colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  checked: { backgroundColor: green, borderColor: green },
-  add: {
-    height: 44,
-    alignItems: 'center',
-    justifyContent: 'center',
-    flexDirection: 'row',
-    gap: 6,
-  },
+  section: { ...typography.title3, color: colors.textPrimary },
+  pr: { ...typography.caption, color: colors.textSecondary },
   finish: {
-    height: 58,
-    borderRadius: 29,
-    backgroundColor: blue,
+    minHeight: 56,
+    borderRadius: 16,
+    paddingHorizontal: 20,
+    paddingVertical: spacing.sm,
+    backgroundColor: colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
-    flexDirection: 'row',
-    gap: 8,
-    marginTop: 8,
   },
-  secondaryButton: {
-    height: 54,
-    borderRadius: 27,
-    borderWidth: 1,
-    borderColor: 'rgba(10,132,255,.4)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    flexDirection: 'row',
-    gap: 8,
-  },
-  primaryText: { color: white, fontSize: 16, fontWeight: '700' },
-  hint: { fontSize: 11, color: '#636366', textAlign: 'center' },
+  primaryText: { ...typography.headline, color: colors.surface },
   bars: {
-    height: 85,
+    height: 88,
     flexDirection: 'row',
     alignItems: 'flex-end',
     justifyContent: 'space-around',
-    marginTop: 12,
+    marginTop: spacing.sm,
   },
   barCol: {
-    height: 85,
+    height: 88,
     alignItems: 'center',
     justifyContent: 'flex-end',
-    gap: 5,
+    gap: spacing.xxs,
   },
-  bar: { width: 24, borderRadius: 6 },
-  day: { fontSize: 10, color: '#636366' },
+  bar: { width: 24, borderRadius: radius.sm },
+  day: { ...typography.caption, color: colors.textSecondary },
   history: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.xs,
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 13,
+    paddingVertical: spacing.sm,
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255,255,255,.06)',
+    borderBottomColor: colors.separator,
   },
-  value2: { color: white, fontWeight: '700' },
-  modal: { flex: 1, backgroundColor: '#000', padding: 20 },
-  modalHead: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 16,
+  historyDetail: { marginTop: spacing.sm },
+  value2: {
+    ...typography.headline,
+    color: colors.textPrimary,
+    fontVariant: ['tabular-nums'],
   },
   search: {
-    height: 48,
-    borderRadius: 16,
-    backgroundColor: '#1C1C1E',
-    color: white,
-    paddingHorizontal: 16,
-    fontSize: 16,
-    marginVertical: 12,
+    ...typography.body,
+    minHeight: 48,
+    borderRadius: radius.md,
+    backgroundColor: colors.surfaceSubtle,
+    color: colors.textPrimary,
+    paddingHorizontal: spacing.md,
+    marginVertical: spacing.sm,
   },
-  libraryRow: {
+  chips: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#1C1C1E',
+    flexWrap: 'wrap',
+    gap: spacing.xs,
+    marginVertical: spacing.sm,
   },
-  chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginVertical: 10 },
   chip: {
-    paddingHorizontal: 12,
-    paddingVertical: 9,
-    borderRadius: 18,
-    backgroundColor: '#1C1C1E',
-    borderWidth: 1,
-    borderColor: '#2C2C2E',
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.sm,
+    minHeight: 44,
+    borderRadius: radius.pill,
+    backgroundColor: colors.surfaceSubtle,
+    justifyContent: 'center',
   },
-  chipOn: { backgroundColor: blue, borderColor: blue },
-  chipText: { fontSize: 12, color: secondary, fontWeight: '600' },
+  chipOn: { backgroundColor: colors.primary },
+  chipText: { ...typography.caption, color: colors.textSecondary },
 });
