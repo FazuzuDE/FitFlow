@@ -1,0 +1,13 @@
+{
+  "expo": {
+    "name": "FitFlow",
+    "slug": "fitflow",
+    "version": "0.3.0",
+    "orientation": "portrait",
+    "scheme": "fitflow",
+    "userInterfaceStyle": "dark",
+    "plugins": ["expo-router"],
+    "ios": { "supportsTablet": false, "bundleIdentifier": "com.fitflow.app" },
+    "android": { "package": "com.fitflow.app" }
+  }
+}
