@@ -5,7 +5,7 @@
     "version": "0.3.0",
     "orientation": "portrait",
     "scheme": "fitflow",
-    "userInterfaceStyle": "dark",
+    "userInterfaceStyle": "light",
     "plugins": ["expo-router"],
     "ios": { "supportsTablet": false, "bundleIdentifier": "com.fitflow.app" },
     "android": { "package": "com.fitflow.app" }

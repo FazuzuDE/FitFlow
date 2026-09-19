@@ -1,10 +1,11 @@
 import { BlurView } from 'expo-blur';
 import { Ionicons } from '@expo/vector-icons';
 import { Pressable, StyleSheet, Text } from 'react-native';
+import { colors, radius, spacing, typography } from '@/lib/theme';
 const tabs = [
   ['home', 'Home', 'home-outline'],
   ['workout', 'Workout', 'barbell-outline'],
-  ['stats', 'Stats', 'stats-chart-outline'],
+  ['progress', 'Progress', 'stats-chart-outline'],
   ['profile', 'Profile', 'person-outline'],
 ] as const;
 export function Dock({
@@ -12,22 +13,24 @@ export function Dock({
   onChange,
 }: {
   active: string;
-  onChange: (x: string) => void;
+  onChange: (tab: string) => void;
 }) {
   return (
-    <BlurView intensity={45} tint="dark" style={s.dock}>
+    <BlurView intensity={25} tint="light" style={s.dock}>
       {tabs.map(([id, label, icon]) => (
         <Pressable
           key={id}
+          accessibilityRole="tab"
+          accessibilityState={{ selected: active === id }}
           onPress={() => onChange(id)}
-          style={[s.item, active === id && s.active]}
+          style={s.item}
         >
           <Ionicons
-            name={icon as any}
-            size={22}
-            color={active === id ? '#0A84FF' : '#8E8E93'}
+            name={icon}
+            size={24}
+            color={active === id ? colors.primary : colors.textSecondary}
           />
-          <Text style={[s.label, active === id && s.blue]}>{label}</Text>
+          <Text style={[s.label, active === id && s.selected]}>{label}</Text>
         </Pressable>
       ))}
     </BlurView>
@@ -35,27 +38,21 @@ export function Dock({
 }
 const s = StyleSheet.create({
   dock: {
-    position: 'absolute',
-    bottom: 22,
-    left: 61,
-    right: 61,
-    height: 64,
-    borderRadius: 28,
-    overflow: 'hidden',
     flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-around',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,.12)',
+    backgroundColor: colors.surface,
+    borderRadius: radius.xl,
+    overflow: 'hidden',
+    marginHorizontal: spacing.md,
+    marginBottom: spacing.xs,
   },
   item: {
-    width: 58,
-    height: 50,
-    borderRadius: 18,
+    flex: 1,
+    minHeight: 64,
+    minWidth: 44,
+    paddingVertical: spacing.xs,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  active: { backgroundColor: 'rgba(10,132,255,.12)' },
-  label: { fontSize: 10, color: '#8E8E93', marginTop: 3, fontWeight: '600' },
-  blue: { color: '#0A84FF' },
+  label: { ...typography.caption, color: colors.textSecondary },
+  selected: { color: colors.primary },
 });
