@@ -1,12 +1,19 @@
 type VolumeSession = {
-  exercises: { sets: { weight: string; reps: string; done: boolean }[] }[];
+  exercises: {
+    sets: {
+      weight: string;
+      reps: string;
+      completedAt?: number;
+      done?: boolean;
+    }[];
+  }[];
 };
 
 // Preserve v0.3 calculations while moving them behind a testable boundary.
 export const volume = (session: VolumeSession): number =>
   session.exercises
     .flatMap((exercise) => exercise.sets)
-    .filter((set) => set.done)
+    .filter((set) => typeof set.completedAt === 'number' || set.done === true)
     .reduce(
       (total, set) =>
         total + (Number(set.weight) || 0) * (Number(set.reps) || 0),

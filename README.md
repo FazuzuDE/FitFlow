@@ -10,6 +10,16 @@
 - Workout volume chart and recent history
 - Active workout persistence, editable sets, rest timer, haptics
 
+## Workout Core
+
+Start a template, enter weight/reps, complete sets, use the rest timer, move
+between exercises, and confirm Finish to save into History/Progress.
+Active sessions recover after reopening. History is shown under Progress with
+completed set details, total volume and explicitly estimated 1RM.
+
+The Core implementation uses the approved [design system](./docs/DESIGN_SYSTEM.md).
+See [workout verification and storage notes](./docs/WORKOUT_CORE.md).
+
 ## Run
 
 ```bash
