@@ -3,10 +3,13 @@ import {
   addSet,
   appendExercise,
   completedSetCount,
+  createExercise,
+  exerciseIdsMatch,
   extendRest,
   finishWorkout,
   remainingRestSeconds,
   removeSet,
+  resolveTemplateExercises,
   restartRest,
   setCurrentExercise,
   setInputIsValid,
@@ -45,6 +48,55 @@ const logSet = (session = start(), ei = 0, si = 0, now = 2000) =>
   ).session;
 
 describe('workout engine', () => {
+  it('resolves legacy template ids to canonical snapshot ids', () => {
+    const session = startWorkout(
+      { id: 'legacy', name: 'Legacy', exerciseIds: ['bench', 'row'] },
+      exerciseLibrary,
+      1000,
+    );
+
+    expect(session.exercises.map((item) => item.libraryId)).toEqual([
+      'barbell-bench-press',
+      'seated-cable-row',
+    ]);
+  });
+
+  it('resolves mixed templates in source order and skips unknown ids', () => {
+    expect(
+      resolveTemplateExercises(
+        {
+          id: 'mixed',
+          name: 'Mixed',
+          exerciseIds: ['bench', 'lat-pulldown', 'unknown', 'row'],
+        },
+        exerciseLibrary,
+      ).map((item) => item.id),
+    ).toEqual(['barbell-bench-press', 'lat-pulldown', 'seated-cable-row']);
+  });
+
+  it('snapshots canonical catalog metadata without live joins', () => {
+    const catalogExercise = {
+      ...exerciseLibrary[0],
+      primaryMuscles: [...exerciseLibrary[0].primaryMuscles],
+    };
+    const snapshot = createExercise(catalogExercise, () => 'snapshot-id');
+
+    catalogExercise.name = 'Renamed later';
+    catalogExercise.primaryMuscles[0] = 'triceps';
+
+    expect(snapshot).toMatchObject({
+      libraryId: 'barbell-bench-press',
+      name: 'Barbell Bench Press',
+      muscle: 'Chest',
+    });
+  });
+
+  it('matches legacy history ids against canonical catalog ids', () => {
+    expect(exerciseIdsMatch('bench', 'barbell-bench-press')).toBe(true);
+    expect(exerciseIdsMatch('bench', 'barbell-back-squat')).toBe(false);
+    expect(exerciseIdsMatch('custom-id', 'custom-id')).toBe(true);
+  });
+
   it('starts isolated snapshots and leaves the catalog untouched', () => {
     const one = start(),
       two = start();
@@ -130,6 +182,40 @@ describe('workout engine', () => {
 });
 
 describe('local persistence and migration', () => {
+  it('loads schema-v1 legacy template ids without rewriting storage', async () => {
+    const storage = memoryStorage();
+    const raw = JSON.stringify({
+      schemaVersion: 1,
+      activeWorkout: null,
+      history: [],
+      templates: [
+        { id: 'legacy', name: 'Legacy', exerciseIds: ['bench', 'row'] },
+      ],
+    });
+    storage.values.set(STATE_KEY, raw);
+
+    const state = await new WorkoutRepository(storage).load();
+
+    expect(state.templates[0].exerciseIds).toEqual(['bench', 'row']);
+    expect(storage.values.get(STATE_KEY)).toBe(raw);
+    expect(storage.setItem).not.toHaveBeenCalled();
+  });
+
+  it('rejects a template when none of its exercise ids are available', async () => {
+    const storage = memoryStorage();
+    const store = new WorkoutStore(new WorkoutRepository(storage));
+    await store.load();
+
+    expect(() =>
+      store.start({
+        id: 'unknown',
+        name: 'Unknown',
+        exerciseIds: ['not-in-catalog'],
+      }),
+    ).toThrow('This template has no available exercises.');
+    expect(store.getSnapshot().data.activeWorkout).toBeNull();
+  });
+
   it('runs Start → sets → rest → next → Finish → reload → History/Progress', async () => {
     const storage = memoryStorage();
     const store = new WorkoutStore(new WorkoutRepository(storage));

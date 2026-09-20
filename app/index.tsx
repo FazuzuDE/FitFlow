@@ -17,6 +17,7 @@ import { GlassCard } from '@/components/GlassCard';
 import { Dock } from '@/components/Dock';
 import { AppButton } from '@/components/AppButton';
 import { Confirmation } from '@/components/Confirmation';
+import { ExerciseLibrary } from '@/components/ExerciseLibrary';
 import { Workout, duration, successHaptic } from '@/components/Workout';
 import { volume, epley } from '@/lib/workout-metrics';
 import { completedSetCount, workoutIsComplete } from '@/lib/workout-engine';
@@ -29,6 +30,7 @@ import {
   defaultTemplates,
   exerciseLibrary as library,
 } from '@/lib/workout-catalog';
+import { findExercise } from '@/lib/exercise-library';
 import { WorkoutRepository } from '@/lib/workout-repository';
 import { WorkoutStore } from '@/lib/workout-store';
 import { colors, radius, spacing, typography } from '@/lib/theme';
@@ -92,7 +94,10 @@ function Home({
               <Text style={s.sub}>
                 {t.exerciseIds
                   .slice(0, 3)
-                  .map((id) => library.find((x) => x.id === id)?.name)
+                  .flatMap((id) => {
+                    const exercise = findExercise(id);
+                    return exercise ? [exercise.name] : [];
+                  })
                   .join(' · ')}
               </Text>
             </View>
@@ -237,6 +242,7 @@ function Profile({
 }) {
   const [name, setName] = useState('My Workout');
   const [selected, setSelected] = useState<string[]>([]);
+  const [libraryOpen, setLibraryOpen] = useState(false);
   const save = () => {
     if (!selected.length)
       return Alert.alert('Choose exercises', 'Select at least one exercise.');
@@ -254,69 +260,75 @@ function Profile({
     successHaptic();
   };
   return (
-    <ScrollView contentContainerStyle={s.content}>
-      <Text style={s.eyebrow}>YOUR TEMPLATES</Text>
-      <View style={s.profile}>
-        <View style={s.bigAvatar}>
-          <Ionicons name="person" size={34} color={white} />
-        </View>
-        <Text style={s.title}>FitFlow</Text>
-        <Text style={s.sub}>Local MVP · v0.3.0</Text>
-      </View>
-      <GlassCard>
-        <Text style={s.h3}>Create workout template</Text>
-        <TextInput value={name} onChangeText={setName} style={s.search} />
-        <View style={s.chips}>
-          {library.map((x) => {
-            const on = selected.includes(x.id);
-            return (
-              <Pressable
-                key={x.id}
-                onPress={() =>
-                  setSelected(
-                    on
-                      ? selected.filter((i) => i !== x.id)
-                      : [...selected, x.id],
-                  )
-                }
-                style={[s.chip, on && s.chipOn]}
-              >
-                <Text style={[s.chipText, on && { color: white }]}>
-                  {x.name}
-                </Text>
-              </Pressable>
-            );
-          })}
-        </View>
-        <Pressable onPress={save} style={s.finish}>
-          <Text style={s.primaryText}>Save Template</Text>
-        </Pressable>
-      </GlassCard>
-      <GlassCard>
-        <Text style={s.h3}>Saved templates</Text>
-        {templates.map((t) => (
-          <View key={t.id} style={s.history}>
-            <View>
-              <Text style={s.h3}>{t.name}</Text>
-              <Text style={s.sub}>{t.exerciseIds.length} exercises</Text>
-            </View>
-            {!defaultTemplates.some((d) => d.id === t.id) && (
-              <Pressable
-                onPress={() =>
-                  setTemplates(templates.filter((x) => x.id !== t.id))
-                }
-              >
-                <Ionicons
-                  name="trash-outline"
-                  size={20}
-                  color={colors.danger}
-                />
-              </Pressable>
-            )}
+    <>
+      <ExerciseLibrary
+        visible={libraryOpen}
+        onClose={() => setLibraryOpen(false)}
+        selectedIds={selected}
+        onToggle={(id) =>
+          setSelected((current) =>
+            current.includes(id)
+              ? current.filter((item) => item !== id)
+              : [...current, id],
+          )
+        }
+      />
+      <ScrollView contentContainerStyle={s.content}>
+        <Text style={s.eyebrow}>YOUR TEMPLATES</Text>
+        <View style={s.profile}>
+          <View style={s.bigAvatar}>
+            <Ionicons name="person" size={34} color={white} />
           </View>
-        ))}
-      </GlassCard>
-    </ScrollView>
+          <Text style={s.title}>FitFlow</Text>
+          <Text style={s.sub}>Local MVP · v0.3.0</Text>
+        </View>
+        <GlassCard>
+          <Text style={s.h3}>Create workout template</Text>
+          <TextInput value={name} onChangeText={setName} style={s.search} />
+          {selected.length ? (
+            <View style={s.selectedExercises}>
+              {selected.map((id) => (
+                <Text key={id} style={s.sub}>
+                  {library.find((item) => item.id === id)?.name ?? id}
+                </Text>
+              ))}
+            </View>
+          ) : (
+            <Text style={s.sub}>No exercises selected.</Text>
+          )}
+          <AppButton
+            title="Choose exercises"
+            secondary
+            onPress={() => setLibraryOpen(true)}
+          />
+          <AppButton title="Save Template" onPress={save} />
+        </GlassCard>
+        <GlassCard>
+          <Text style={s.h3}>Saved templates</Text>
+          {templates.map((t) => (
+            <View key={t.id} style={s.history}>
+              <View>
+                <Text style={s.h3}>{t.name}</Text>
+                <Text style={s.sub}>{t.exerciseIds.length} exercises</Text>
+              </View>
+              {!defaultTemplates.some((d) => d.id === t.id) && (
+                <Pressable
+                  onPress={() =>
+                    setTemplates(templates.filter((x) => x.id !== t.id))
+                  }
+                >
+                  <Ionicons
+                    name="trash-outline"
+                    size={20}
+                    color={colors.danger}
+                  />
+                </Pressable>
+              )}
+            </View>
+          ))}
+        </GlassCard>
+      </ScrollView>
+    </>
   );
 }
 
@@ -533,16 +545,6 @@ const s = StyleSheet.create({
   },
   section: { ...typography.title3, color: colors.textPrimary },
   pr: { ...typography.caption, color: colors.textSecondary },
-  finish: {
-    minHeight: 56,
-    borderRadius: 16,
-    paddingHorizontal: 20,
-    paddingVertical: spacing.sm,
-    backgroundColor: colors.primary,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  primaryText: { ...typography.headline, color: colors.surface },
   bars: {
     height: 88,
     flexDirection: 'row',
@@ -583,20 +585,5 @@ const s = StyleSheet.create({
     paddingHorizontal: spacing.md,
     marginVertical: spacing.sm,
   },
-  chips: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: spacing.xs,
-    marginVertical: spacing.sm,
-  },
-  chip: {
-    paddingHorizontal: spacing.sm,
-    paddingVertical: spacing.sm,
-    minHeight: 44,
-    borderRadius: radius.pill,
-    backgroundColor: colors.surfaceSubtle,
-    justifyContent: 'center',
-  },
-  chipOn: { backgroundColor: colors.primary },
-  chipText: { ...typography.caption, color: colors.textSecondary },
+  selectedExercises: { gap: spacing.xxs, marginVertical: spacing.sm },
 });

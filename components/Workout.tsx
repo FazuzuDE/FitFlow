@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from 'react';
 import {
   AppState,
   KeyboardAvoidingView,
-  Modal,
   Platform,
   Pressable,
   ScrollView,
@@ -11,16 +10,16 @@ import {
   TextInput,
   View,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
 import { GlassCard } from './GlassCard';
 import { AppButton } from './AppButton';
 import { Confirmation } from './Confirmation';
-import { exerciseLibrary } from '@/lib/workout-catalog';
+import { ExerciseLibrary } from './ExerciseLibrary';
 import {
   addSet,
   appendExercise,
   completedSetCount,
+  exerciseIdsMatch,
   extendRest,
   remainingRestSeconds,
   removeSet,
@@ -63,7 +62,6 @@ export function Workout({
 }) {
   const [now, setNow] = useState(Date.now());
   const [picker, setPicker] = useState(false);
-  const [search, setSearch] = useState('');
   const [inputError, setInputError] = useState('');
   const [removeIndex, setRemoveIndex] = useState<number | null>(null);
   const notified = useRef<number | undefined>(undefined);
@@ -101,7 +99,7 @@ export function Workout({
     exercise &&
     history
       .flatMap((item) => item.exercises)
-      .find((item) => item.libraryId === exercise.libraryId)
+      .find((item) => exerciseIdsMatch(item.libraryId, exercise.libraryId))
       ?.sets.filter(isSetComplete);
   const toggle = (setIndex: number) => {
     try {
@@ -319,50 +317,14 @@ export function Workout({
           onPress={finish}
         />
       </ScrollView>
-      <Modal
+      <ExerciseLibrary
         visible={picker}
-        animationType="slide"
-        presentationStyle="pageSheet"
-        onRequestClose={() => setPicker(false)}
-      >
-        <SafeAreaView style={s.modal}>
-          <AppButton
-            title="Close library"
-            secondary
-            onPress={() => setPicker(false)}
-          />
-          <TextInput
-            accessibilityLabel="Search exercise library"
-            style={s.search}
-            placeholder="Search exercises"
-            placeholderTextColor={colors.textTertiary}
-            value={search}
-            onChangeText={setSearch}
-          />
-          <ScrollView keyboardShouldPersistTaps="handled">
-            {exerciseLibrary
-              .filter((item) =>
-                (item.name + item.muscle)
-                  .toLowerCase()
-                  .includes(search.toLowerCase()),
-              )
-              .map((item) => (
-                <Pressable
-                  key={item.id}
-                  style={s.libraryRow}
-                  onPress={() => {
-                    update((current) => appendExercise(current, item));
-                    setPicker(false);
-                    setSearch('');
-                  }}
-                >
-                  <Text style={s.body}>{item.name}</Text>
-                  <Text style={s.sub}>{item.muscle} · Add</Text>
-                </Pressable>
-              ))}
-          </ScrollView>
-        </SafeAreaView>
-      </Modal>
+        onClose={() => setPicker(false)}
+        onAdd={(item) => {
+          update((current) => appendExercise(current, item));
+          setPicker(false);
+        }}
+      />
     </KeyboardAvoidingView>
   );
 }
@@ -432,15 +394,4 @@ const s = StyleSheet.create({
     color: colors.primary,
   },
   actions: { gap: spacing.xs },
-  modal: { flex: 1, padding: spacing.md, backgroundColor: colors.background },
-  search: {
-    ...typography.body,
-    padding: spacing.md,
-    color: colors.textPrimary,
-  },
-  libraryRow: {
-    paddingVertical: spacing.md,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.separator,
-  },
 });
