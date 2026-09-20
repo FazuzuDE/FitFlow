@@ -1,30 +1,33 @@
-import { LibraryExercise, WorkoutTemplate } from './workout-model';
+import { exerciseLibrary } from './exercise-library';
+import { WorkoutTemplate } from './workout-model';
 
-export const exerciseLibrary: LibraryExercise[] = [
-  { id: 'bench', name: 'Barbell Bench Press', muscle: 'Chest' },
-  { id: 'incline', name: 'Incline Dumbbell Press', muscle: 'Chest' },
-  { id: 'row', name: 'Seated Cable Row', muscle: 'Back' },
-  { id: 'pulldown', name: 'Lat Pulldown', muscle: 'Back' },
-  { id: 'press', name: 'Shoulder Press', muscle: 'Shoulders' },
-  { id: 'lateral', name: 'Lateral Raise', muscle: 'Shoulders' },
-  { id: 'squat', name: 'Barbell Squat', muscle: 'Legs' },
-  { id: 'legpress', name: 'Leg Press', muscle: 'Legs' },
-  { id: 'deadlift', name: 'Deadlift', muscle: 'Back' },
-  { id: 'curl', name: 'Biceps Curl', muscle: 'Arms' },
-  { id: 'triceps', name: 'Triceps Pushdown', muscle: 'Arms' },
-  { id: 'calf', name: 'Standing Calf Raise', muscle: 'Legs' },
-];
+export { exerciseLibrary };
 
 export const defaultTemplates: WorkoutTemplate[] = [
   {
     id: 'upper',
     name: 'Upper Body',
-    exerciseIds: ['bench', 'row', 'press', 'pulldown'],
+    exerciseIds: [
+      'barbell-bench-press',
+      'seated-cable-row',
+      'dumbbell-shoulder-press',
+      'lat-pulldown',
+    ],
   },
   {
     id: 'push',
     name: 'Push Day',
-    exerciseIds: ['bench', 'incline', 'press', 'lateral', 'triceps'],
+    exerciseIds: [
+      'barbell-bench-press',
+      'incline-dumbbell-press',
+      'dumbbell-shoulder-press',
+      'dumbbell-lateral-raise',
+      'cable-triceps-pushdown',
+    ],
   },
-  { id: 'legs', name: 'Leg Day', exerciseIds: ['squat', 'legpress', 'calf'] },
+  {
+    id: 'legs',
+    name: 'Leg Day',
+    exerciseIds: ['barbell-back-squat', 'leg-press', 'standing-calf-raise'],
+  },
 ];

@@ -21,6 +21,7 @@ import {
   addSet,
   appendExercise,
   completedSetCount,
+  exerciseIdsMatch,
   extendRest,
   remainingRestSeconds,
   removeSet,
@@ -34,6 +35,7 @@ import {
 } from '@/lib/workout-engine';
 import { isSetComplete, WorkoutSession } from '@/lib/workout-model';
 import { volume } from '@/lib/workout-metrics';
+import { muscleLabel } from '@/lib/exercise-taxonomy';
 import { colors, radius, spacing, typography } from '@/lib/theme';
 
 export const successHaptic = () => {
@@ -101,7 +103,7 @@ export function Workout({
     exercise &&
     history
       .flatMap((item) => item.exercises)
-      .find((item) => item.libraryId === exercise.libraryId)
+      .find((item) => exerciseIdsMatch(item.libraryId, exercise.libraryId))
       ?.sets.filter(isSetComplete);
   const toggle = (setIndex: number) => {
     try {
@@ -342,7 +344,7 @@ export function Workout({
           <ScrollView keyboardShouldPersistTaps="handled">
             {exerciseLibrary
               .filter((item) =>
-                (item.name + item.muscle)
+                (item.name + muscleLabel(item.primaryMuscles[0]))
                   .toLowerCase()
                   .includes(search.toLowerCase()),
               )
@@ -357,7 +359,9 @@ export function Workout({
                   }}
                 >
                   <Text style={s.body}>{item.name}</Text>
-                  <Text style={s.sub}>{item.muscle} · Add</Text>
+                  <Text style={s.sub}>
+                    {muscleLabel(item.primaryMuscles[0])} · Add
+                  </Text>
                 </Pressable>
               ))}
           </ScrollView>

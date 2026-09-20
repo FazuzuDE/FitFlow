@@ -3,6 +3,8 @@ import {
   addSet,
   appendExercise,
   completedSetCount,
+  createExercise,
+  exerciseIdsMatch,
   extendRest,
   finishWorkout,
   remainingRestSeconds,
@@ -45,6 +47,42 @@ const logSet = (session = start(), ei = 0, si = 0, now = 2000) =>
   ).session;
 
 describe('workout engine', () => {
+  it('resolves legacy template ids to canonical snapshot ids', () => {
+    const session = startWorkout(
+      { id: 'legacy', name: 'Legacy', exerciseIds: ['bench', 'row'] },
+      exerciseLibrary,
+      1000,
+    );
+
+    expect(session.exercises.map((item) => item.libraryId)).toEqual([
+      'barbell-bench-press',
+      'seated-cable-row',
+    ]);
+  });
+
+  it('snapshots canonical catalog metadata without live joins', () => {
+    const catalogExercise = {
+      ...exerciseLibrary[0],
+      primaryMuscles: [...exerciseLibrary[0].primaryMuscles],
+    };
+    const snapshot = createExercise(catalogExercise, () => 'snapshot-id');
+
+    catalogExercise.name = 'Renamed later';
+    catalogExercise.primaryMuscles[0] = 'triceps';
+
+    expect(snapshot).toMatchObject({
+      libraryId: 'barbell-bench-press',
+      name: 'Barbell Bench Press',
+      muscle: 'Chest',
+    });
+  });
+
+  it('matches legacy history ids against canonical catalog ids', () => {
+    expect(exerciseIdsMatch('bench', 'barbell-bench-press')).toBe(true);
+    expect(exerciseIdsMatch('bench', 'barbell-back-squat')).toBe(false);
+    expect(exerciseIdsMatch('custom-id', 'custom-id')).toBe(true);
+  });
+
   it('starts isolated snapshots and leaves the catalog untouched', () => {
     const one = start(),
       two = start();

@@ -1,3 +1,9 @@
+import type {
+  EquipmentId,
+  MovementPatternId,
+  MuscleId,
+} from './exercise-taxonomy';
+
 export type WorkoutSet = {
   id: string;
   weight: string;
@@ -34,7 +40,11 @@ export type WorkoutTemplate = {
 export type LibraryExercise = {
   id: string;
   name: string;
-  muscle: string;
+  primaryMuscles: readonly MuscleId[];
+  secondaryMuscles: readonly MuscleId[];
+  equipment: readonly EquipmentId[];
+  movementPattern: MovementPatternId;
+  imageKey: string;
 };
 
 export type WorkoutState = {
