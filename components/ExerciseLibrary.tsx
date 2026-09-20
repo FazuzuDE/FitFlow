@@ -103,6 +103,7 @@ export function ExerciseLibrary({
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
+          style={s.filterScroller}
           contentContainerStyle={s.filters}
         >
           <FilterChip
@@ -126,6 +127,7 @@ export function ExerciseLibrary({
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
+          style={s.filterScroller}
           contentContainerStyle={s.filters}
         >
           <FilterChip
@@ -147,6 +149,7 @@ export function ExerciseLibrary({
 
         <ScrollView
           keyboardShouldPersistTaps="handled"
+          style={s.resultList}
           contentContainerStyle={s.results}
         >
           {results.length === 0 ? (
@@ -271,6 +274,7 @@ const s = StyleSheet.create({
     color: colors.textSecondary,
     marginTop: spacing.xs,
   },
+  filterScroller: { flexGrow: 0, flexShrink: 0 },
   filters: { gap: spacing.xs, paddingVertical: spacing.xs },
   filter: {
     minHeight: 44,
@@ -283,6 +287,7 @@ const s = StyleSheet.create({
   filterText: { ...typography.caption, color: colors.textSecondary },
   selectedFilterText: { color: colors.surface },
   results: { paddingVertical: spacing.sm, paddingBottom: spacing.xxl },
+  resultList: { flex: 1 },
   row: {
     minWidth: 0,
     flexDirection: 'row',

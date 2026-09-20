@@ -182,6 +182,40 @@ describe('workout engine', () => {
 });
 
 describe('local persistence and migration', () => {
+  it('loads schema-v1 legacy template ids without rewriting storage', async () => {
+    const storage = memoryStorage();
+    const raw = JSON.stringify({
+      schemaVersion: 1,
+      activeWorkout: null,
+      history: [],
+      templates: [
+        { id: 'legacy', name: 'Legacy', exerciseIds: ['bench', 'row'] },
+      ],
+    });
+    storage.values.set(STATE_KEY, raw);
+
+    const state = await new WorkoutRepository(storage).load();
+
+    expect(state.templates[0].exerciseIds).toEqual(['bench', 'row']);
+    expect(storage.values.get(STATE_KEY)).toBe(raw);
+    expect(storage.setItem).not.toHaveBeenCalled();
+  });
+
+  it('rejects a template when none of its exercise ids are available', async () => {
+    const storage = memoryStorage();
+    const store = new WorkoutStore(new WorkoutRepository(storage));
+    await store.load();
+
+    expect(() =>
+      store.start({
+        id: 'unknown',
+        name: 'Unknown',
+        exerciseIds: ['not-in-catalog'],
+      }),
+    ).toThrow('This template has no available exercises.');
+    expect(store.getSnapshot().data.activeWorkout).toBeNull();
+  });
+
   it('runs Start → sets → rest → next → Finish → reload → History/Progress', async () => {
     const storage = memoryStorage();
     const store = new WorkoutStore(new WorkoutRepository(storage));

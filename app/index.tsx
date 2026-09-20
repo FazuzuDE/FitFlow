@@ -30,6 +30,7 @@ import {
   defaultTemplates,
   exerciseLibrary as library,
 } from '@/lib/workout-catalog';
+import { findExercise } from '@/lib/exercise-library';
 import { WorkoutRepository } from '@/lib/workout-repository';
 import { WorkoutStore } from '@/lib/workout-store';
 import { colors, radius, spacing, typography } from '@/lib/theme';
@@ -93,7 +94,10 @@ function Home({
               <Text style={s.sub}>
                 {t.exerciseIds
                   .slice(0, 3)
-                  .map((id) => library.find((x) => x.id === id)?.name)
+                  .flatMap((id) => {
+                    const exercise = findExercise(id);
+                    return exercise ? [exercise.name] : [];
+                  })
                   .join(' · ')}
               </Text>
             </View>

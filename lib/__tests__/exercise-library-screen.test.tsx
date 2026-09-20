@@ -1,4 +1,5 @@
-import { Pressable, TextInput } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, TextInput } from 'react-native';
+import type { StyleProp, ViewStyle } from 'react-native';
 import type { ReactElement } from 'react';
 import { ExerciseLibrary } from '../../components/ExerciseLibrary';
 import { Workout } from '../../components/Workout';
@@ -11,6 +12,13 @@ import { Dock } from '../../components/Dock';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const { act, create } = jest.requireActual('react-test-renderer');
+type ScrollNode = {
+  props: {
+    horizontal?: boolean;
+    keyboardShouldPersistTaps?: string;
+    style?: StyleProp<ViewStyle>;
+  };
+};
 
 jest.mock('react-native-safe-area-context', () => ({
   SafeAreaView: jest.requireActual('react-native').View,
@@ -87,6 +95,28 @@ describe('ExerciseLibrary', () => {
 
     expect(resultLabels(view, 'Add Incline Dumbbell Press')).toHaveLength(1);
     expect(resultLabels(view, 'Add Barbell Bench Press')).toHaveLength(0);
+  });
+
+  it('keeps horizontal filters compact so the result list owns remaining height', () => {
+    const view = renderLibrary(
+      <ExerciseLibrary visible onClose={jest.fn()} onAdd={jest.fn()} />,
+    );
+    const scrollViews = view.root.findAllByType(ScrollView);
+    const horizontal = scrollViews.filter(
+      (node: ScrollNode) => node.props.horizontal,
+    );
+    const results = scrollViews.find(
+      (node: ScrollNode) => node.props.keyboardShouldPersistTaps === 'handled',
+    );
+
+    expect(horizontal).toHaveLength(2);
+    expect(
+      horizontal.every(
+        (node: ScrollNode) =>
+          StyleSheet.flatten(node.props.style).flexGrow === 0,
+      ),
+    ).toBe(true);
+    expect(StyleSheet.flatten(results?.props.style).flex).toBe(1);
   });
 
   it('adds an exercise and exposes controlled selection state', () => {
@@ -205,5 +235,33 @@ it('selects canonical exercises for a template without rendering the full catalo
     'barbell-bench-press',
     'seated-cable-row',
   ]);
+  act(() => view.unmount());
+});
+
+it('shows canonical exercise names for saved legacy templates on Home', async () => {
+  await AsyncStorage.clear();
+  await AsyncStorage.setItem(
+    'fitflow_state_v1',
+    JSON.stringify({
+      schemaVersion: 1,
+      activeWorkout: null,
+      history: [],
+      templates: [
+        {
+          id: 'legacy-template',
+          name: 'Legacy Template',
+          exerciseIds: ['bench', 'row'],
+        },
+      ],
+    }),
+  );
+  let view!: ReturnType<typeof create>;
+  await act(async () => {
+    view = create(<App />);
+  });
+
+  const rendered = JSON.stringify(view.toJSON());
+  expect(rendered).toContain('Barbell Bench Press');
+  expect(rendered).toContain('Seated Cable Row');
   act(() => view.unmount());
 });
