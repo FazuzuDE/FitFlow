@@ -31,6 +31,17 @@ export const createExercise = (
   })),
 });
 
+export const resolveTemplateExercises = (
+  template: WorkoutTemplate,
+  library: readonly LibraryExercise[],
+): LibraryExercise[] =>
+  template.exerciseIds
+    .map((id) => {
+      const canonicalId = canonicalExerciseId(id) ?? id;
+      return library.find((item) => item.id === canonicalId);
+    })
+    .filter((item): item is LibraryExercise => Boolean(item));
+
 export const startWorkout = (
   template: WorkoutTemplate,
   library: readonly LibraryExercise[],
@@ -43,13 +54,9 @@ export const startWorkout = (
   startedAt: now,
   currentExerciseIndex: 0,
   restDurationSeconds: 90,
-  exercises: template.exerciseIds
-    .map((id) => {
-      const canonicalId = canonicalExerciseId(id) ?? id;
-      return library.find((item) => item.id === canonicalId);
-    })
-    .filter((item): item is LibraryExercise => Boolean(item))
-    .map((item) => createExercise(item, idFactory)),
+  exercises: resolveTemplateExercises(template, library).map((item) =>
+    createExercise(item, idFactory),
+  ),
 });
 
 export const exerciseIdsMatch = (left: string, right: string): boolean =>

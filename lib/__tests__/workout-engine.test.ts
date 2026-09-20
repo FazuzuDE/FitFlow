@@ -9,6 +9,7 @@ import {
   finishWorkout,
   remainingRestSeconds,
   removeSet,
+  resolveTemplateExercises,
   restartRest,
   setCurrentExercise,
   setInputIsValid,
@@ -58,6 +59,19 @@ describe('workout engine', () => {
       'barbell-bench-press',
       'seated-cable-row',
     ]);
+  });
+
+  it('resolves mixed templates in source order and skips unknown ids', () => {
+    expect(
+      resolveTemplateExercises(
+        {
+          id: 'mixed',
+          name: 'Mixed',
+          exerciseIds: ['bench', 'lat-pulldown', 'unknown', 'row'],
+        },
+        exerciseLibrary,
+      ).map((item) => item.id),
+    ).toEqual(['barbell-bench-press', 'lat-pulldown', 'seated-cable-row']);
   });
 
   it('snapshots canonical catalog metadata without live joins', () => {
