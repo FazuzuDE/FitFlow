@@ -219,6 +219,7 @@ it('selects canonical exercises for a template without rendering the full catalo
     view.root
       .findAllByType(AppButton)
       .find((node: { props: { title: string } }) => node.props.title === title);
+  act(() => button('Create Template')?.props.onPress());
   act(() => button('Choose exercises')?.props.onPress());
 
   const sheet = view.root.findByType(ExerciseLibrary);
