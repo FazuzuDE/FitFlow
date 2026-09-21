@@ -2,6 +2,17 @@ import { exerciseLibrary } from './workout-catalog';
 import { finishWorkout, startWorkout } from './workout-engine';
 import { WorkoutSession, WorkoutState, WorkoutTemplate } from './workout-model';
 import { emptyWorkoutState, WorkoutRepository } from './workout-repository';
+import {
+  createTemplate as createTemplateInList,
+  deleteTemplate as deleteTemplateFromList,
+  TemplateDraft,
+  TemplateIdFactory,
+  updateTemplate as updateTemplateInList,
+} from './workout-templates';
+
+export type TemplateMutationResult =
+  | { ok: true; template?: WorkoutTemplate }
+  | { ok: false; error: string };
 
 export class WorkoutStore {
   private listeners = new Set<() => void>();
@@ -72,6 +83,64 @@ export class WorkoutStore {
   setTemplates(templates: WorkoutTemplate[]) {
     if (!this.snapshot.ready || this.snapshot.busy) return;
     this.persist({ ...this.snapshot.data, templates });
+  }
+  private async commitTemplates(
+    change: (templates: readonly WorkoutTemplate[]) => {
+      templates: WorkoutTemplate[];
+      template?: WorkoutTemplate;
+    },
+  ): Promise<TemplateMutationResult> {
+    const { data, ready, busy } = this.snapshot;
+    if (!ready)
+      return { ok: false, error: 'Templates are not ready yet.' };
+    if (busy)
+      return {
+        ok: false,
+        error: 'Template changes are already being saved. Try again shortly.',
+      };
+
+    let changeResult: ReturnType<typeof change>;
+    try {
+      changeResult = change(data.templates);
+    } catch (problem) {
+      return { ok: false, error: (problem as Error).message };
+    }
+
+    const next = { ...data, templates: changeResult.templates };
+    ++this.revision;
+    this.publish({ busy: true, error: '' });
+    try {
+      await this.repository.save(next);
+      this.publish({ data: next, error: '' });
+      return { ok: true, template: changeResult.template };
+    } catch {
+      const error = 'Template changes could not be saved. Try again.';
+      this.publish({ error });
+      return { ok: false, error };
+    } finally {
+      this.publish({ busy: false });
+    }
+  }
+  createTemplate(
+    draft: TemplateDraft,
+    idFactory?: TemplateIdFactory,
+  ): Promise<TemplateMutationResult> {
+    return this.commitTemplates((templates) =>
+      createTemplateInList(templates, draft, idFactory),
+    );
+  }
+  updateTemplate(
+    templateId: string,
+    draft: TemplateDraft,
+  ): Promise<TemplateMutationResult> {
+    return this.commitTemplates((templates) => ({
+      templates: updateTemplateInList(templates, templateId, draft),
+    }));
+  }
+  deleteTemplate(templateId: string): Promise<TemplateMutationResult> {
+    return this.commitTemplates((templates) => ({
+      templates: deleteTemplateFromList(templates, templateId),
+    }));
   }
   async retry() {
     if (!this.snapshot.ready) return this.load();

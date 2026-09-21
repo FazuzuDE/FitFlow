@@ -1,5 +1,12 @@
 import { defaultTemplates } from '../workout-catalog';
 import type { WorkoutTemplate } from '../workout-model';
+import { startWorkout } from '../workout-engine';
+import {
+  KeyValueStorage,
+  STATE_KEY,
+  WorkoutRepository,
+} from '../workout-repository';
+import { WorkoutStore } from '../workout-store';
 import {
   createTemplate,
   createTemplateDraft,
@@ -18,6 +25,17 @@ const custom: WorkoutTemplate = {
   name: 'My Push',
   exerciseIds: ['barbell-bench-press', 'seated-cable-row'],
 };
+
+function memoryStorage(): KeyValueStorage & { values: Map<string, string> } {
+  const values = new Map<string, string>();
+  return {
+    values,
+    getItem: jest.fn(async (key) => values.get(key) ?? null),
+    setItem: jest.fn(async (key, value) => {
+      values.set(key, value);
+    }),
+  };
+}
 
 describe('workout template domain', () => {
   it('creates an isolated draft and canonicalizes known legacy ids in order', () => {
@@ -171,5 +189,152 @@ describe('workout template domain', () => {
     expect(() => deleteTemplate(defaultTemplates, 'upper')).toThrow(
       'Built-in templates cannot be deleted.',
     );
+  });
+});
+
+describe('workout template store mutations', () => {
+  it('creates, updates, deletes, and reloads a custom template durably', async () => {
+    const storage = memoryStorage();
+    const store = new WorkoutStore(new WorkoutRepository(storage));
+    await store.load();
+
+    const created = await store.createTemplate(
+      { name: ' New day ', exerciseIds: ['bench', 'row'] },
+      () => 'custom-new',
+    );
+    expect(created).toEqual({
+      ok: true,
+      template: {
+        id: 'custom-new',
+        name: 'New day',
+        exerciseIds: ['barbell-bench-press', 'seated-cable-row'],
+      },
+    });
+
+    const updated = await store.updateTemplate('custom-new', {
+      name: 'Pull first',
+      exerciseIds: ['row', 'bench'],
+    });
+    expect(updated).toEqual({ ok: true });
+
+    let restored = await new WorkoutRepository(storage).load();
+    expect(restored.templates.at(-1)).toEqual({
+      id: 'custom-new',
+      name: 'Pull first',
+      exerciseIds: ['seated-cable-row', 'barbell-bench-press'],
+    });
+
+    expect(await store.deleteTemplate('custom-new')).toEqual({ ok: true });
+    restored = await new WorkoutRepository(storage).load();
+    expect(restored.templates).toEqual(defaultTemplates);
+  });
+
+  it('rejects built-in mutations without writing', async () => {
+    const storage = memoryStorage();
+    const store = new WorkoutStore(new WorkoutRepository(storage));
+    await store.load();
+    jest.mocked(storage.setItem).mockClear();
+
+    expect(
+      await store.updateTemplate('upper', {
+        name: 'Changed',
+        exerciseIds: ['barbell-bench-press'],
+      }),
+    ).toEqual({ ok: false, error: 'Built-in templates cannot be changed.' });
+    expect(await store.deleteTemplate('upper')).toEqual({
+      ok: false,
+      error: 'Built-in templates cannot be deleted.',
+    });
+    expect(storage.setItem).not.toHaveBeenCalled();
+  });
+
+  it('rejects a second mutation while busy and preserves its draft opportunity', async () => {
+    const storage = memoryStorage();
+    const store = new WorkoutStore(new WorkoutRepository(storage));
+    await store.load();
+    let release!: () => void;
+    jest.mocked(storage.setItem).mockImplementationOnce(async (key, value) => {
+      await new Promise<void>((resolve) => {
+        release = resolve;
+      });
+      storage.values.set(key, value);
+    });
+
+    const first = store.createTemplate(
+      { name: 'First', exerciseIds: ['bench'] },
+      () => 'first',
+    );
+    await Promise.resolve();
+
+    expect(
+      await store.createTemplate(
+        { name: 'Second', exerciseIds: ['row'] },
+        () => 'second',
+      ),
+    ).toEqual({
+      ok: false,
+      error: 'Template changes are already being saved. Try again shortly.',
+    });
+    release();
+    expect(await first).toEqual({
+      ok: true,
+      template: expect.objectContaining({ id: 'first' }),
+    });
+    expect(store.getSnapshot().data.templates.map((item) => item.id)).not.toContain(
+      'second',
+    );
+  });
+
+  it('keeps the previous state and returns failure when persistence fails', async () => {
+    const storage = memoryStorage();
+    const store = new WorkoutStore(new WorkoutRepository(storage));
+    await store.load();
+    const before = store.getSnapshot().data;
+    jest.mocked(storage.setItem).mockRejectedValueOnce(new Error('disk full'));
+
+    const result = await store.createTemplate(
+      { name: 'Unsaved', exerciseIds: ['bench'] },
+      () => 'unsaved',
+    );
+
+    expect(result).toEqual({
+      ok: false,
+      error: 'Template changes could not be saved. Try again.',
+    });
+    expect(store.getSnapshot().data).toBe(before);
+    expect(store.getSnapshot().error).toContain('could not be saved');
+    expect(JSON.parse(storage.values.get(STATE_KEY)!).templates).toEqual(
+      defaultTemplates,
+    );
+  });
+
+  it('does not change active or historical workout snapshots during edit and delete', async () => {
+    const storage = memoryStorage();
+    const repository = new WorkoutRepository(storage);
+    const activeWorkout = startWorkout(custom, [], 1000, () => 'active-id');
+    const historicalWorkout = {
+      ...activeWorkout,
+      id: 'history-id',
+      finishedAt: 2000,
+    };
+    await repository.save({
+      schemaVersion: 1,
+      activeWorkout,
+      history: [historicalWorkout],
+      templates: [...defaultTemplates, custom],
+    });
+    const store = new WorkoutStore(repository);
+    await store.load();
+
+    expect(
+      await store.updateTemplate(custom.id, {
+        name: 'Changed',
+        exerciseIds: ['barbell-back-squat'],
+      }),
+    ).toEqual({ ok: true });
+    expect(await store.deleteTemplate(custom.id)).toEqual({ ok: true });
+
+    expect(store.getSnapshot().data.activeWorkout).toEqual(activeWorkout);
+    expect(store.getSnapshot().data.history).toEqual([historicalWorkout]);
   });
 });
