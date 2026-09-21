@@ -5,8 +5,12 @@ import { Confirmation } from '../../components/Confirmation';
 import { ExerciseLibrary } from '../../components/ExerciseLibrary';
 import { TemplateEditor } from '../../components/TemplateEditor';
 import { WorkoutTemplates } from '../../components/WorkoutTemplates';
+import { Workout } from '../../components/Workout';
+import { Dock } from '../../components/Dock';
+import App from '../../app/index';
 import { defaultTemplates, exerciseLibrary } from '../workout-catalog';
 import type { WorkoutTemplate } from '../workout-model';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const { act, create } = jest.requireActual('react-test-renderer');
 
@@ -19,6 +23,14 @@ jest.mock('@expo/vector-icons', () => ({
 jest.mock('expo-haptics', () => ({
   notificationAsync: jest.fn(async () => {}),
   NotificationFeedbackType: { Success: 'success', Warning: 'warning' },
+}));
+jest.mock('@react-native-async-storage/async-storage', () =>
+  jest.requireActual(
+    '@react-native-async-storage/async-storage/jest/async-storage-mock',
+  ),
+);
+jest.mock('expo-blur', () => ({
+  BlurView: jest.requireActual('react-native').View,
 }));
 
 const custom: WorkoutTemplate = {
@@ -234,5 +246,141 @@ describe('WorkoutTemplates', () => {
     await act(async () => confirmation.props.onConfirm());
     expect(onDelete).toHaveBeenCalledWith(custom.id);
     expect(view.root.findByType(Confirmation).props.visible).toBe(false);
+  });
+});
+
+const storedState = (templates: WorkoutTemplate[]) => ({
+  schemaVersion: 1,
+  activeWorkout: null,
+  history: [],
+  templates,
+});
+
+const renderApp = async () => {
+  let view!: ReturnType<typeof create>;
+  await act(async () => {
+    view = create(<App />);
+  });
+  return view;
+};
+
+const settle = async () => {
+  await Promise.resolve();
+  await Promise.resolve();
+};
+
+describe('Workout Templates app integration', () => {
+  beforeEach(async () => {
+    await AsyncStorage.clear();
+  });
+
+  it('creates, reloads, and starts a custom template in saved order', async () => {
+    let view = await renderApp();
+    act(() => view.root.findByType(Dock).props.onChange('profile'));
+    act(() => appButton(view, 'Create Template')?.props.onPress());
+    act(() => action(view, 'Choose exercises')?.props.onPress());
+    const sheet = view.root.findByType(ExerciseLibrary);
+    act(() => sheet.props.onToggle('seated-cable-row'));
+    act(() => sheet.props.onToggle('barbell-bench-press'));
+    act(() => sheet.props.onClose());
+    act(() =>
+      view.root
+        .findByProps({ accessibilityLabel: 'Template name' })
+        .props.onChangeText('Pull first'),
+    );
+    await act(async () => {
+      appButton(view, 'Save Template')?.props.onPress();
+      await settle();
+    });
+    act(() => view.unmount());
+
+    view = await renderApp();
+    act(() => action(view, 'Start Pull first')?.props.onPress());
+    expect(
+      view.root
+        .findByType(Workout)
+        .props.session.exercises.map(
+          (exercise: { libraryId: string }) => exercise.libraryId,
+        ),
+    ).toEqual(['seated-cable-row', 'barbell-bench-press']);
+    act(() => view.unmount());
+  });
+
+  it('edits, reorders, reloads, and starts the updated template', async () => {
+    await AsyncStorage.setItem(
+      'fitflow_state_v1',
+      JSON.stringify(storedState([...defaultTemplates, custom])),
+    );
+    let view = await renderApp();
+    act(() => view.root.findByType(Dock).props.onChange('profile'));
+    act(() => action(view, 'Edit My Push')?.props.onPress());
+    act(() =>
+      view.root
+        .findByProps({ accessibilityLabel: 'Template name' })
+        .props.onChangeText('Pull first'),
+    );
+    act(() => action(view, 'Move Barbell Bench Press down')?.props.onPress());
+    await act(async () => {
+      appButton(view, 'Save Template')?.props.onPress();
+      await settle();
+    });
+    act(() => view.unmount());
+
+    view = await renderApp();
+    act(() => action(view, 'Start Pull first')?.props.onPress());
+    expect(
+      view.root
+        .findByType(Workout)
+        .props.session.exercises.map(
+          (exercise: { libraryId: string }) => exercise.libraryId,
+        ),
+    ).toEqual(['seated-cable-row', 'barbell-bench-press']);
+    act(() => view.unmount());
+  });
+
+  it('persists deletion only after confirmation', async () => {
+    await AsyncStorage.setItem(
+      'fitflow_state_v1',
+      JSON.stringify(storedState([...defaultTemplates, custom])),
+    );
+    const view = await renderApp();
+    act(() => view.root.findByType(Dock).props.onChange('profile'));
+    act(() => action(view, 'Delete My Push')?.props.onPress());
+    act(() => view.root.findAllByType(Confirmation).at(-1)?.props.onCancel());
+    expect(
+      JSON.parse((await AsyncStorage.getItem('fitflow_state_v1'))!).templates,
+    ).toContainEqual(custom);
+
+    act(() => action(view, 'Delete My Push')?.props.onPress());
+    await act(async () => {
+      view.root.findAllByType(Confirmation).at(-1)?.props.onConfirm();
+      await settle();
+    });
+    expect(
+      JSON.parse((await AsyncStorage.getItem('fitflow_state_v1'))!).templates,
+    ).toEqual(defaultTemplates);
+    act(() => view.unmount());
+  });
+
+  it('cancels a legacy/stale edit without rewriting persisted data', async () => {
+    const raw = JSON.stringify(
+      storedState([
+        ...defaultTemplates,
+        {
+          id: 'old-custom',
+          name: 'Old custom',
+          exerciseIds: ['bench', 'removed-exercise'],
+        },
+      ]),
+    );
+    await AsyncStorage.setItem('fitflow_state_v1', raw);
+    const view = await renderApp();
+    act(() => view.root.findByType(Dock).props.onChange('profile'));
+    act(() => action(view, 'Edit Old custom')?.props.onPress());
+    expect(JSON.stringify(view.toJSON())).toContain('removed-exercise');
+    act(() => appButton(view, 'Cancel')?.props.onPress());
+
+    expect(await AsyncStorage.getItem('fitflow_state_v1')).toBe(raw);
+    act(() => view.unmount());
   });
 });
