@@ -30,7 +30,15 @@ Device/development builds, error handling, store assets/metadata, privacy/permis
 
 ## Later
 
-Apple Health/Health Connect, watches, AI Coach, social, nutrition, advanced gamification, Oracle marketing/analytics/auxiliary services.
+- Adaptive Weight Input with Recommended, Keypad, and Wheel Picker modes, equipment-aware quick increments, and exact manual override. Timing and the complete increment table remain unscheduled.
+- Muscle Load and the red-intensity Muscle Heat Map, with calculation and rendering kept separate from canonical muscle metadata.
+- Training Insights using Result → Analysis → Suggestion and explainable “Why?” details.
+- Apple Health/Health Connect, watches, AI Coach, social, nutrition, advanced gamification, and Oracle marketing/analytics/auxiliary services.
+
+## Future
+
+- Suggested Next Workout and its Recommendation Engine: Workout → Muscle Load → Muscle Map → Training Insight → Suggested Next Workout → Customize → Start Workout → Adapt.
+- Recommendation Engine architecture may be anticipated, but implementation must not delay FitFlow Core. Muscle load is one input rather than ground truth.
 
 ## Working method
 
