@@ -5,8 +5,7 @@ import type { WorkoutTemplate } from './workout-model';
 export type TemplateDraft = Pick<WorkoutTemplate, 'name' | 'exerciseIds'>;
 
 export type TemplateValidation =
-  | { ok: true; draft: TemplateDraft }
-  | { ok: false; error: string };
+  { ok: true; draft: TemplateDraft } | { ok: false; error: string };
 
 export type CreatedTemplate = {
   template: WorkoutTemplate;
@@ -147,9 +146,7 @@ export const updateTemplate = (
     throw new Error('Template not found.');
   const normalized = validDraft(draft);
   return templates.map((template) =>
-    template.id === templateId
-      ? { id: template.id, ...normalized }
-      : template,
+    template.id === templateId ? { id: template.id, ...normalized } : template,
   );
 };
 

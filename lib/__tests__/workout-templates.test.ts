@@ -280,9 +280,9 @@ describe('workout template store mutations', () => {
       ok: true,
       template: expect.objectContaining({ id: 'first' }),
     });
-    expect(store.getSnapshot().data.templates.map((item) => item.id)).not.toContain(
-      'second',
-    );
+    expect(
+      store.getSnapshot().data.templates.map((item) => item.id),
+    ).not.toContain('second');
   });
 
   it('keeps the previous state and returns failure when persistence fails', async () => {

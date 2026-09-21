@@ -81,33 +81,41 @@ function Home({
         </GlassCard>
       </View>
       <Text style={s.section}>Quick start</Text>
-      {templates.map((t) => (
-        <GlassCard key={t.id}>
-          <View style={s.quick}>
-            <View style={{ flex: 1 }}>
-              <Text style={s.blueText}>{t.name.toUpperCase()}</Text>
-              <Text style={s.h3}>{t.exerciseIds.length} exercises</Text>
-              <Text style={s.sub}>
-                {t.exerciseIds
-                  .slice(0, 3)
-                  .flatMap((id) => {
-                    const exercise = findExercise(id);
-                    return exercise ? [exercise.name] : [];
-                  })
-                  .join(' · ')}
-              </Text>
+      {templates.map((t) => {
+        const available = t.exerciseIds.flatMap((id) => {
+          const exercise = findExercise(id);
+          return exercise ? [exercise] : [];
+        });
+        const unavailable = t.exerciseIds.length - available.length;
+        return (
+          <GlassCard key={t.id}>
+            <View style={s.quick}>
+              <View style={{ flex: 1 }}>
+                <Text style={s.blueText}>{t.name.toUpperCase()}</Text>
+                <Text style={s.h3}>
+                  {unavailable
+                    ? `${available.length} available · ${unavailable} unavailable`
+                    : `${available.length} exercises`}
+                </Text>
+                <Text style={s.sub}>
+                  {available
+                    .slice(0, 3)
+                    .map((exercise) => exercise.name)
+                    .join(' · ')}
+                </Text>
+              </View>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={'Start ' + t.name}
+                onPress={() => startTemplate(t)}
+                style={s.play}
+              >
+                <Ionicons name="play" size={22} color={white} />
+              </Pressable>
             </View>
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel={'Start ' + t.name}
-              onPress={() => startTemplate(t)}
-              style={s.play}
-            >
-              <Ionicons name="play" size={22} color={white} />
-            </Pressable>
-          </View>
-        </GlassCard>
-      ))}
+          </GlassCard>
+        );
+      })}
     </ScrollView>
   );
 }

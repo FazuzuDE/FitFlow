@@ -11,8 +11,7 @@ import {
 } from './workout-templates';
 
 export type TemplateMutationResult =
-  | { ok: true; template?: WorkoutTemplate }
-  | { ok: false; error: string };
+  { ok: true; template?: WorkoutTemplate } | { ok: false; error: string };
 
 export class WorkoutStore {
   private listeners = new Set<() => void>();
@@ -91,8 +90,7 @@ export class WorkoutStore {
     },
   ): Promise<TemplateMutationResult> {
     const { data, ready, busy } = this.snapshot;
-    if (!ready)
-      return { ok: false, error: 'Templates are not ready yet.' };
+    if (!ready) return { ok: false, error: 'Templates are not ready yet.' };
     if (busy)
       return {
         ok: false,

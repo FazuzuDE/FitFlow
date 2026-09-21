@@ -266,3 +266,31 @@ it('shows canonical exercise names for saved legacy templates on Home', async ()
   expect(rendered).toContain('Seated Cable Row');
   act(() => view.unmount());
 });
+
+it('reports available and unavailable exercise counts truthfully on Home', async () => {
+  await AsyncStorage.clear();
+  await AsyncStorage.setItem(
+    'fitflow_state_v1',
+    JSON.stringify({
+      schemaVersion: 1,
+      activeWorkout: null,
+      history: [],
+      templates: [
+        {
+          id: 'partially-stale',
+          name: 'Partially Stale',
+          exerciseIds: ['bench', 'missing-exercise', 'row'],
+        },
+      ],
+    }),
+  );
+  let view!: ReturnType<typeof create>;
+  await act(async () => {
+    view = create(<App />);
+  });
+
+  expect(JSON.stringify(view.toJSON())).toContain(
+    '2 available · 1 unavailable',
+  );
+  act(() => view.unmount());
+});
