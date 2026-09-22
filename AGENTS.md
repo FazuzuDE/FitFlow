@@ -71,6 +71,13 @@ Never claim completion while relevant checks fail. Clearly distinguish pre-exist
 - Keep commits focused.
 - Never discard uncommitted work just to obtain a clean tree.
 
+## Approved decision sync
+
+- An explicitly approved product or design decision is not permanent until it is synchronized to its owning repository document and merged.
+- Use this sequence: Approved → Approved — pending Git sync → Codex documentation sync → implementation/checks → commit/PR → GitHub becomes canonical after integration.
+- Synchronize only missing approved rules, preserve newer repository decisions, and do not use chat history or attachments as a substitute for committed documentation after integration.
+- Keep product behavior in `docs/PRODUCT.md`, visual and interaction rules in `docs/DESIGN_SYSTEM.md`, priority and timing in `docs/ROADMAP.md`, and the chronological record in `docs/DECISIONS.md`.
+
 ## Completion report
 
 Report: implemented; key files changed; checks/results; known limitations; recommended next task. Then stop.

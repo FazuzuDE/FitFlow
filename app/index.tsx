@@ -6,7 +6,6 @@ import {
   ScrollView,
   StyleSheet,
   Text,
-  TextInput,
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -17,8 +16,8 @@ import { GlassCard } from '@/components/GlassCard';
 import { Dock } from '@/components/Dock';
 import { AppButton } from '@/components/AppButton';
 import { Confirmation } from '@/components/Confirmation';
-import { ExerciseLibrary } from '@/components/ExerciseLibrary';
 import { Workout, duration, successHaptic } from '@/components/Workout';
+import { WorkoutTemplates } from '@/components/WorkoutTemplates';
 import { volume, epley } from '@/lib/workout-metrics';
 import { completedSetCount, workoutIsComplete } from '@/lib/workout-engine';
 import {
@@ -26,13 +25,10 @@ import {
   WorkoutTemplate as Template,
   isSetComplete,
 } from '@/lib/workout-model';
-import {
-  defaultTemplates,
-  exerciseLibrary as library,
-} from '@/lib/workout-catalog';
 import { findExercise } from '@/lib/exercise-library';
 import { WorkoutRepository } from '@/lib/workout-repository';
-import { WorkoutStore } from '@/lib/workout-store';
+import { TemplateMutationResult, WorkoutStore } from '@/lib/workout-store';
+import type { TemplateDraft } from '@/lib/workout-templates';
 import { colors, radius, spacing, typography } from '@/lib/theme';
 
 const blue = colors.primary,
@@ -85,33 +81,41 @@ function Home({
         </GlassCard>
       </View>
       <Text style={s.section}>Quick start</Text>
-      {templates.map((t) => (
-        <GlassCard key={t.id}>
-          <View style={s.quick}>
-            <View style={{ flex: 1 }}>
-              <Text style={s.blueText}>{t.name.toUpperCase()}</Text>
-              <Text style={s.h3}>{t.exerciseIds.length} exercises</Text>
-              <Text style={s.sub}>
-                {t.exerciseIds
-                  .slice(0, 3)
-                  .flatMap((id) => {
-                    const exercise = findExercise(id);
-                    return exercise ? [exercise.name] : [];
-                  })
-                  .join(' · ')}
-              </Text>
+      {templates.map((t) => {
+        const available = t.exerciseIds.flatMap((id) => {
+          const exercise = findExercise(id);
+          return exercise ? [exercise] : [];
+        });
+        const unavailable = t.exerciseIds.length - available.length;
+        return (
+          <GlassCard key={t.id}>
+            <View style={s.quick}>
+              <View style={{ flex: 1 }}>
+                <Text style={s.blueText}>{t.name.toUpperCase()}</Text>
+                <Text style={s.h3}>
+                  {unavailable
+                    ? `${available.length} available · ${unavailable} unavailable`
+                    : `${available.length} exercises`}
+                </Text>
+                <Text style={s.sub}>
+                  {available
+                    .slice(0, 3)
+                    .map((exercise) => exercise.name)
+                    .join(' · ')}
+                </Text>
+              </View>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={'Start ' + t.name}
+                onPress={() => startTemplate(t)}
+                style={s.play}
+              >
+                <Ionicons name="play" size={22} color={white} />
+              </Pressable>
             </View>
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel={'Start ' + t.name}
-              onPress={() => startTemplate(t)}
-              style={s.play}
-            >
-              <Ionicons name="play" size={22} color={white} />
-            </Pressable>
-          </View>
-        </GlassCard>
-      ))}
+          </GlassCard>
+        );
+      })}
     </ScrollView>
   );
 }
@@ -235,100 +239,38 @@ function Stats({ history }: { history: Session[] }) {
 }
 function Profile({
   templates,
-  setTemplates,
+  busy,
+  createTemplate,
+  updateTemplate,
+  deleteTemplate,
 }: {
   templates: Template[];
-  setTemplates: (x: Template[]) => void;
+  busy: boolean;
+  createTemplate: (draft: TemplateDraft) => Promise<TemplateMutationResult>;
+  updateTemplate: (
+    templateId: string,
+    draft: TemplateDraft,
+  ) => Promise<TemplateMutationResult>;
+  deleteTemplate: (templateId: string) => Promise<TemplateMutationResult>;
 }) {
-  const [name, setName] = useState('My Workout');
-  const [selected, setSelected] = useState<string[]>([]);
-  const [libraryOpen, setLibraryOpen] = useState(false);
-  const save = () => {
-    if (!selected.length)
-      return Alert.alert('Choose exercises', 'Select at least one exercise.');
-    const n = [
-      ...templates,
-      {
-        id: String(Date.now()),
-        name: name.trim() || 'My Workout',
-        exerciseIds: selected,
-      },
-    ];
-    setTemplates(n);
-    setSelected([]);
-    setName('My Workout');
-    successHaptic();
-  };
   return (
-    <>
-      <ExerciseLibrary
-        visible={libraryOpen}
-        onClose={() => setLibraryOpen(false)}
-        selectedIds={selected}
-        onToggle={(id) =>
-          setSelected((current) =>
-            current.includes(id)
-              ? current.filter((item) => item !== id)
-              : [...current, id],
-          )
-        }
-      />
-      <ScrollView contentContainerStyle={s.content}>
-        <Text style={s.eyebrow}>YOUR TEMPLATES</Text>
-        <View style={s.profile}>
-          <View style={s.bigAvatar}>
-            <Ionicons name="person" size={34} color={white} />
-          </View>
-          <Text style={s.title}>FitFlow</Text>
-          <Text style={s.sub}>Local MVP · v0.3.0</Text>
+    <ScrollView contentContainerStyle={s.content}>
+      <Text style={s.eyebrow}>YOUR TEMPLATES</Text>
+      <View style={s.profile}>
+        <View style={s.bigAvatar}>
+          <Ionicons name="person" size={34} color={white} />
         </View>
-        <GlassCard>
-          <Text style={s.h3}>Create workout template</Text>
-          <TextInput value={name} onChangeText={setName} style={s.search} />
-          {selected.length ? (
-            <View style={s.selectedExercises}>
-              {selected.map((id) => (
-                <Text key={id} style={s.sub}>
-                  {library.find((item) => item.id === id)?.name ?? id}
-                </Text>
-              ))}
-            </View>
-          ) : (
-            <Text style={s.sub}>No exercises selected.</Text>
-          )}
-          <AppButton
-            title="Choose exercises"
-            secondary
-            onPress={() => setLibraryOpen(true)}
-          />
-          <AppButton title="Save Template" onPress={save} />
-        </GlassCard>
-        <GlassCard>
-          <Text style={s.h3}>Saved templates</Text>
-          {templates.map((t) => (
-            <View key={t.id} style={s.history}>
-              <View>
-                <Text style={s.h3}>{t.name}</Text>
-                <Text style={s.sub}>{t.exerciseIds.length} exercises</Text>
-              </View>
-              {!defaultTemplates.some((d) => d.id === t.id) && (
-                <Pressable
-                  onPress={() =>
-                    setTemplates(templates.filter((x) => x.id !== t.id))
-                  }
-                >
-                  <Ionicons
-                    name="trash-outline"
-                    size={20}
-                    color={colors.danger}
-                  />
-                </Pressable>
-              )}
-            </View>
-          ))}
-        </GlassCard>
-      </ScrollView>
-    </>
+        <Text style={s.title}>FitFlow</Text>
+        <Text style={s.sub}>Local MVP · v0.3.0</Text>
+      </View>
+      <WorkoutTemplates
+        templates={templates}
+        busy={busy}
+        onCreate={createTemplate}
+        onUpdate={updateTemplate}
+        onDelete={deleteTemplate}
+      />
+    </ScrollView>
   );
 }
 
@@ -460,7 +402,12 @@ export default function App() {
           ) : (
             <Profile
               templates={data.templates}
-              setTemplates={(templates) => store.setTemplates(templates)}
+              busy={busy}
+              createTemplate={(draft) => store.createTemplate(draft)}
+              updateTemplate={(templateId, draft) =>
+                store.updateTemplate(templateId, draft)
+              }
+              deleteTemplate={(templateId) => store.deleteTemplate(templateId)}
             />
           )}
           <Dock active={tab} onChange={setTab} />
@@ -576,14 +523,4 @@ const s = StyleSheet.create({
     color: colors.textPrimary,
     fontVariant: ['tabular-nums'],
   },
-  search: {
-    ...typography.body,
-    minHeight: 48,
-    borderRadius: radius.md,
-    backgroundColor: colors.surfaceSubtle,
-    color: colors.textPrimary,
-    paddingHorizontal: spacing.md,
-    marginVertical: spacing.sm,
-  },
-  selectedExercises: { gap: spacing.xxs, marginVertical: spacing.sm },
 });

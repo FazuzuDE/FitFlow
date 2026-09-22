@@ -219,6 +219,7 @@ it('selects canonical exercises for a template without rendering the full catalo
     view.root
       .findAllByType(AppButton)
       .find((node: { props: { title: string } }) => node.props.title === title);
+  act(() => button('Create Template')?.props.onPress());
   act(() => button('Choose exercises')?.props.onPress());
 
   const sheet = view.root.findByType(ExerciseLibrary);
@@ -263,5 +264,33 @@ it('shows canonical exercise names for saved legacy templates on Home', async ()
   const rendered = JSON.stringify(view.toJSON());
   expect(rendered).toContain('Barbell Bench Press');
   expect(rendered).toContain('Seated Cable Row');
+  act(() => view.unmount());
+});
+
+it('reports available and unavailable exercise counts truthfully on Home', async () => {
+  await AsyncStorage.clear();
+  await AsyncStorage.setItem(
+    'fitflow_state_v1',
+    JSON.stringify({
+      schemaVersion: 1,
+      activeWorkout: null,
+      history: [],
+      templates: [
+        {
+          id: 'partially-stale',
+          name: 'Partially Stale',
+          exerciseIds: ['bench', 'missing-exercise', 'row'],
+        },
+      ],
+    }),
+  );
+  let view!: ReturnType<typeof create>;
+  await act(async () => {
+    view = create(<App />);
+  });
+
+  expect(JSON.stringify(view.toJSON())).toContain(
+    '2 available · 1 unavailable',
+  );
   act(() => view.unmount());
 });

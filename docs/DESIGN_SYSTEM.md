@@ -114,6 +114,8 @@ Glass is an accent, not the entire UI. Use blur mainly for the floating bottom d
 
 **Numeric workout input:** large number, numeric keyboard, unit visually secondary, useful +/- controls, previous-set defaults where appropriate.
 
+**Adaptive weight input:** support Recommended, Keypad, and Wheel Picker interaction modes when implemented. Exact manual entry is always available. Quick +/- controls use context-appropriate, equipment-aware increments and never prevent a precise override. Keep all modes within the existing light, premium iOS-inspired control language.
+
 **Chips/segments:** height about 32–36, pill radius, clear selected state.
 
 ## 8. Navigation
@@ -153,6 +155,10 @@ Deliberate primary action. Normal Finish summarizes and saves. Destructive aband
 Primary series `primary`; comparison uses `secondary` or neutral gray. Subtle grid lines, no 3D, no decorative gradients, always show units and touch-friendly selected points.
 
 Core metrics: total volume, workout count, PRs, exercise weight progression, estimated 1RM, training frequency. Estimated 1RM must be explicitly labeled as an estimate.
+
+Future Muscle Heat Map views use a standard red intensity convention. They visualize estimated training load or stimulus only—not literal muscle growth, injury, medical recovery, or a biological measurement. Keep canonical muscle data, load calculation, and visual rendering as separate layers.
+
+Future Training Insight presentation follows Result → Analysis → Suggestion. Recommendations and insights provide a “Why?” explanation of their principal signals without implying unsupported precision.
 
 ## 11. Home blueprint
 
