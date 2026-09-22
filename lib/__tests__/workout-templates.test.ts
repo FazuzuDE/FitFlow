@@ -160,6 +160,18 @@ describe('workout template domain', () => {
     expect(templates).toHaveLength(4);
   });
 
+  it('reserves built-in ids even when a persisted template list omits them', () => {
+    const idFactory = jest
+      .fn<ReturnType<() => string>, Parameters<() => string>>()
+      .mockReturnValueOnce('upper')
+      .mockReturnValueOnce('custom-safe');
+
+    expect(
+      createTemplate([], { name: 'Safe', exerciseIds: ['bench'] }, idFactory)
+        .template.id,
+    ).toBe('custom-safe');
+  });
+
   it('updates and deletes custom templates without mutating neighboring templates', () => {
     const templates = [...defaultTemplates, custom];
     const updated = updateTemplate(templates, custom.id, {
@@ -189,6 +201,27 @@ describe('workout template domain', () => {
     expect(() => deleteTemplate(defaultTemplates, 'upper')).toThrow(
       'Built-in templates cannot be deleted.',
     );
+  });
+
+  it('rejects ambiguous mutations when persisted template ids are duplicated', () => {
+    const duplicates = [
+      custom,
+      { ...custom, name: 'Second record with the same ID' },
+    ];
+
+    expect(() =>
+      updateTemplate(duplicates, custom.id, {
+        name: 'Changed',
+        exerciseIds: ['barbell-back-squat'],
+      }),
+    ).toThrow('Duplicate template IDs cannot be changed safely.');
+    expect(() => deleteTemplate(duplicates, custom.id)).toThrow(
+      'Duplicate template IDs cannot be deleted safely.',
+    );
+    expect(duplicates).toEqual([
+      custom,
+      { ...custom, name: 'Second record with the same ID' },
+    ]);
   });
 });
 

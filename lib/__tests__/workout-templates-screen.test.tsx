@@ -223,6 +223,57 @@ describe('WorkoutTemplates', () => {
     expect(action(view, 'Delete My Push')).toBeDefined();
   });
 
+  it('disables competing template actions while a local draft is open', () => {
+    const view = render(
+      <WorkoutTemplates
+        templates={[...defaultTemplates, custom]}
+        busy={false}
+        onCreate={jest.fn()}
+        onUpdate={jest.fn()}
+        onDelete={jest.fn()}
+      />,
+    );
+
+    act(() => action(view, 'Edit My Push')?.props.onPress());
+
+    expect(action(view, 'Edit My Push')?.props.disabled).toBe(true);
+    expect(action(view, 'Delete My Push')?.props.disabled).toBe(true);
+  });
+
+  it('does not create a replacement when an edited template disappears', async () => {
+    const onCreate = jest.fn(async () => ({ ok: true as const }));
+    const onUpdate = jest.fn(async () => ({ ok: true as const }));
+    const view = render(
+      <WorkoutTemplates
+        templates={[...defaultTemplates, custom]}
+        busy={false}
+        onCreate={onCreate}
+        onUpdate={onUpdate}
+        onDelete={jest.fn()}
+      />,
+    );
+
+    act(() => action(view, 'Edit My Push')?.props.onPress());
+    act(() =>
+      view.update(
+        <WorkoutTemplates
+          templates={defaultTemplates}
+          busy={false}
+          onCreate={onCreate}
+          onUpdate={onUpdate}
+          onDelete={jest.fn()}
+        />,
+      ),
+    );
+    await act(async () => appButton(view, 'Save Template')?.props.onPress());
+
+    expect(onCreate).not.toHaveBeenCalled();
+    expect(onUpdate).not.toHaveBeenCalled();
+    expect(JSON.stringify(view.toJSON())).toContain(
+      'Template is no longer available.',
+    );
+  });
+
   it('requires confirmation and distinguishes delete cancel from confirm', async () => {
     const onDelete = jest.fn(async () => ({ ok: true as const }));
     const view = render(

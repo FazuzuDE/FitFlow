@@ -44,12 +44,17 @@ export function WorkoutTemplates({
   const deleteTarget = templates.find(
     (template) => template.id === deleteTargetId,
   );
+  const listActionsDisabled = busy || Boolean(editor);
 
   const save = async (draft: TemplateDraft) => {
-    const result =
-      editor?.mode === 'edit' && editTemplate
+    let result: TemplateMutationResult;
+    if (editor?.mode === 'edit') {
+      result = editTemplate
         ? await onUpdate(editTemplate.id, draft)
-        : await onCreate(draft);
+        : { ok: false, error: 'Template is no longer available.' };
+    } else {
+      result = await onCreate(draft);
+    }
     if (result.ok) {
       setEditor(null);
       successHaptic();
@@ -138,7 +143,7 @@ export function WorkoutTemplates({
                     <TemplateAction
                       label={`Edit ${template.name}`}
                       icon="create-outline"
-                      disabled={busy}
+                      disabled={listActionsDisabled}
                       onPress={() =>
                         setEditor({ mode: 'edit', templateId: template.id })
                       }
@@ -147,7 +152,7 @@ export function WorkoutTemplates({
                       label={`Delete ${template.name}`}
                       icon="trash-outline"
                       danger
-                      disabled={busy}
+                      disabled={listActionsDisabled}
                       onPress={() => {
                         setDeleteError('');
                         setDeleteTargetId(template.id);

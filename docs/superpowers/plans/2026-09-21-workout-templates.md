@@ -49,7 +49,8 @@ Cover copied drafts, name trimming, whitespace rejection, empty exercises, dupli
 
 - [ ] **Step 2: Verify RED**
 
-Run: `npm test -- --runTestsByPath lib/__tests__/workout-templates.test.ts`  
+Run: `npm test -- --runTestsByPath lib/__tests__/workout-templates.test.ts`
+
 Expected: FAIL because `lib/workout-templates.ts` does not exist.
 
 - [ ] **Step 3: Implement the minimal pure domain**
@@ -117,7 +118,8 @@ Test Create/Edit labels, local draft Cancel, Exercise Library reuse, inline vali
 
 - [ ] **Step 2: Verify RED**
 
-Run: `npm test -- --runTestsByPath lib/__tests__/workout-templates-screen.test.tsx`  
+Run: `npm test -- --runTestsByPath lib/__tests__/workout-templates-screen.test.tsx`
+
 Expected: FAIL because the components do not exist.
 
 - [ ] **Step 3: Implement `TemplateEditor`**

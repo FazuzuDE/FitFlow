@@ -114,7 +114,10 @@ const uniqueTemplateId = (
   templates: readonly WorkoutTemplate[],
   idFactory: TemplateIdFactory,
 ): string => {
-  const existingIds = new Set(templates.map((template) => template.id));
+  const existingIds = new Set([
+    ...builtInIds,
+    ...templates.map((template) => template.id),
+  ]);
   for (let attempt = 0; attempt < 100; attempt += 1) {
     const id = idFactory().trim();
     if (id && !existingIds.has(id)) return id;
@@ -142,8 +145,12 @@ export const updateTemplate = (
 ): WorkoutTemplate[] => {
   if (isBuiltInTemplate(templateId))
     throw new Error('Built-in templates cannot be changed.');
-  if (!templates.some((template) => template.id === templateId))
-    throw new Error('Template not found.');
+  const matchingTemplates = templates.filter(
+    (template) => template.id === templateId,
+  );
+  if (!matchingTemplates.length) throw new Error('Template not found.');
+  if (matchingTemplates.length > 1)
+    throw new Error('Duplicate template IDs cannot be changed safely.');
   const normalized = validDraft(draft);
   return templates.map((template) =>
     template.id === templateId ? { id: template.id, ...normalized } : template,
@@ -156,7 +163,11 @@ export const deleteTemplate = (
 ): WorkoutTemplate[] => {
   if (isBuiltInTemplate(templateId))
     throw new Error('Built-in templates cannot be deleted.');
-  if (!templates.some((template) => template.id === templateId))
-    throw new Error('Template not found.');
+  const matchingTemplates = templates.filter(
+    (template) => template.id === templateId,
+  );
+  if (!matchingTemplates.length) throw new Error('Template not found.');
+  if (matchingTemplates.length > 1)
+    throw new Error('Duplicate template IDs cannot be deleted safely.');
   return templates.filter((template) => template.id !== templateId);
 };

@@ -79,10 +79,6 @@ export class WorkoutStore {
       throw new Error('This template has no available exercises.');
     this.persist({ ...data, activeWorkout });
   }
-  setTemplates(templates: WorkoutTemplate[]) {
-    if (!this.snapshot.ready || this.snapshot.busy) return;
-    this.persist({ ...this.snapshot.data, templates });
-  }
   private async commitTemplates(
     change: (templates: readonly WorkoutTemplate[]) => {
       templates: WorkoutTemplate[];

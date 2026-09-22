@@ -1,6 +1,7 @@
 # Workout Templates Core Design
 
-**Status:** Approved for implementation  
+**Status:** Approved for implementation
+
 **Date:** 2026-09-21
 
 ## Goal
