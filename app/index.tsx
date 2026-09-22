@@ -17,6 +17,7 @@ import { Dock } from '@/components/Dock';
 import { AppButton } from '@/components/AppButton';
 import { Confirmation } from '@/components/Confirmation';
 import { Workout, duration, successHaptic } from '@/components/Workout';
+import { WorkoutHistory } from '@/components/WorkoutHistory';
 import { WorkoutTemplates } from '@/components/WorkoutTemplates';
 import { volume, epley } from '@/lib/workout-metrics';
 import { completedSetCount, workoutIsComplete } from '@/lib/workout-engine';
@@ -199,41 +200,7 @@ function Stats({ history }: { history: Session[] }) {
           ))
         )}
       </GlassCard>
-      <Text style={s.section}>History</Text>
-      {history.length === 0 ? (
-        <GlassCard>
-          <Text style={s.sub}>Finish your first workout to see it here.</Text>
-        </GlassCard>
-      ) : (
-        history.map((workout) => (
-          <GlassCard key={workout.id}>
-            <Text style={s.h3}>{workout.name}</Text>
-            <Text style={s.sub}>
-              {new Date(
-                workout.finishedAt ?? workout.startedAt,
-              ).toLocaleString()}
-            </Text>
-            <Text style={s.sub}>
-              {duration(
-                (workout.finishedAt ?? workout.startedAt) - workout.startedAt,
-              )}{' '}
-              elapsed · {completedSetCount(workout)} sets ·{' '}
-              {volume(workout).toLocaleString()} kg
-            </Text>
-            {workout.exercises.map((exercise) => (
-              <View key={exercise.id} style={s.historyDetail}>
-                <Text style={s.h3}>{exercise.name}</Text>
-                <Text style={s.sub}>
-                  {exercise.sets
-                    .filter(isSetComplete)
-                    .map((set) => set.weight + ' kg × ' + set.reps)
-                    .join(' · ') || 'No completed sets'}
-                </Text>
-              </View>
-            ))}
-          </GlassCard>
-        ))
-      )}
+      <WorkoutHistory history={history} />
     </ScrollView>
   );
 }
@@ -517,7 +484,6 @@ const s = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: colors.separator,
   },
-  historyDetail: { marginTop: spacing.sm },
   value2: {
     ...typography.headline,
     color: colors.textPrimary,
