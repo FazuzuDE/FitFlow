@@ -37,9 +37,7 @@ describe('completed-set analytics boundary', () => {
   });
 
   it('requires a completed set', () => {
-    expect(
-      completedSetMetrics({ weight: '50', reps: '10' }),
-    ).toBeUndefined();
+    expect(completedSetMetrics({ weight: '50', reps: '10' })).toBeUndefined();
   });
 });
 

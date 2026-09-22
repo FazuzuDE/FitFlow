@@ -145,10 +145,7 @@ export const projectProgressAnalytics = (
     }))
     .sort(
       (left, right) =>
-        compareDescending(
-          left.estimatedOneRepMax,
-          right.estimatedOneRepMax,
-        ) ||
+        compareDescending(left.estimatedOneRepMax, right.estimatedOneRepMax) ||
         compareDescending(left.recordedAt, right.recordedAt) ||
         left.exerciseId.localeCompare(right.exerciseId),
     );

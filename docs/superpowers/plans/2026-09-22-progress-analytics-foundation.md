@@ -34,10 +34,12 @@
 ### Task 1: Safe completed-set metric boundary
 
 **Files:**
+
 - Modify: `lib/workout-metrics.ts`
 - Modify: `lib/__tests__/workout-metrics.test.ts`
 
 **Interfaces:**
+
 - Consumes: completed-set-like values `{ weight: string; reps: string; completedAt?: number; done?: boolean }`.
 - Produces: `completedSetMetrics(set): { weight: number; reps: number; volume: number; estimatedOneRepMax: number } | undefined`, existing `volume(session): number`, and unchanged `epley(weight, reps): number`.
 
@@ -86,10 +88,12 @@ git commit -m "fix: harden completed set analytics"
 ### Task 2: Stable Progress analytics projection
 
 **Files:**
+
 - Create: `lib/progress-analytics.ts`
 - Create: `lib/__tests__/progress-analytics.test.ts`
 
 **Interfaces:**
+
 - Consumes: `completedSetMetrics`, `volume`, `canonicalExerciseId`, and `readonly WorkoutSession[]`.
 - Produces: `projectProgressAnalytics(history): ProgressAnalytics`, including `totalVolume`, newest-first `workoutVolumes`, `estimatedOneRepMaxRecords`, and `excludedSampleCount`.
 
@@ -137,11 +141,13 @@ git commit -m "feat: add stable progress analytics projection"
 ### Task 3: Existing Progress UI integration, reload coverage, and contracts
 
 **Files:**
+
 - Modify: `app/index.tsx`
 - Modify: `lib/__tests__/workout-screen.test.tsx`
 - Create: `docs/PROGRESS_ANALYTICS.md`
 
 **Interfaces:**
+
 - Consumes: `projectProgressAnalytics(history)` from Task 2.
 - Produces: existing Progress total volume, recent workout bars, and Estimated 1RM list backed only by the trusted projection; schema-v1 contract documentation.
 
@@ -190,9 +196,11 @@ git commit -m "feat: use trusted progress analytics"
 ### Task 4: Final validation and focused review
 
 **Files:**
+
 - Review: all files changed from `origin/develop` through `HEAD`
 
 **Interfaces:**
+
 - Consumes: completed Tasks 1–3 and their test evidence.
 - Produces: a reviewed, fully validated branch ready for push and PR.
 
