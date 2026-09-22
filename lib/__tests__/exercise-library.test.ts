@@ -86,6 +86,13 @@ describe('canonical exercise metadata', () => {
     expect(findExercise('bench')?.id).toBe('barbell-bench-press');
     expect(findExercise('unknown')).toBeUndefined();
   });
+
+  it('does not treat inherited object properties as legacy aliases', () => {
+    expect(canonicalExerciseId('toString')).toBeUndefined();
+    expect(canonicalExerciseId('constructor')).toBeUndefined();
+    expect(findExercise('toString')).toBeUndefined();
+    expect(findExercise('constructor')).toBeUndefined();
+  });
 });
 
 describe('exercise library filtering', () => {

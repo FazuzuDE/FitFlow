@@ -19,12 +19,12 @@ import { Confirmation } from '@/components/Confirmation';
 import { Workout, duration, successHaptic } from '@/components/Workout';
 import { WorkoutHistory } from '@/components/WorkoutHistory';
 import { WorkoutTemplates } from '@/components/WorkoutTemplates';
-import { volume, epley } from '@/lib/workout-metrics';
+import { volume } from '@/lib/workout-metrics';
+import { projectProgressAnalytics } from '@/lib/progress-analytics';
 import { completedSetCount, workoutIsComplete } from '@/lib/workout-engine';
 import {
   WorkoutSession as Session,
   WorkoutTemplate as Template,
-  isSetComplete,
 } from '@/lib/workout-model';
 import { findExercise } from '@/lib/exercise-library';
 import { WorkoutRepository } from '@/lib/workout-repository';
@@ -122,25 +122,12 @@ function Home({
 }
 
 function Stats({ history }: { history: Session[] }) {
-  const records = useMemo(() => {
-    const m: Record<
-      string,
-      { name: string; oneRM: number; weight: number; reps: number }
-    > = {};
-    history.forEach((h) =>
-      h.exercises.forEach((e) =>
-        e.sets.filter(isSetComplete).forEach((x) => {
-          const w = Number(x.weight) || 0,
-            r = Number(x.reps) || 0,
-            v = epley(w, r);
-          if (!m[e.name] || v > m[e.name].oneRM)
-            m[e.name] = { name: e.name, oneRM: v, weight: w, reps: r };
-        }),
-      ),
-    );
-    return Object.values(m).sort((a, b) => b.oneRM - a.oneRM);
-  }, [history]);
-  const vols = history.slice(0, 7).reverse().map(volume),
+  const analytics = useMemo(() => projectProgressAnalytics(history), [history]);
+  const records = analytics.estimatedOneRepMaxRecords;
+  const vols = analytics.workoutVolumes
+      .slice(0, 7)
+      .reverse()
+      .map((item) => item.volume),
     max = Math.max(1, ...vols);
   return (
     <ScrollView contentContainerStyle={s.content}>
@@ -150,9 +137,7 @@ function Stats({ history }: { history: Session[] }) {
       <GlassCard>
         <Text style={s.cardLabel}>TRAINING VOLUME</Text>
         <Text style={s.big}>
-          {Math.round(
-            history.reduce((a, x) => a + volume(x), 0),
-          ).toLocaleString()}{' '}
+          {Math.round(analytics.totalVolume).toLocaleString()}{' '}
           <Text style={s.unit}>kg</Text>
         </Text>
         <View
@@ -167,7 +152,7 @@ function Stats({ history }: { history: Session[] }) {
                 style={[
                   s.bar,
                   {
-                    height: Math.max(4, (60 * v) / max),
+                    height: Math.max(4, 60 * (v / max)),
                     backgroundColor:
                       i === vols.length - 1 ? blue : colors.secondary,
                   },
@@ -181,11 +166,14 @@ function Stats({ history }: { history: Session[] }) {
       <GlassCard>
         <Text style={s.h3}>Estimated 1RM</Text>
         <Text style={s.sub}>Epley formula · based on completed sets</Text>
+        {analytics.excludedSampleCount > 0 ? (
+          <Text style={s.sub}>Some saved sets could not be included.</Text>
+        ) : null}
         {records.length === 0 ? (
           <Text style={s.sub}>Complete sets to unlock records.</Text>
         ) : (
           records.slice(0, 6).map((r, i) => (
-            <View key={r.name} style={s.history}>
+            <View key={r.identityKey} style={s.history}>
               <View>
                 <Text style={s.h3}>{r.name}</Text>
                 <Text style={s.sub}>
@@ -193,7 +181,9 @@ function Stats({ history }: { history: Session[] }) {
                 </Text>
               </View>
               <View style={{ alignItems: 'flex-end' }}>
-                <Text style={s.value2}>{r.oneRM.toFixed(1)} kg</Text>
+                <Text style={s.value2}>
+                  {r.estimatedOneRepMax.toFixed(1)} kg
+                </Text>
                 {i === 0 && <Text style={s.pr}>TOP PR</Text>}
               </View>
             </View>

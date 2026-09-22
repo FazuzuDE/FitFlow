@@ -1,4 +1,4 @@
-import { TextInput, Pressable } from 'react-native';
+import { Text, TextInput, Pressable, StyleSheet, View } from 'react-native';
 import App from '../../app/index';
 import { AppButton } from '../../components/AppButton';
 import { Confirmation } from '../../components/Confirmation';
@@ -186,6 +186,183 @@ it('restores a compact History summary and opens the saved snapshot after reload
   expect(detail).toContain('Archived Bench Snapshot');
   expect(detail).toContain('62.5 kg × 7');
   expect(detail).not.toContain('Barbell Bench Press');
+
+  await act(async () => view.unmount());
+});
+
+it('derives stable safe Progress analytics from persisted History after reload', async () => {
+  await AsyncStorage.clear();
+  const saved = (
+    id: string,
+    finishedAt: number,
+    libraryId: string,
+    exerciseName: string,
+    weight: string,
+    reps: string,
+  ): WorkoutSession => ({
+    id,
+    templateId: `deleted-${id}`,
+    name: `Saved ${id}`,
+    startedAt: finishedAt - 1_000,
+    finishedAt,
+    currentExerciseIndex: 0,
+    restDurationSeconds: 90,
+    exercises: [
+      {
+        id: `${id}-exercise`,
+        libraryId,
+        name: exerciseName,
+        muscle: 'Saved muscle',
+        sets: [
+          {
+            id: `${id}-set`,
+            weight,
+            reps,
+            completedAt: finishedAt - 100,
+          },
+        ],
+      },
+    ],
+  });
+  const olderBest = saved(
+    'older',
+    1_700_000_002_000,
+    'barbell-bench-press',
+    'Original Saved Bench Name',
+    '100',
+    '5',
+  );
+  const newerLabel = saved(
+    'newer',
+    1_700_000_004_000,
+    'bench',
+    'Newest Saved Bench Name',
+    '40',
+    '5',
+  );
+  const invalid = saved(
+    'invalid',
+    1_700_000_003_000,
+    'stale-id',
+    'Invalid Legacy Snapshot',
+    '-100',
+    '10',
+  );
+  await AsyncStorage.setItem(
+    STATE_KEY,
+    JSON.stringify({
+      schemaVersion: 1,
+      activeWorkout: null,
+      history: [olderBest, newerLabel, invalid],
+      templates: [],
+    }),
+  );
+
+  const renderProgress = async () => {
+    let view!: ReturnType<typeof create>;
+    await act(async () => {
+      view = create(<App />);
+    });
+    act(() => view.root.findByType(Dock).props.onChange('progress'));
+    return view;
+  };
+
+  for (let pass = 0; pass < 2; pass += 1) {
+    const view = await renderProgress();
+    const progress = JSON.stringify(view.toJSON());
+    const text = view.root
+      .findAllByType(Text)
+      .map((node: { props: { children?: unknown } }) =>
+        Array.isArray(node.props.children)
+          ? node.props.children
+              .filter(
+                (child) =>
+                  typeof child === 'string' || typeof child === 'number',
+              )
+              .join('')
+          : String(node.props.children ?? ''),
+      );
+
+    expect(progress).toContain('TRAINING VOLUME');
+    expect(progress).toContain('700');
+    expect(progress).toContain('Estimated 1RM');
+    expect(progress).toContain('Newest Saved Bench Name');
+    expect(text).toContain('100 kg × 5');
+    expect(text).toContain('116.7 kg');
+    expect(progress).not.toContain('Original Saved Bench Name');
+    expect(progress).not.toContain('Invalid Legacy Snapshot');
+    expect(progress).not.toContain('Barbell Bench Press');
+    expect(progress).toContain('Some saved sets could not be included.');
+
+    await act(async () => view.unmount());
+  }
+});
+
+it('keeps Progress chart heights finite for very large finite volumes', async () => {
+  await AsyncStorage.clear();
+  const large = `1${'0'.repeat(307)}`;
+  const saved: WorkoutSession = {
+    id: 'large-session',
+    templateId: 'large-template',
+    name: 'Large finite workout',
+    startedAt: 1_700_000_000_000,
+    finishedAt: 1_700_000_001_000,
+    currentExerciseIndex: 0,
+    restDurationSeconds: 90,
+    exercises: [
+      {
+        id: 'large-exercise',
+        libraryId: 'custom-large',
+        name: 'Large finite exercise',
+        muscle: 'Saved muscle',
+        sets: [
+          {
+            id: 'large-set',
+            weight: large,
+            reps: '10',
+            completedAt: 1_700_000_000_900,
+          },
+        ],
+      },
+    ],
+  };
+  await AsyncStorage.setItem(
+    STATE_KEY,
+    JSON.stringify({
+      schemaVersion: 1,
+      activeWorkout: null,
+      history: [saved],
+      templates: [],
+    }),
+  );
+
+  let view!: ReturnType<typeof create>;
+  await act(async () => {
+    view = create(<App />);
+  });
+  act(() => view.root.findByType(Dock).props.onChange('progress'));
+
+  const chart = view.root
+    .findAllByType(View)
+    .find((node: { props: { accessibilityLabel?: string } }) =>
+      node.props.accessibilityLabel?.startsWith(
+        'Recent workout volumes in kilograms:',
+      ),
+    );
+  const heights = chart!
+    .findAllByType(View)
+    .filter((node: { props: { style?: unknown } }) =>
+      Array.isArray(node.props.style),
+    )
+    .map((node: { props: { style?: unknown } }) =>
+      StyleSheet.flatten(node.props.style),
+    )
+    .map((style: { height?: unknown } | undefined) => style?.height)
+    .filter((height: unknown): height is number => typeof height === 'number');
+
+  expect(heights.length).toBeGreaterThan(0);
+  expect(heights.every((height: number) => Number.isFinite(height))).toBe(true);
+  expect(Math.max(...heights)).toBeLessThanOrEqual(60);
 
   await act(async () => view.unmount());
 });
