@@ -2,8 +2,11 @@ import { TextInput, Pressable } from 'react-native';
 import App from '../../app/index';
 import { AppButton } from '../../components/AppButton';
 import { Confirmation } from '../../components/Confirmation';
+import { Dock } from '../../components/Dock';
 import { Workout } from '../../components/Workout';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { STATE_KEY } from '../workout-repository';
+import type { WorkoutSession } from '../workout-model';
 
 const { act, create } = jest.requireActual('react-test-renderer');
 jest.mock('@react-native-async-storage/async-storage', () =>
@@ -109,4 +112,80 @@ it('connects the actual screen inputs, timer, confirmation and persisted history
   await act(async () => {
     view.unmount();
   });
+});
+
+it('restores a compact History summary and opens the saved snapshot after reload', async () => {
+  await AsyncStorage.clear();
+  const saved: WorkoutSession = {
+    id: 'archived-session',
+    templateId: 'deleted-template',
+    name: 'Archived Session',
+    startedAt: 1_700_000_000_000,
+    finishedAt: 1_700_000_090_000,
+    currentExerciseIndex: 0,
+    restDurationSeconds: 90,
+    exercises: [
+      {
+        id: 'archived-exercise',
+        libraryId: 'barbell-bench-press',
+        name: 'Archived Bench Snapshot',
+        muscle: 'Archived Chest Snapshot',
+        sets: [
+          {
+            id: 'archived-set',
+            weight: '62.5',
+            reps: '7',
+            completedAt: 1_700_000_030_000,
+          },
+        ],
+      },
+    ],
+  };
+  await AsyncStorage.setItem(
+    STATE_KEY,
+    JSON.stringify({
+      schemaVersion: 1,
+      activeWorkout: null,
+      history: [saved],
+      templates: [],
+    }),
+  );
+
+  let view: ReturnType<typeof create>;
+  await act(async () => {
+    view = create(<App />);
+  });
+  act(() => view.root.findByType(Dock).props.onChange('progress'));
+  expect(
+    view.root
+      .findAllByType(Pressable)
+      .find(
+        (node: { props: { accessibilityLabel?: string } }) =>
+          node.props.accessibilityLabel ===
+          'Open Archived Session workout details',
+      ),
+  ).toBeDefined();
+  await act(async () => view.unmount());
+
+  await act(async () => {
+    view = create(<App />);
+  });
+  act(() => view.root.findByType(Dock).props.onChange('progress'));
+  const open = view.root
+    .findAllByType(Pressable)
+    .find(
+      (node: { props: { accessibilityLabel?: string } }) =>
+        node.props.accessibilityLabel ===
+        'Open Archived Session workout details',
+    );
+
+  expect(open).toBeDefined();
+  act(() => open?.props.onPress());
+  const detail = JSON.stringify(view.toJSON());
+  expect(detail).toContain('Archived Session');
+  expect(detail).toContain('Archived Bench Snapshot');
+  expect(detail).toContain('62.5 kg × 7');
+  expect(detail).not.toContain('Barbell Bench Press');
+
+  await act(async () => view.unmount());
 });
