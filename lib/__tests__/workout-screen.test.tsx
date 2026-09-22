@@ -1,4 +1,4 @@
-import { Text, TextInput, Pressable } from 'react-native';
+import { Text, TextInput, Pressable, StyleSheet, View } from 'react-native';
 import App from '../../app/index';
 import { AppButton } from '../../components/AppButton';
 import { Confirmation } from '../../components/Confirmation';
@@ -296,4 +296,73 @@ it('derives stable safe Progress analytics from persisted History after reload',
 
     await act(async () => view.unmount());
   }
+});
+
+it('keeps Progress chart heights finite for very large finite volumes', async () => {
+  await AsyncStorage.clear();
+  const large = `1${'0'.repeat(307)}`;
+  const saved: WorkoutSession = {
+    id: 'large-session',
+    templateId: 'large-template',
+    name: 'Large finite workout',
+    startedAt: 1_700_000_000_000,
+    finishedAt: 1_700_000_001_000,
+    currentExerciseIndex: 0,
+    restDurationSeconds: 90,
+    exercises: [
+      {
+        id: 'large-exercise',
+        libraryId: 'custom-large',
+        name: 'Large finite exercise',
+        muscle: 'Saved muscle',
+        sets: [
+          {
+            id: 'large-set',
+            weight: large,
+            reps: '10',
+            completedAt: 1_700_000_000_900,
+          },
+        ],
+      },
+    ],
+  };
+  await AsyncStorage.setItem(
+    STATE_KEY,
+    JSON.stringify({
+      schemaVersion: 1,
+      activeWorkout: null,
+      history: [saved],
+      templates: [],
+    }),
+  );
+
+  let view!: ReturnType<typeof create>;
+  await act(async () => {
+    view = create(<App />);
+  });
+  act(() => view.root.findByType(Dock).props.onChange('progress'));
+
+  const chart = view.root
+    .findAllByType(View)
+    .find((node: { props: { accessibilityLabel?: string } }) =>
+      node.props.accessibilityLabel?.startsWith(
+        'Recent workout volumes in kilograms:',
+      ),
+    );
+  const heights = chart!
+    .findAllByType(View)
+    .filter((node: { props: { style?: unknown } }) =>
+      Array.isArray(node.props.style),
+    )
+    .map((node: { props: { style?: unknown } }) =>
+      StyleSheet.flatten(node.props.style),
+    )
+    .map((style: { height?: unknown } | undefined) => style?.height)
+    .filter((height: unknown): height is number => typeof height === 'number');
+
+  expect(heights.length).toBeGreaterThan(0);
+  expect(heights.every((height: number) => Number.isFinite(height))).toBe(true);
+  expect(Math.max(...heights)).toBeLessThanOrEqual(60);
+
+  await act(async () => view.unmount());
 });

@@ -493,7 +493,9 @@ const exerciseById = new Map(exerciseLibrary.map((item) => [item.id, item]));
 
 export const canonicalExerciseId = (id: string): ExerciseId | undefined => {
   if (exerciseById.has(id as ExerciseId)) return id as ExerciseId;
-  return legacyExerciseIds[id as keyof typeof legacyExerciseIds];
+  return Object.prototype.hasOwnProperty.call(legacyExerciseIds, id)
+    ? legacyExerciseIds[id as keyof typeof legacyExerciseIds]
+    : undefined;
 };
 
 export const findExercise = (id: string): LibraryExercise | undefined => {

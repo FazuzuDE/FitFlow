@@ -119,7 +119,7 @@ Expected: FAIL because `lib/progress-analytics.ts` does not exist.
 
 - [ ] **Step 3: Implement stable identity, records, and deterministic ordering**
 
-Known IDs use `canonicalExerciseId(libraryId)`. Unknown non-empty IDs retain the trimmed raw ID. Missing IDs use `snapshot:<session.id>:<exercise.id>`. Label selection uses the newest relevant saved sample by `finishedAt`, then `completedAt`, then a lexical source key. Best Estimated 1RM uses highest estimate, then newest `completedAt`, then lexical source key. Record lists sort by estimate descending, timestamp descending, then identity; workout volumes sort by `finishedAt` descending with stable ID ties.
+Known IDs use `canonicalExerciseId(libraryId)`. Unknown non-empty IDs retain the trimmed raw ID as their saved value. Aggregation and UI keys use distinct canonical, unknown, and snapshot namespaces; snapshot tuples and raw unknown IDs are encoded so they cannot collide. Label selection uses the newest relevant saved sample by `finishedAt`, then `completedAt`, then a lexical source key. Best Estimated 1RM uses highest estimate, then newest `completedAt`, then lexical source key. Record lists sort by estimate descending, timestamp descending, then identity; workout volumes sort by `finishedAt` descending with stable ID ties.
 
 - [ ] **Step 4: Verify focused and full suites GREEN**
 

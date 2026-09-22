@@ -152,7 +152,7 @@ function Stats({ history }: { history: Session[] }) {
                 style={[
                   s.bar,
                   {
-                    height: Math.max(4, (60 * v) / max),
+                    height: Math.max(4, 60 * (v / max)),
                     backgroundColor:
                       i === vols.length - 1 ? blue : colors.secondary,
                   },
@@ -173,7 +173,7 @@ function Stats({ history }: { history: Session[] }) {
           <Text style={s.sub}>Complete sets to unlock records.</Text>
         ) : (
           records.slice(0, 6).map((r, i) => (
-            <View key={r.exerciseId} style={s.history}>
+            <View key={r.identityKey} style={s.history}>
               <View>
                 <Text style={s.h3}>{r.name}</Text>
                 <Text style={s.sub}>

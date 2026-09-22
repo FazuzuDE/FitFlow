@@ -4,7 +4,7 @@ Progress analytics are derived from completed `WorkoutSession` snapshots stored 
 
 ## Exercise identity and labels
 
-Known canonical and legacy `libraryId` values resolve to the same canonical exercise identity. Unknown non-empty IDs retain their saved identity, while unusable empty IDs are isolated to their saved workout/exercise snapshot instead of being merged by display name.
+Known canonical and legacy `libraryId` values resolve to the same canonical exercise identity. Unknown non-empty IDs retain their saved value, while unusable empty IDs are isolated to their saved workout/exercise snapshot instead of being merged by display name. Internal identity keys use distinct canonical, unknown, and snapshot namespaces with encoded snapshot tuples, so unusual saved IDs cannot collide with fallback identities or object properties.
 
 Saved exercise names are labels, not identity. An aggregated record uses the newest relevant saved snapshot label; later catalog renames do not replace historical labels or split records for the same stable exercise.
 

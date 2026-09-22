@@ -51,6 +51,7 @@ describe('Progress analytics stable exercise identity', () => {
 
     expect(result.estimatedOneRepMaxRecords).toEqual([
       {
+        identityKey: 'canonical:barbell-bench-press',
         exerciseId: 'barbell-bench-press',
         name: 'Saved Bench',
         weight: 80,
@@ -152,10 +153,39 @@ describe('Progress analytics stable exercise identity', () => {
       result.estimatedOneRepMaxRecords.map((record) => record.exerciseId),
     ).toEqual([
       'stale-id',
-      'snapshot:unknown-newer:blank-b',
-      'snapshot:unknown-older:blank-a',
+      'snapshot:["unknown-newer","blank-b"]',
+      'snapshot:["unknown-older","blank-a"]',
     ]);
     expect(result.estimatedOneRepMaxRecords[0].name).toBe('New Stale Name');
+  });
+
+  it('keeps inherited-property ids and snapshot-like raw ids collision-safe', () => {
+    const result = projectProgressAnalytics([
+      workout('a', 2_000, [
+        exercise('ex', '', 'Blank Snapshot', [
+          set('blank-set', '30', '5', 1_700),
+        ]),
+        exercise('raw', 'snapshot:a:ex', 'Raw Snapshot-Like ID', [
+          set('raw-set', '40', '5', 1_800),
+        ]),
+        exercise('prototype-a', 'toString', 'Prototype A', [
+          set('prototype-a-set', '50', '5', 1_900),
+        ]),
+        exercise('prototype-b', 'constructor', 'Prototype B', [
+          set('prototype-b-set', '60', '5', 1_950),
+        ]),
+      ]),
+    ]);
+
+    expect(result.estimatedOneRepMaxRecords).toHaveLength(4);
+    expect(
+      result.estimatedOneRepMaxRecords.map((record) => record.identityKey),
+    ).toEqual([
+      'unknown:"constructor"',
+      'unknown:"toString"',
+      'unknown:"snapshot:a:ex"',
+      'snapshot:["a","ex"]',
+    ]);
   });
 });
 

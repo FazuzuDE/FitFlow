@@ -9,6 +9,7 @@ export type WorkoutVolume = {
 };
 
 export type EstimatedOneRepMaxRecord = {
+  identityKey: string;
   exerciseId: string;
   name: string;
   weight: number;
@@ -40,18 +41,34 @@ type ExerciseAggregate = {
   label: LabelCandidate;
 };
 
+type StableExerciseIdentity = {
+  identityKey: string;
+  exerciseId: string;
+};
+
 const completedAt = (session: WorkoutSession): number =>
   session.finishedAt ?? session.startedAt;
 
 const stableExerciseId = (
   session: WorkoutSession,
   exercise: WorkoutSession['exercises'][number],
-): string => {
+): StableExerciseIdentity => {
   const savedId = exercise.libraryId.trim();
-  return (
-    canonicalExerciseId(savedId) ??
-    (savedId || `snapshot:${session.id}:${exercise.id}`)
-  );
+  const canonicalId = canonicalExerciseId(savedId);
+  if (canonicalId) {
+    return {
+      identityKey: `canonical:${canonicalId}`,
+      exerciseId: canonicalId,
+    };
+  }
+  if (savedId) {
+    return {
+      identityKey: `unknown:${JSON.stringify(savedId)}`,
+      exerciseId: savedId,
+    };
+  }
+  const snapshotKey = `snapshot:${JSON.stringify([session.id, exercise.id])}`;
+  return { identityKey: snapshotKey, exerciseId: snapshotKey };
 };
 
 const sourceWinsTie = (left: string, right: string): boolean => left < right;
@@ -99,7 +116,7 @@ export const projectProgressAnalytics = (
 
   for (const session of history) {
     for (const exercise of session.exercises) {
-      const exerciseId = stableExerciseId(session, exercise);
+      const identity = stableExerciseId(session, exercise);
       for (const savedSet of exercise.sets) {
         if (typeof savedSet.completedAt !== 'number') continue;
         const metrics = completedSetMetrics(savedSet);
@@ -108,9 +125,14 @@ export const projectProgressAnalytics = (
           continue;
         }
 
-        const sourceKey = `${session.id}\u0000${exercise.id}\u0000${savedSet.id}`;
+        const sourceKey = JSON.stringify([
+          session.id,
+          exercise.id,
+          savedSet.id,
+        ]);
         const record: RecordCandidate = {
-          exerciseId,
+          identityKey: identity.identityKey,
+          exerciseId: identity.exerciseId,
           weight: metrics.weight,
           reps: metrics.reps,
           estimatedOneRepMax: metrics.estimatedOneRepMax,
@@ -123,9 +145,9 @@ export const projectProgressAnalytics = (
           completedAt: savedSet.completedAt,
           sourceKey,
         };
-        const current = aggregates.get(exerciseId);
+        const current = aggregates.get(identity.identityKey);
         if (!current) {
-          aggregates.set(exerciseId, { best: record, label });
+          aggregates.set(identity.identityKey, { best: record, label });
           continue;
         }
         if (isBetterRecord(record, current.best)) current.best = record;
@@ -136,6 +158,7 @@ export const projectProgressAnalytics = (
 
   const estimatedOneRepMaxRecords = [...aggregates.values()]
     .map(({ best, label }) => ({
+      identityKey: best.identityKey,
       exerciseId: best.exerciseId,
       name: label.name,
       weight: best.weight,
@@ -147,7 +170,7 @@ export const projectProgressAnalytics = (
       (left, right) =>
         compareDescending(left.estimatedOneRepMax, right.estimatedOneRepMax) ||
         compareDescending(left.recordedAt, right.recordedAt) ||
-        left.exerciseId.localeCompare(right.exerciseId),
+        left.identityKey.localeCompare(right.identityKey),
     );
 
   const totalVolume = workoutVolumes.reduce((total, item) => {
