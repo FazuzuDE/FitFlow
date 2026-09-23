@@ -2,6 +2,24 @@
 
 This chronological log records approved decisions. The owning product, design, roadmap, and engineering documents remain the detailed sources of truth.
 
+## 2026-09-23 — Exercise-specific logged performance
+
+Status: Approved
+
+Decision:
+
+- The first exercise-specific Progress view shows factual saved performance over time: workout date, completed valid sets, weight and repetitions.
+- Do not infer strength growth from weight alone or add a Strength Score, percentage improvement, or an unapproved "best set" metric.
+- Keep Estimated 1RM explicitly estimated; a new Estimated 1RM trend is outside this task.
+
+Rationale:
+
+- Let users inspect what they actually logged without imposing an unsupported interpretation.
+
+Implementation: Exercise-Specific Logged Performance Foundation
+
+Related: `PROGRESS_ANALYTICS.md`
+
 ## 2026-09-23 — CRESUM product brand
 
 Status: Approved

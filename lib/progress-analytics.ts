@@ -41,7 +41,7 @@ type ExerciseAggregate = {
   label: LabelCandidate;
 };
 
-type StableExerciseIdentity = {
+export type StableExerciseIdentity = {
   identityKey: string;
   exerciseId: string;
 };
@@ -49,7 +49,7 @@ type StableExerciseIdentity = {
 const completedAt = (session: WorkoutSession): number =>
   session.finishedAt ?? session.startedAt;
 
-const stableExerciseId = (
+export const stableExerciseIdentity = (
   session: WorkoutSession,
   exercise: WorkoutSession['exercises'][number],
 ): StableExerciseIdentity => {
@@ -116,7 +116,7 @@ export const projectProgressAnalytics = (
 
   for (const session of history) {
     for (const exercise of session.exercises) {
-      const identity = stableExerciseId(session, exercise);
+      const identity = stableExerciseIdentity(session, exercise);
       for (const savedSet of exercise.sets) {
         if (typeof savedSet.completedAt !== 'number') continue;
         const metrics = completedSetMetrics(savedSet);

@@ -19,6 +19,7 @@ import { AppButton } from '@/components/AppButton';
 import { Confirmation } from '@/components/Confirmation';
 import { Workout, duration, successHaptic } from '@/components/Workout';
 import { WorkoutHistory } from '@/components/WorkoutHistory';
+import { ExercisePerformance } from '@/components/ExercisePerformance';
 import { WorkoutTemplates } from '@/components/WorkoutTemplates';
 import { volume } from '@/lib/workout-metrics';
 import {
@@ -248,6 +249,7 @@ function Stats({ history }: { history: Session[] }) {
           ))
         )}
       </GlassCard>
+      <ExercisePerformance history={history} period={period} now={now} />
       <Text style={s.sub}>Complete saved History · all dates</Text>
       <WorkoutHistory history={history} />
     </ScrollView>

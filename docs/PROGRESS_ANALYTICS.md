@@ -22,4 +22,10 @@ A completed workout belongs to a finite period when its saved `finishedAt` is in
 
 The selected period is presentation state, not a schema-v1 field. History remains the complete saved archive, including workouts outside the selected period; neither History nor its timestamps are rewritten.
 
-Date buckets, a training-frequency formula, exercise-specific progression charts, Muscle Load, Muscle Map, recommendations, and cloud analytics remain outside this foundation.
+## Exercise-specific logged performance
+
+The first exercise-specific view presents factual saved workout dates and valid completed-set weight and repetitions for one selected stable exercise identity. Its selectable exercises come from completed saved history, not the full current catalog. It uses the existing Progress period and safe sample rules; a selection trained only outside that period has an empty period view. Saved set order is retained within each workout, and History remains unchanged.
+
+This view does not define a Strength Score, percentage improvement, "best set", or strength-growth claim. Estimated 1RM remains an explicitly estimated existing metric, not a new trend in this view.
+
+Date buckets, a training-frequency formula, exercise-specific trend charts, Muscle Load, Muscle Map, recommendations, and cloud analytics remain outside this foundation.
