@@ -1,6 +1,48 @@
-# FitFlow Decision Log
+# CRESUM Decision Log
 
 This chronological log records approved decisions. The owning product, design, roadmap, and engineering documents remain the detailed sources of truth.
+
+## 2026-09-23 — CRESUM product brand
+
+Status: Approved
+
+Decision:
+
+- Change the user-facing product name from FitFlow to CRESUM.
+- Defer technical identifiers and persistence naming to a separate focused migration task.
+
+Rationale:
+
+- Establish the approved product identity without risking existing storage or platform configuration.
+
+Implementation: Product documentation now; technical rename later
+
+Related:
+
+- `PRODUCT.md`
+- `DESIGN_SYSTEM.md`
+
+## 2026-09-23 — Progress periods
+
+Status: Approved
+
+Decision:
+
+- Use `1W · 1M · 3M · 6M · 1Y · ALL`, defaulting to `1M`.
+- Finite periods roll back from explicit `now` by the corresponding local-calendar week, month(s), or year, with end-of-month and leap-year clamping.
+- Include both ends of `[start, now]`; `ALL` includes all valid completed workouts through `now`; future workouts are excluded.
+- Select periods by completed workout `finishedAt`. The selection scopes Progress analytics while History remains the complete archive.
+
+Rationale:
+
+- Keep period metrics truthful across timezone and calendar transitions without altering saved workouts.
+
+Implementation: Progress Period Foundation
+
+Related:
+
+- `DESIGN_SYSTEM.md`
+- `PROGRESS_ANALYTICS.md`
 
 ## 2026-09-21 — Adaptive Weight Input
 

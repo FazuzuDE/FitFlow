@@ -1,13 +1,13 @@
-# FitFlow Design System v1.0
+# CRESUM Design System v1.0
 
-**Status:** approved baseline for FitFlow Core  
+**Status:** approved baseline for CRESUM Core
 **Stack:** React Native + Expo + TypeScript  
 **Direction:** Light Premium / Apple-inspired iOS UI  
 **Primary:** `#0A84FF`
 
 ## 1. Principles
 
-FitFlow must feel fast, calm, precise and premium. Workout logging always has priority over decoration.
+CRESUM must feel fast, calm, precise and premium. Workout logging always has priority over decoration.
 
 - Clarity first: weight, reps, sets, rest and progress are readable at a glance.
 - One obvious primary action per screen.
@@ -200,7 +200,7 @@ Current exercise and next action must always be obvious. Do not hide weight/reps
 
 Top filters: `Overview · Strength · Volume · Muscles`.
 
-Useful periods: 4 weeks / 3 months / 6 months / 1 year when data allows.
+Progress periods: `1W · 1M · 3M · 6M · 1Y · ALL`. Default: `1M`. One selected period scopes Progress metrics; History remains the complete archive. Finite periods are rolling local-calendar windows `[start, now]` with both boundaries inclusive. `ALL` includes valid completed workouts through `now`; future-dated workouts do not contribute.
 
 Overview hierarchy: total volume chart → workouts → PRs → estimated 1RM/strength trend → meaningful average working weight → muscle-group distribution.
 
@@ -263,6 +263,6 @@ A UI task is complete when it follows this system, introduces no arbitrary dupli
 
 ## 19. Current visual baseline
 
-The approved baseline is the light FitFlow concept: airy white/light-gray surfaces, Apple-like hierarchy, `#0A84FF` primary actions, rounded premium cards, restrained glass, with **Home, Active Workout and Progress** as the first key visual references.
+The approved baseline is the light CRESUM concept: airy white/light-gray surfaces, Apple-like hierarchy, `#0A84FF` primary actions, rounded premium cards, restrained glass, with **Home, Active Workout and Progress** as the first key visual references.
 
-This document is the source of truth for FitFlow Core UI until explicitly revised.
+This document is the source of truth for CRESUM Core UI until explicitly revised.
