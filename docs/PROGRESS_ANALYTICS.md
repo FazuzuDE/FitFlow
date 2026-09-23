@@ -1,4 +1,4 @@
-# Progress Analytics Foundation
+# CRESUM Progress Analytics
 
 Progress analytics are derived from completed `WorkoutSession` snapshots stored in the existing schema-v1 workout state. The projection is read-only: it does not rewrite History, migrate persistence, or reconstruct saved workouts from current templates or Exercise Library display metadata.
 
@@ -14,4 +14,12 @@ Only completed sets contribute to analytics. Weight uses the Workout Engine's de
 
 Training volume remains the sum of valid completed `weight × repetitions` samples. Totals remain finite. Estimated 1RM retains the existing Epley formula and is always presented as an estimate; best records retain their saved set timestamp and use deterministic timestamp-based ordering.
 
-Periods, date buckets, training frequency, exercise-specific progression charts, Muscle Load, Muscle Map, recommendations, and cloud analytics are outside this foundation.
+## Progress periods
+
+The period choices are `1W`, `1M`, `3M`, `6M`, `1Y`, and `ALL`; the default is `1M`. Finite periods roll back from an explicit `now` by one local-calendar week, one/three/six local-calendar months, or one local-calendar year. Local wall-clock time is preserved where it exists; month-end and leap-day subtraction clamp to the final day of the target month. Tests supply `now` directly; the Progress screen refreshes it while open and when the app becomes active.
+
+A completed workout belongs to a finite period when its saved `finishedAt` is in `[start, now]`, including both boundaries. `ALL` includes all valid completed workouts with `finishedAt <= now`. Future-dated sessions do not contribute to any Progress period. The selection scopes workout count, safe volume, Estimated 1RM records, and the existing recent-workout volume bars. Empty periods show zero workouts and volume, no estimated record, and no fabricated workout bar.
+
+The selected period is presentation state, not a schema-v1 field. History remains the complete saved archive, including workouts outside the selected period; neither History nor its timestamps are rewritten.
+
+Date buckets, a training-frequency formula, exercise-specific progression charts, Muscle Load, Muscle Map, recommendations, and cloud analytics remain outside this foundation.
