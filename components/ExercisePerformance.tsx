@@ -33,6 +33,14 @@ export function ExercisePerformance({ history, period, now }: Props) {
     [history, now],
   );
   const selected = choices.find((choice) => choice.identityKey === identityKey);
+  const choiceLabel = (choice: (typeof choices)[number]) =>
+    choices.some(
+      (other) =>
+        other.identityKey !== choice.identityKey &&
+        other.name.toLocaleLowerCase() === choice.name.toLocaleLowerCase(),
+    )
+      ? `${choice.name} (${choice.sourceId})`
+      : choice.name;
   const entries = useMemo(
     () =>
       identityKey
@@ -64,10 +72,10 @@ export function ExercisePerformance({ history, period, now }: Props) {
             accessibilityRole="button"
             accessibilityLabel="Choose exercise for logged performance"
             onPress={() => setSelectorOpen(true)}
-            style={s.choose}
+            style={({ pressed }) => [s.choose, pressed && s.pressed]}
           >
             <Text style={s.chooseText}>
-              {selected?.name ?? 'Choose exercise'}
+              {selected ? choiceLabel(selected) : 'Choose exercise'}
             </Text>
           </Pressable>
           {selected ? (
@@ -136,7 +144,7 @@ export function ExercisePerformance({ history, period, now }: Props) {
                 <Pressable
                   key={choice.identityKey}
                   accessibilityRole="button"
-                  accessibilityLabel={`View ${choice.name} performance`}
+                  accessibilityLabel={`View ${choiceLabel(choice)} performance`}
                   accessibilityState={{
                     selected: choice.identityKey === identityKey,
                   }}
@@ -144,9 +152,9 @@ export function ExercisePerformance({ history, period, now }: Props) {
                     setIdentityKey(choice.identityKey);
                     close();
                   }}
-                  style={s.result}
+                  style={({ pressed }) => [s.result, pressed && s.pressed]}
                 >
-                  <Text style={s.resultText}>{choice.name}</Text>
+                  <Text style={s.resultText}>{choiceLabel(choice)}</Text>
                 </Pressable>
               ))
             )}
@@ -234,4 +242,5 @@ const s = StyleSheet.create({
     borderBottomColor: colors.separator,
   },
   resultText: { ...typography.body, color: colors.textPrimary },
+  pressed: { opacity: 0.6 },
 });

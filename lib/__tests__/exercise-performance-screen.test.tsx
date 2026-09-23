@@ -176,4 +176,28 @@ describe('ExercisePerformance', () => {
     );
     act(() => view.unmount());
   });
+
+  it('distinguishes separate saved identities with the same exercise name', () => {
+    const history = [
+      workout('first', 22, 'unknown-a', 'Same label', '40'),
+      workout('second', 21, 'unknown-b', 'Same label', '50'),
+    ];
+    const view = render(
+      <ExercisePerformance history={history} period="1M" now={now} />,
+    );
+    press(view, 'Choose exercise for logged performance');
+    const labels = view.root
+      .findAllByType(Pressable)
+      .map(
+        (item: { props: { accessibilityLabel?: string } }) =>
+          item.props.accessibilityLabel,
+      );
+    expect(labels).toContain('View Same label (unknown-a) performance');
+    expect(labels).toContain('View Same label (unknown-b) performance');
+    press(view, 'View Same label (unknown-b) performance');
+    expect(visibleText(view)).toContain('Same label (unknown-b)');
+    expect(visibleText(view)).toContain('50 kg × 8');
+    expect(visibleText(view)).not.toContain('40 kg × 8');
+    act(() => view.unmount());
+  });
 });

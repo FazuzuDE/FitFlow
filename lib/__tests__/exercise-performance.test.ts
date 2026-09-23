@@ -41,7 +41,11 @@ describe('exercise-specific logged performance', () => {
       ]),
     ];
     expect(listPerformanceExercises(history, now)).toEqual([
-      { identityKey: 'canonical:barbell-bench-press', name: 'Renamed Bench' },
+      {
+        identityKey: 'canonical:barbell-bench-press',
+        name: 'Renamed Bench',
+        sourceId: 'barbell-bench-press',
+      },
     ]);
     expect(
       projectExercisePerformance(
@@ -157,7 +161,7 @@ describe('exercise-specific logged performance', () => {
     const before = JSON.stringify(history);
     const key = 'canonical:barbell-bench-press';
     expect(listPerformanceExercises(history, now)).toEqual([
-      { identityKey: key, name: 'Bench' },
+      { identityKey: key, name: 'Bench', sourceId: 'bench' },
     ]);
     expect(projectExercisePerformance(history, '1M', now, key)).toMatchObject([
       {
@@ -209,7 +213,7 @@ describe('exercise-specific logged performance', () => {
     const reloaded = JSON.parse(JSON.stringify(history)) as WorkoutSession[];
     const key = 'canonical:barbell-bench-press';
     expect(listPerformanceExercises(history, now)).toEqual([
-      { identityKey: key, name: 'Saved Bench' },
+      { identityKey: key, name: 'Saved Bench', sourceId: 'bench' },
     ]);
     expect(projectExercisePerformance(history, '1M', now, key)).toMatchObject([
       {
@@ -234,7 +238,7 @@ describe('exercise-specific logged performance', () => {
     ];
     const key = 'canonical:barbell-bench-press';
     expect(listPerformanceExercises(history, now)).toEqual([
-      { identityKey: key, name: 'Legacy Bench' },
+      { identityKey: key, name: 'Legacy Bench', sourceId: 'bench' },
     ]);
     expect(projectExercisePerformance(history, '1M', now, key)[0].sets).toEqual(
       [{ id: 'done', weight: 42, reps: 6 }],

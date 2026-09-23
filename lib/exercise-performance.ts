@@ -9,6 +9,7 @@ import type { WorkoutSession } from './workout-model';
 export type PerformanceExercise = {
   identityKey: string;
   name: string;
+  sourceId: string;
 };
 
 export type PerformanceOccurrence = {
@@ -28,7 +29,11 @@ export const listPerformanceExercises = (
     for (const exercise of session.exercises) {
       if (!exercise.sets.some((set) => completedSetMetrics(set))) continue;
       const { identityKey } = stableExerciseIdentity(session, exercise);
-      choices.set(identityKey, { identityKey, name: exercise.name });
+      choices.set(identityKey, {
+        identityKey,
+        name: exercise.name,
+        sourceId: exercise.libraryId.trim() || `${session.id} / ${exercise.id}`,
+      });
     }
   }
   return [...choices.values()].sort(
