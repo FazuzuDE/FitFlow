@@ -1,3 +1,5 @@
+import { spawnSync } from 'node:child_process';
+
 import {
   DEFAULT_PROGRESS_PERIOD,
   filterProgressWorkouts,
@@ -87,22 +89,54 @@ describe('Progress local-calendar boundaries', () => {
     expect(progressPeriodStart('ALL', Date.now())).toBeUndefined();
   });
 
-  it('uses local calendar arithmetic across a DST change when supported', () => {
-    const originalTimezone = process.env.TZ;
-    try {
-      process.env.TZ = 'America/New_York';
-      const now = new Date(2026, 2, 15, 12).getTime();
-      const expected = new Date(2026, 2, 8, 12).getTime();
+  it('uses local calendar arithmetic across DST and preserves target wall time', () => {
+    const zone = process.env.FITFLOW_PROGRESS_TEST_ZONE;
+    if (zone === 'America/New_York') {
+      const now = new Date(2026, 2, 14, 12).getTime();
+      const expected = new Date(2026, 2, 7, 12).getTime();
+      expect(new Date(now).getTimezoneOffset()).toBe(240);
+      expect(new Date(expected).getTimezoneOffset()).toBe(300);
       expect(progressPeriodStart('1W', now)).toBe(expected);
-      if (
-        new Date(now).getTimezoneOffset() !==
-        new Date(expected).getTimezoneOffset()
-      ) {
-        expect(now - expected).toBe(167 * 60 * 60 * 1_000);
+      expect(now - expected).toBe(167 * 60 * 60 * 1_000);
+      return;
+    }
+    if (zone === 'Australia/Sydney') {
+      const now = new Date(2028, 10, 15, 2, 30).getTime();
+      const expected = new Date(2028, 9, 15, 2, 30).getTime();
+      expect(new Date(expected).getHours()).toBe(2);
+      expect(progressPeriodStart('1M', now)).toBe(expected);
+      const atBoundary = workout('at-boundary', expected);
+      expect(filterProgressWorkouts([atBoundary], '1M', now)).toEqual([
+        atBoundary,
+      ]);
+      return;
+    }
+
+    for (const timezone of ['America/New_York', 'Australia/Sydney']) {
+      const result = spawnSync(
+        process.execPath,
+        [
+          require.resolve('jest/bin/jest'),
+          '--runInBand',
+          '--runTestsByPath',
+          __filename,
+          '--testNamePattern',
+          'uses local calendar arithmetic across DST',
+        ],
+        {
+          encoding: 'utf8',
+          env: {
+            ...process.env,
+            TZ: timezone,
+            FITFLOW_PROGRESS_TEST_ZONE: timezone,
+          },
+        },
+      );
+      if (result.status !== 0) {
+        throw new Error(
+          `Timezone ${timezone} failed (${result.status}):\n${result.stdout}\n${result.stderr}`,
+        );
       }
-    } finally {
-      if (originalTimezone === undefined) delete process.env.TZ;
-      else process.env.TZ = originalTimezone;
     }
   });
 });

@@ -22,22 +22,17 @@ const validNow = (now: number): Date => {
 };
 
 const subtractLocalMonths = (date: Date, months: number): number => {
-  const target = new Date(
+  const targetMonth = date.getMonth() - months;
+  const lastDay = new Date(date.getFullYear(), targetMonth + 1, 0).getDate();
+  return new Date(
     date.getFullYear(),
-    date.getMonth() - months,
-    1,
+    targetMonth,
+    Math.min(date.getDate(), lastDay),
     date.getHours(),
     date.getMinutes(),
     date.getSeconds(),
     date.getMilliseconds(),
-  );
-  const lastDay = new Date(
-    target.getFullYear(),
-    target.getMonth() + 1,
-    0,
-  ).getDate();
-  target.setDate(Math.min(date.getDate(), lastDay));
-  return target.getTime();
+  ).getTime();
 };
 
 export const progressPeriodStart = (
