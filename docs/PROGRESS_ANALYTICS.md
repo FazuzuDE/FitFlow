@@ -22,6 +22,10 @@ A completed workout belongs to a finite period when its saved `finishedAt` is in
 
 The selected period is presentation state, not a schema-v1 field. History remains the complete saved archive, including workouts outside the selected period; neither History nor its timestamps are rewritten.
 
+## Training volume visualization
+
+The Progress volume card shows at most seven recent completed workouts from the selected period as separate bars with short saved completion-date labels. It identifies this as a recent overview rather than the entire period. An accompanying full-period view exposes every qualifying workout separately with its saved completion date/time, workout name, and volume in kilograms. Same-day workouts are not combined. Zero-volume workouts remain visible as entries but have no positive bar height. The selected period and History contracts above are unchanged.
+
 ## Exercise-specific logged performance
 
 The first exercise-specific view presents factual saved workout dates and valid completed-set weight and repetitions for one selected stable exercise identity. Its selectable exercises come from completed saved history, not the full current catalog. It uses the existing Progress period and safe sample rules; a selection trained only outside that period has an empty period view. Saved set order is retained within each workout, and History remains unchanged.

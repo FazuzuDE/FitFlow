@@ -20,6 +20,7 @@ import { Confirmation } from '@/components/Confirmation';
 import { Workout, duration, successHaptic } from '@/components/Workout';
 import { WorkoutHistory } from '@/components/WorkoutHistory';
 import { ExercisePerformance } from '@/components/ExercisePerformance';
+import { TrainingVolume } from '@/components/TrainingVolume';
 import { WorkoutTemplates } from '@/components/WorkoutTemplates';
 import { volume } from '@/lib/workout-metrics';
 import {
@@ -149,11 +150,6 @@ function Stats({ history }: { history: Session[] }) {
     [history, period, now],
   );
   const records = analytics.estimatedOneRepMaxRecords;
-  const vols = analytics.workoutVolumes
-      .slice(0, 7)
-      .reverse()
-      .map((item) => item.volume),
-    max = Math.max(1, ...vols);
   return (
     <ScrollView contentContainerStyle={s.content}>
       <Text style={s.eyebrow}>YOUR PROGRESS</Text>
@@ -186,42 +182,11 @@ function Stats({ history }: { history: Session[] }) {
           </Pressable>
         ))}
       </ScrollView>
-      <GlassCard>
-        <Text style={s.cardLabel}>TRAINING VOLUME</Text>
-        <Text style={s.big}>
-          {Math.round(analytics.totalVolume).toLocaleString()}{' '}
-          <Text style={s.unit}>kg</Text>
-        </Text>
-        <Text style={s.sub}>
-          {analytics.workoutCount} completed workouts in {period}
-        </Text>
-        {vols.length ? (
-          <View
-            accessibilityLabel={
-              'Recent workout volumes in kilograms: ' + vols.join(', ')
-            }
-            style={s.bars}
-          >
-            {vols.map((v, i) => (
-              <View key={i} style={s.barCol}>
-                <View
-                  style={[
-                    s.bar,
-                    {
-                      height: Math.max(4, 60 * (v / max)),
-                      backgroundColor:
-                        i === vols.length - 1 ? blue : colors.secondary,
-                    },
-                  ]}
-                />
-                <Text style={s.day}>{i + 1}</Text>
-              </View>
-            ))}
-          </View>
-        ) : (
-          <Text style={s.sub}>No workouts in this period yet.</Text>
-        )}
-      </GlassCard>
+      <TrainingVolume
+        totalVolume={analytics.totalVolume}
+        workoutVolumes={analytics.workoutVolumes}
+        period={period}
+      />
       <GlassCard>
         <Text style={s.h3}>Estimated 1RM</Text>
         <Text style={s.sub}>Epley formula · based on completed sets</Text>
@@ -523,21 +488,6 @@ const s = StyleSheet.create({
   },
   section: { ...typography.title3, color: colors.textPrimary },
   pr: { ...typography.caption, color: colors.textSecondary },
-  bars: {
-    height: 88,
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-    justifyContent: 'space-around',
-    marginTop: spacing.sm,
-  },
-  barCol: {
-    height: 88,
-    alignItems: 'center',
-    justifyContent: 'flex-end',
-    gap: spacing.xxs,
-  },
-  bar: { width: 24, borderRadius: radius.sm },
-  day: { ...typography.caption, color: colors.textSecondary },
   history: {
     flexDirection: 'row',
     flexWrap: 'wrap',

@@ -2,6 +2,24 @@
 
 This chronological log records approved decisions. The owning product, design, roadmap, and engineering documents remain the detailed sources of truth.
 
+## 2026-09-23 — Training volume visualization
+
+Status: Approved
+
+Decision:
+
+- Keep at most seven recent, separately dated workout-volume bars in the selected Progress period, with a way to inspect every qualifying workout in that period.
+- Identify full-period entries by saved completion date/time, workout name, and volume in kilograms; do not merge same-day workouts.
+- Represent zero volume as zero height, not a fabricated positive bar. Keep History independent.
+
+Rationale:
+
+- Make the existing volume visualization truthful without defining another analytics metric.
+
+Implementation: Training Volume Visualization
+
+Related: `PROGRESS_ANALYTICS.md`
+
 ## 2026-09-23 — Exercise-specific logged performance
 
 Status: Approved
