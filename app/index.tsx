@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState, useSyncExternalStore } from 'react';
 import {
   ActivityIndicator,
   Alert,
+  AppState,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -20,7 +21,12 @@ import { Workout, duration, successHaptic } from '@/components/Workout';
 import { WorkoutHistory } from '@/components/WorkoutHistory';
 import { WorkoutTemplates } from '@/components/WorkoutTemplates';
 import { volume } from '@/lib/workout-metrics';
-import { projectProgressAnalytics } from '@/lib/progress-analytics';
+import {
+  DEFAULT_PROGRESS_PERIOD,
+  PROGRESS_PERIODS,
+  type ProgressPeriodId,
+  projectPeriodAnalytics,
+} from '@/lib/progress-periods';
 import { completedSetCount, workoutIsComplete } from '@/lib/workout-engine';
 import {
   WorkoutSession as Session,
@@ -122,7 +128,25 @@ function Home({
 }
 
 function Stats({ history }: { history: Session[] }) {
-  const analytics = useMemo(() => projectProgressAnalytics(history), [history]);
+  const [period, setPeriod] = useState<ProgressPeriodId>(
+    DEFAULT_PROGRESS_PERIOD,
+  );
+  const [now, setNow] = useState(Date.now);
+  useEffect(() => {
+    const refresh = () => setNow(Date.now());
+    const timer = setInterval(refresh, 60_000);
+    const subscription = AppState.addEventListener('change', (state) => {
+      if (state === 'active') refresh();
+    });
+    return () => {
+      clearInterval(timer);
+      subscription.remove();
+    };
+  }, []);
+  const analytics = useMemo(
+    () => projectPeriodAnalytics(history, period, now),
+    [history, period, now],
+  );
   const records = analytics.estimatedOneRepMaxRecords;
   const vols = analytics.workoutVolumes
       .slice(0, 7)
@@ -134,34 +158,68 @@ function Stats({ history }: { history: Session[] }) {
       <Text style={s.eyebrow}>YOUR PROGRESS</Text>
       <Text style={s.title}>Progress</Text>
       <Text style={s.sub}>Volume and estimated strength records</Text>
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={s.periods}
+        accessibilityLabel="Progress period"
+      >
+        {PROGRESS_PERIODS.map((option) => (
+          <Pressable
+            key={option.id}
+            accessibilityRole="button"
+            accessibilityLabel={`Progress period ${option.id}`}
+            accessibilityHint={`Show Progress for ${option.accessibilityLabel}`}
+            accessibilityState={{ selected: period === option.id }}
+            onPress={() => setPeriod(option.id)}
+            style={[s.periodChip, period === option.id && s.periodSelected]}
+          >
+            <Text
+              style={[
+                s.periodText,
+                period === option.id && s.periodSelectedText,
+              ]}
+            >
+              {option.label}
+            </Text>
+          </Pressable>
+        ))}
+      </ScrollView>
       <GlassCard>
         <Text style={s.cardLabel}>TRAINING VOLUME</Text>
         <Text style={s.big}>
           {Math.round(analytics.totalVolume).toLocaleString()}{' '}
           <Text style={s.unit}>kg</Text>
         </Text>
-        <View
-          accessibilityLabel={
-            'Recent workout volumes in kilograms: ' + vols.join(', ')
-          }
-          style={s.bars}
-        >
-          {(vols.length ? vols : [0]).map((v, i) => (
-            <View key={i} style={s.barCol}>
-              <View
-                style={[
-                  s.bar,
-                  {
-                    height: Math.max(4, 60 * (v / max)),
-                    backgroundColor:
-                      i === vols.length - 1 ? blue : colors.secondary,
-                  },
-                ]}
-              />
-              <Text style={s.day}>{i + 1}</Text>
-            </View>
-          ))}
-        </View>
+        <Text style={s.sub}>
+          {analytics.workoutCount} completed workouts in {period}
+        </Text>
+        {vols.length ? (
+          <View
+            accessibilityLabel={
+              'Recent workout volumes in kilograms: ' + vols.join(', ')
+            }
+            style={s.bars}
+          >
+            {vols.map((v, i) => (
+              <View key={i} style={s.barCol}>
+                <View
+                  style={[
+                    s.bar,
+                    {
+                      height: Math.max(4, 60 * (v / max)),
+                      backgroundColor:
+                        i === vols.length - 1 ? blue : colors.secondary,
+                    },
+                  ]}
+                />
+                <Text style={s.day}>{i + 1}</Text>
+              </View>
+            ))}
+          </View>
+        ) : (
+          <Text style={s.sub}>No workouts in this period yet.</Text>
+        )}
       </GlassCard>
       <GlassCard>
         <Text style={s.h3}>Estimated 1RM</Text>
@@ -170,7 +228,7 @@ function Stats({ history }: { history: Session[] }) {
           <Text style={s.sub}>Some saved sets could not be included.</Text>
         ) : null}
         {records.length === 0 ? (
-          <Text style={s.sub}>Complete sets to unlock records.</Text>
+          <Text style={s.sub}>No estimated records in this period.</Text>
         ) : (
           records.slice(0, 6).map((r, i) => (
             <View key={r.identityKey} style={s.history}>
@@ -190,6 +248,7 @@ function Stats({ history }: { history: Session[] }) {
           ))
         )}
       </GlassCard>
+      <Text style={s.sub}>Complete saved History · all dates</Text>
       <WorkoutHistory history={history} />
     </ScrollView>
   );
@@ -392,6 +451,19 @@ const s = StyleSheet.create({
   },
   title: { ...typography.largeTitle, color: colors.textPrimary },
   sub: { ...typography.footnote, color: colors.textSecondary },
+  periods: { gap: spacing.xs, paddingRight: spacing.md },
+  periodChip: {
+    minWidth: 44,
+    minHeight: 44,
+    paddingHorizontal: spacing.sm,
+    borderRadius: radius.pill,
+    backgroundColor: colors.surfaceSubtle,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  periodSelected: { backgroundColor: colors.primary },
+  periodText: { ...typography.caption, color: colors.textPrimary },
+  periodSelectedText: { color: colors.surface },
   avatar: {
     flexShrink: 0,
     width: 44,

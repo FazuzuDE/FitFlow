@@ -1,4 +1,4 @@
-# FitFlow — Development Roadmap
+# CRESUM — Development Roadmap
 
 This is priority guidance, not a claim that items are unimplemented. Inspect the repository first.
 
@@ -38,7 +38,7 @@ Device/development builds, error handling, store assets/metadata, privacy/permis
 ## Future
 
 - Suggested Next Workout and its Recommendation Engine: Workout → Muscle Load → Muscle Map → Training Insight → Suggested Next Workout → Customize → Start Workout → Adapt.
-- Recommendation Engine architecture may be anticipated, but implementation must not delay FitFlow Core. Muscle load is one input rather than ground truth.
+- Recommendation Engine architecture may be anticipated, but implementation must not delay CRESUM Core. Muscle load is one input rather than ground truth.
 
 ## Working method
 

@@ -1,8 +1,16 @@
-import { Text, TextInput, Pressable, StyleSheet, View } from 'react-native';
+import {
+  Text,
+  TextInput,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  View,
+} from 'react-native';
 import App from '../../app/index';
 import { AppButton } from '../../components/AppButton';
 import { Confirmation } from '../../components/Confirmation';
 import { Dock } from '../../components/Dock';
+import { GlassCard } from '../../components/GlassCard';
 import { Workout } from '../../components/Workout';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { STATE_KEY } from '../workout-repository';
@@ -264,6 +272,15 @@ it('derives stable safe Progress analytics from persisted History after reload',
       view = create(<App />);
     });
     act(() => view.root.findByType(Dock).props.onChange('progress'));
+    act(() =>
+      view.root
+        .findAllByType(Pressable)
+        .find(
+          (node: { props: { accessibilityLabel?: string } }) =>
+            node.props.accessibilityLabel === 'Progress period ALL',
+        )
+        ?.props.onPress(),
+    );
     return view;
   };
 
@@ -341,6 +358,15 @@ it('keeps Progress chart heights finite for very large finite volumes', async ()
     view = create(<App />);
   });
   act(() => view.root.findByType(Dock).props.onChange('progress'));
+  act(() =>
+    view.root
+      .findAllByType(Pressable)
+      .find(
+        (node: { props: { accessibilityLabel?: string } }) =>
+          node.props.accessibilityLabel === 'Progress period ALL',
+      )
+      ?.props.onPress(),
+  );
 
   const chart = view.root
     .findAllByType(View)
@@ -365,4 +391,138 @@ it('keeps Progress chart heights finite for very large finite volumes', async ()
   expect(Math.max(...heights)).toBeLessThanOrEqual(60);
 
   await act(async () => view.unmount());
+});
+
+it('scopes Progress by the selected period while keeping the full History archive', async () => {
+  await AsyncStorage.clear();
+  const now = new Date(2026, 8, 23, 12).getTime();
+  const nowSpy = jest.spyOn(Date, 'now').mockReturnValue(now);
+  const saved = (
+    id: string,
+    finishedAt: number,
+    weight: string,
+  ): WorkoutSession => ({
+    id,
+    templateId: `template-${id}`,
+    name: `${id} workout`,
+    startedAt: finishedAt - 1_000,
+    finishedAt,
+    currentExerciseIndex: 0,
+    restDurationSeconds: 90,
+    exercises: [
+      {
+        id: `${id}-exercise`,
+        libraryId: `custom-${id}`,
+        name: `${id} exercise`,
+        muscle: 'Saved muscle',
+        sets: [
+          {
+            id: `${id}-set`,
+            weight,
+            reps: '5',
+            completedAt: finishedAt - 100,
+          },
+        ],
+      },
+    ],
+  });
+  const older = saved('older', new Date(2026, 6, 23, 12).getTime(), '100');
+  const recent = saved('recent', new Date(2026, 8, 13, 12).getTime(), '50');
+  const future = saved('future', new Date(2026, 8, 24, 12).getTime(), '200');
+  await AsyncStorage.setItem(
+    STATE_KEY,
+    JSON.stringify({
+      schemaVersion: 1,
+      activeWorkout: null,
+      history: [future, older, recent],
+      templates: [],
+    }),
+  );
+
+  const renderProgress = async () => {
+    let view!: ReturnType<typeof create>;
+    await act(async () => {
+      view = create(<App />);
+    });
+    act(() => view.root.findByType(Dock).props.onChange('progress'));
+    return view;
+  };
+  const periodButton = (view: ReturnType<typeof create>, period: string) =>
+    view.root
+      .findAllByType(Pressable)
+      .find(
+        (node: { props: { accessibilityLabel?: string } }) =>
+          node.props.accessibilityLabel === `Progress period ${period}`,
+      );
+  const metricCard = (view: ReturnType<typeof create>, index: number) =>
+    view.root
+      .findAllByType(GlassCard)
+      [index].findAllByType(Text)
+      .map((node: { props: { children?: unknown } }) =>
+        String(node.props.children),
+      )
+      .join(' ');
+
+  try {
+    for (let pass = 0; pass < 2; pass += 1) {
+      const view = await renderProgress();
+      expect(periodButton(view, '1M')?.props.accessibilityState.selected).toBe(
+        true,
+      );
+      expect(metricCard(view, 0)).toContain('250');
+      expect(metricCard(view, 0)).not.toContain('500');
+      expect(metricCard(view, 1)).toContain('recent exercise');
+      expect(metricCard(view, 1)).not.toContain('older exercise');
+      expect(
+        view.root
+          .findAllByType(ScrollView)
+          .some(
+            (node: { props: { horizontal?: boolean } }) =>
+              node.props.horizontal,
+          ),
+      ).toBe(true);
+      for (const label of ['1W', '1M', '3M', '6M', '1Y', 'ALL']) {
+        const button = periodButton(view, label);
+        expect(button?.props.accessibilityRole).toBe('button');
+        expect(
+          StyleSheet.flatten(button?.props.style).minHeight,
+        ).toBeGreaterThanOrEqual(44);
+      }
+      expect(
+        view.root
+          .findAllByType(Pressable)
+          .filter((node: { props: { accessibilityLabel?: string } }) =>
+            node.props.accessibilityLabel?.startsWith('Open '),
+          ),
+      ).toHaveLength(3);
+
+      act(() => periodButton(view, '1W')?.props.onPress());
+      expect(metricCard(view, 0)).toContain('0');
+      expect(metricCard(view, 1)).toContain('No estimated records');
+      expect(
+        view.root
+          .findAllByType(View)
+          .some((node: { props: { accessibilityLabel?: string } }) =>
+            node.props.accessibilityLabel?.startsWith(
+              'Recent workout volumes in kilograms:',
+            ),
+          ),
+      ).toBe(false);
+      expect(
+        view.root
+          .findAllByType(Pressable)
+          .filter((node: { props: { accessibilityLabel?: string } }) =>
+            node.props.accessibilityLabel?.startsWith('Open '),
+          ),
+      ).toHaveLength(3);
+
+      act(() => periodButton(view, 'ALL')?.props.onPress());
+      expect(metricCard(view, 0)).toContain('750');
+      expect(metricCard(view, 1)).toContain('older exercise');
+      expect(metricCard(view, 1)).not.toContain('future exercise');
+      await act(async () => view.unmount());
+    }
+  } finally {
+    nowSpy.mockRestore();
+  }
 });

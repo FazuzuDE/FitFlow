@@ -1,15 +1,15 @@
-# FitFlow — Product Definition
+# CRESUM — Product Definition
 
 ## Product
 
-FitFlow is a mobile gym workout tracker for quickly recording training and understanding progress.
+CRESUM is a mobile gym workout tracker for quickly recording training and understanding progress.
 
 Core loop:
 Start workout → choose exercise → log weight/reps → complete set → rest → continue → finish → History → Progress.
 
 ## Core user value
 
-FitFlow should answer:
+CRESUM should answer:
 
 1. What am I doing today?
 2. What did I do previously, and what should I log now?
@@ -50,7 +50,7 @@ Start/resume; exercises; sets; weight; reps; previous context; completion; rest 
 
 Weight entry should evolve into an adaptive system with Recommended, Keypad, and Wheel Picker modes while always preserving exact manual control. Quick weight adjustments should support equipment-aware increments rather than one universal increment; exact manual entry always overrides them. A complete increment table is not defined yet.
 
-Future working-weight recommendations must primarily use history for the specific exercise. With insufficient exercise-specific history, FitFlow should show an honest unavailable/insufficient-history state instead of fabricating a confident load. Recommendations remain customizable and overrideable.
+Future working-weight recommendations must primarily use history for the specific exercise. With insufficient exercise-specific history, CRESUM should show an honest unavailable/insufficient-history state instead of fabricating a confident load. Recommendations remain customizable and overrideable.
 
 ### Exercise Library
 
@@ -91,7 +91,7 @@ AI Coach, social/community, nutrition, Apple Watch/Wear OS, Oracle marketing inf
 ## Design
 
 Canonical rules: `docs/DESIGN_SYSTEM.md`.
-FitFlow is light, premium, calm, Apple-inspired rather than copied, restrained with glass effects, and optimized for readable workout numbers and practical controls.
+CRESUM is light, premium, calm, Apple-inspired rather than copied, restrained with glass effects, and optimized for readable workout numbers and practical controls.
 
 ## Core success
 
