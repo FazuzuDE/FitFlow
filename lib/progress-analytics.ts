@@ -4,6 +4,7 @@ import type { WorkoutSession } from './workout-model';
 
 export type WorkoutVolume = {
   workoutId: string;
+  workoutName: string;
   finishedAt: number;
   volume: number;
 };
@@ -105,6 +106,7 @@ export const projectProgressAnalytics = (
   const workoutVolumes = history
     .map((session) => ({
       workoutId: session.id,
+      workoutName: session.name,
       finishedAt: completedAt(session),
       volume: volume(session),
     }))

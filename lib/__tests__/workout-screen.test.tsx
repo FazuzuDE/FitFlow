@@ -369,7 +369,7 @@ it('keeps Progress chart heights finite for very large finite volumes', async ()
   );
 
   const chart = view.root
-    .findAllByType(View)
+    .findAllByType(ScrollView)
     .find((node: { props: { accessibilityLabel?: string } }) =>
       node.props.accessibilityLabel?.startsWith(
         'Recent workout volumes in kilograms:',
@@ -501,7 +501,7 @@ it('scopes Progress by the selected period while keeping the full History archiv
       expect(metricCard(view, 1)).toContain('No estimated records');
       expect(
         view.root
-          .findAllByType(View)
+          .findAllByType(ScrollView)
           .some((node: { props: { accessibilityLabel?: string } }) =>
             node.props.accessibilityLabel?.startsWith(
               'Recent workout volumes in kilograms:',

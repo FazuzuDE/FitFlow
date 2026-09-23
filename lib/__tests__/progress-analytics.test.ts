@@ -258,6 +258,28 @@ describe('Progress analytics safe samples and ordering', () => {
     ]);
   });
 
+  it('keeps the saved workout name with each individual volume point', () => {
+    const first = workout('morning', 2_000, []);
+    const second = workout('evening', 3_000, []);
+    first.name = 'Saved morning name';
+    second.name = 'Saved evening name';
+
+    expect(projectProgressAnalytics([first, second]).workoutVolumes).toEqual([
+      {
+        workoutId: 'evening',
+        workoutName: 'Saved evening name',
+        finishedAt: 3_000,
+        volume: 0,
+      },
+      {
+        workoutId: 'morning',
+        workoutName: 'Saved morning name',
+        finishedAt: 2_000,
+        volume: 0,
+      },
+    ]);
+  });
+
   it('selects equal records deterministically regardless of History order', () => {
     const a = workout('a-session', 2_000, [
       exercise('a-exercise', 'barbell-bench-press', 'A Saved Name', [
