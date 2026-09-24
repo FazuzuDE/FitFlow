@@ -3,11 +3,13 @@ import { colors, spacing, typography } from '@/lib/theme';
 
 export function AppButton({
   title,
+  accessibilityLabel,
   onPress,
   secondary = false,
   disabled = false,
 }: {
   title: string;
+  accessibilityLabel?: string;
   onPress: () => void;
   secondary?: boolean;
   disabled?: boolean;
@@ -15,6 +17,7 @@ export function AppButton({
   return (
     <Pressable
       accessibilityRole="button"
+      accessibilityLabel={accessibilityLabel}
       accessibilityState={{ disabled }}
       disabled={disabled}
       onPress={onPress}
