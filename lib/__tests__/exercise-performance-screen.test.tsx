@@ -1,4 +1,5 @@
-import { FlatList, Pressable, Text, TextInput, View } from 'react-native';
+import { isPressable } from './pressable';
+import { FlatList, Text, TextInput, View } from 'react-native';
 import type { ReactElement } from 'react';
 import { ExercisePerformance } from '../../components/ExercisePerformance';
 import { WorkoutHistory } from '../../components/WorkoutHistory';
@@ -91,7 +92,7 @@ it('uses the same Progress period after loading history without filtering the ar
 
 const press = (view: ReturnType<typeof create>, label: string) => {
   const node = view.root
-    .findAllByType(Pressable)
+    .findAll(isPressable)
     .find(
       (candidate: { props: { accessibilityLabel?: string } }) =>
         candidate.props.accessibilityLabel === label,
@@ -216,7 +217,7 @@ describe('ExercisePerformance', () => {
     press(view, 'Choose exercise for logged performance');
     expect(
       view.root
-        .findAllByType(Pressable)
+        .findAll(isPressable)
         .map(
           (item: { props: { accessibilityLabel?: string } }) =>
             item.props.accessibilityLabel,
@@ -282,7 +283,7 @@ describe('ExercisePerformance', () => {
     );
     press(view, 'Choose exercise for logged performance');
     const labels = view.root
-      .findAllByType(Pressable)
+      .findAll(isPressable)
       .map(
         (item: { props: { accessibilityLabel?: string } }) =>
           item.props.accessibilityLabel,

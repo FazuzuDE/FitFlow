@@ -1,4 +1,5 @@
-import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
+import { isPressable } from './pressable';
+import { FlatList, StyleSheet, Text, View } from 'react-native';
 import type { StyleProp, ViewStyle } from 'react-native';
 import App from '../../app/index';
 import { Dock } from '../../components/Dock';
@@ -75,7 +76,7 @@ const renderProgress = async (history: WorkoutSession[]) => {
 };
 const press = (view: ReturnType<typeof create>, label: string) => {
   const button = view.root
-    .findAllByType(Pressable)
+    .findAll(isPressable)
     .find(
       (item: { props: { accessibilityLabel?: string } }) =>
         item.props.accessibilityLabel === label,
@@ -225,7 +226,7 @@ it('keeps large-volume dimensions finite and hides controls for an empty period'
   expect(text(view)).toContain('No workouts in this period yet.');
   expect(
     view.root
-      .findAllByType(Pressable)
+      .findAll(isPressable)
       .some((item: { props: { accessibilityLabel?: string } }) =>
         item.props.accessibilityLabel?.startsWith('View all 1 workout volumes'),
       ),
