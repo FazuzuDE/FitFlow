@@ -32,4 +32,10 @@ The first exercise-specific view presents factual saved workout dates and valid 
 
 This view does not define a Strength Score, percentage improvement, "best set", or strength-growth claim. Estimated 1RM remains an explicitly estimated existing metric, not a new trend in this view.
 
-Date buckets, a training-frequency formula, exercise-specific trend charts, Muscle Load, Muscle Map, recommendations, and cloud analytics remain outside this foundation.
+## Exercise-specific Estimated 1RM series
+
+For the selected stable exercise identity, the series derives one point per qualifying completed workout from the highest valid completed-set Epley estimate across matching exercise snapshots. It retains the source weight, repetitions, set identity and saved order. Equal estimates prefer later `completedAt`, then lexicographically smaller exercise/set IDs and earlier saved indices. Legacy done-only sets use the workout completion time as the persistence loader does. Points are ordered by workout `finishedAt` and stable workout ID, use the selected Progress period, and do not rewrite saved data.
+
+Each point is explicitly labeled Estimated 1RM and dated by the workout finish time. Zero remains zero. A single point is one estimate, not a trend; no measured-strength, percentage-change, Strength Score, or new PR claim is made.
+
+Date buckets, a training-frequency formula, Muscle Load, Muscle Map, recommendations, and cloud analytics remain outside this foundation.
