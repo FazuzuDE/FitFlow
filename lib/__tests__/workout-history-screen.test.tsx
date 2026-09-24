@@ -1,5 +1,6 @@
+import { isPressable } from './pressable';
 import type { ReactElement } from 'react';
-import { Pressable, StyleSheet, Text } from 'react-native';
+import { StyleSheet, Text } from 'react-native';
 import { AppButton } from '../../components/AppButton';
 import { WorkoutHistory } from '../../components/WorkoutHistory';
 import type { WorkoutSession } from '../workout-model';
@@ -56,7 +57,7 @@ const serialized = (view: ReturnType<typeof create>) =>
 
 const summary = (view: ReturnType<typeof create>, name: string) =>
   view.root
-    .findAllByType(Pressable)
+    .findAll(isPressable)
     .find(
       (node: { props: { accessibilityLabel?: string } }) =>
         node.props.accessibilityLabel === `Open ${name} workout details`,
@@ -67,7 +68,7 @@ describe('WorkoutHistory', () => {
     const view = render(<WorkoutHistory history={[]} />);
 
     expect(serialized(view)).toContain('Finish your first workout');
-    expect(view.root.findAllByType(Pressable)).toHaveLength(0);
+    expect(view.root.findAll(isPressable)).toHaveLength(0);
   });
 
   it('shows compact newest-first summaries without eager snapshot details', () => {
@@ -80,7 +81,7 @@ describe('WorkoutHistory', () => {
     const newer = completed({ id: 'newer', name: 'Newer Workout' });
     const view = render(<WorkoutHistory history={[older, newer]} />);
     const labels = view.root
-      .findAllByType(Pressable)
+      .findAll(isPressable)
       .map(
         (node: { props: { accessibilityLabel?: string } }) =>
           node.props.accessibilityLabel,

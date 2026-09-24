@@ -1,11 +1,5 @@
-import {
-  Text,
-  TextInput,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  View,
-} from 'react-native';
+import { isPressable } from './pressable';
+import { Text, TextInput, ScrollView, StyleSheet, View } from 'react-native';
 import App from '../../app/index';
 import { AppButton } from '../../components/AppButton';
 import { Confirmation } from '../../components/Confirmation';
@@ -55,7 +49,7 @@ it('connects the actual screen inputs, timer, confirmation and persisted history
       );
   const pressable = (label: string) =>
     view.root
-      .findAllByType(Pressable)
+      .findAll(isPressable)
       .find(
         (node: { props: { accessibilityLabel: string } }) =>
           node.props.accessibilityLabel === label,
@@ -166,7 +160,7 @@ it('restores a compact History summary and opens the saved snapshot after reload
   act(() => view.root.findByType(Dock).props.onChange('progress'));
   expect(
     view.root
-      .findAllByType(Pressable)
+      .findAll(isPressable)
       .find(
         (node: { props: { accessibilityLabel?: string } }) =>
           node.props.accessibilityLabel ===
@@ -180,7 +174,7 @@ it('restores a compact History summary and opens the saved snapshot after reload
   });
   act(() => view.root.findByType(Dock).props.onChange('progress'));
   const open = view.root
-    .findAllByType(Pressable)
+    .findAll(isPressable)
     .find(
       (node: { props: { accessibilityLabel?: string } }) =>
         node.props.accessibilityLabel ===
@@ -274,7 +268,7 @@ it('derives stable safe Progress analytics from persisted History after reload',
     act(() => view.root.findByType(Dock).props.onChange('progress'));
     act(() =>
       view.root
-        .findAllByType(Pressable)
+        .findAll(isPressable)
         .find(
           (node: { props: { accessibilityLabel?: string } }) =>
             node.props.accessibilityLabel === 'Progress period ALL',
@@ -360,7 +354,7 @@ it('keeps Progress chart heights finite for very large finite volumes', async ()
   act(() => view.root.findByType(Dock).props.onChange('progress'));
   act(() =>
     view.root
-      .findAllByType(Pressable)
+      .findAll(isPressable)
       .find(
         (node: { props: { accessibilityLabel?: string } }) =>
           node.props.accessibilityLabel === 'Progress period ALL',
@@ -449,7 +443,7 @@ it('scopes Progress by the selected period while keeping the full History archiv
   };
   const periodButton = (view: ReturnType<typeof create>, period: string) =>
     view.root
-      .findAllByType(Pressable)
+      .findAll(isPressable)
       .find(
         (node: { props: { accessibilityLabel?: string } }) =>
           node.props.accessibilityLabel === `Progress period ${period}`,
@@ -490,7 +484,7 @@ it('scopes Progress by the selected period while keeping the full History archiv
       }
       expect(
         view.root
-          .findAllByType(Pressable)
+          .findAll(isPressable)
           .filter((node: { props: { accessibilityLabel?: string } }) =>
             node.props.accessibilityLabel?.startsWith('Open '),
           ),
@@ -510,7 +504,7 @@ it('scopes Progress by the selected period while keeping the full History archiv
       ).toBe(false);
       expect(
         view.root
-          .findAllByType(Pressable)
+          .findAll(isPressable)
           .filter((node: { props: { accessibilityLabel?: string } }) =>
             node.props.accessibilityLabel?.startsWith('Open '),
           ),

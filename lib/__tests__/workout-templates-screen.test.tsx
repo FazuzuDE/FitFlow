@@ -1,4 +1,5 @@
-import { Pressable, TextInput } from 'react-native';
+import { isPressable } from './pressable';
+import { TextInput } from 'react-native';
 import type { ReactElement } from 'react';
 import { AppButton } from '../../components/AppButton';
 import { Confirmation } from '../../components/Confirmation';
@@ -54,7 +55,7 @@ const appButton = (view: ReturnType<typeof create>, title: string) =>
 
 const action = (view: ReturnType<typeof create>, label: string) =>
   view.root
-    .findAllByType(Pressable)
+    .findAll(isPressable)
     .find(
       (node: { props: { accessibilityLabel?: string } }) =>
         node.props.accessibilityLabel === label,
@@ -191,7 +192,7 @@ describe('TemplateEditor', () => {
     expect(view.root.findByType(TextInput).props.value).toBe(many.name);
     expect(
       view.root
-        .findAllByType(Pressable)
+        .findAll(isPressable)
         .filter((node: { props: { accessibilityLabel?: string } }) =>
           node.props.accessibilityLabel?.startsWith('Remove '),
         ),

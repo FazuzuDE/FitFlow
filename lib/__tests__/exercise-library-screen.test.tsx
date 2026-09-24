@@ -1,4 +1,5 @@
-import { Pressable, ScrollView, StyleSheet, TextInput } from 'react-native';
+import { isPressable } from './pressable';
+import { ScrollView, StyleSheet, TextInput } from 'react-native';
 import type { StyleProp, ViewStyle } from 'react-native';
 import type { ReactElement } from 'react';
 import { ExerciseLibrary } from '../../components/ExerciseLibrary';
@@ -52,14 +53,14 @@ const findPressable = (
   accessibilityLabel: string,
 ) =>
   view.root
-    .findAllByType(Pressable)
+    .findAll(isPressable)
     .find((node: { props: { accessibilityLabel?: string } }) =>
       node.props.accessibilityLabel?.startsWith(accessibilityLabel),
     );
 
 const resultLabels = (view: ReturnType<typeof create>, prefix: string) =>
   view.root
-    .findAllByType(Pressable)
+    .findAll(isPressable)
     .map(
       (node: { props: { accessibilityLabel?: string } }) =>
         node.props.accessibilityLabel,
