@@ -1,4 +1,4 @@
-import { Pressable, Text, TextInput } from 'react-native';
+import { FlatList, Pressable, Text, TextInput, View } from 'react-native';
 import type { ReactElement } from 'react';
 import { ExercisePerformance } from '../../components/ExercisePerformance';
 import { WorkoutHistory } from '../../components/WorkoutHistory';
@@ -109,6 +109,101 @@ const visibleText = (view: ReturnType<typeof create>) =>
     );
 
 describe('ExercisePerformance', () => {
+  it('shows dated estimated 1RM points for the selected exercise and updates with the period', () => {
+    const history = [
+      workout('older', 3, 'bench', 'Saved Bench', '60'),
+      workout('recent', 22, 'barbell-bench-press', 'Renamed Bench', '75'),
+    ];
+    const view = render(
+      <ExercisePerformance history={history} period="ALL" now={now} />,
+    );
+    press(view, 'Choose exercise for logged performance');
+    press(view, 'View Renamed Bench performance');
+    expect(visibleText(view)).toContain('Estimated 1RM · per workout');
+    expect(visibleText(view)).toContain('95.0 kg estimated');
+    expect(visibleText(view)).toContain('76.0 kg estimated');
+    expect(visibleText(view)).toContain('75 kg × 8');
+    expect(visibleText(view)).toContain('60 kg × 8');
+    expect(JSON.stringify(view.toJSON())).toContain(
+      new Date(at(22)).toLocaleString(),
+    );
+    act(() =>
+      view.update(
+        <ExercisePerformance history={history} period="1W" now={now} />,
+      ),
+    );
+    expect(visibleText(view)).toContain('95.0 kg estimated');
+    expect(visibleText(view)).not.toContain('76.0 kg estimated');
+    act(() => view.unmount());
+  });
+
+  it('keeps the overview compact and exposes every dated estimate in order', () => {
+    const history = [17, 18, 19, 22].map((day) =>
+      workout(`day-${day}`, day, 'bench', 'Bench', String(day)),
+    );
+    const view = render(
+      <ExercisePerformance history={history} period="ALL" now={now} />,
+    );
+    press(view, 'Choose exercise for logged performance');
+    press(view, 'View Bench performance');
+    expect(visibleText(view)).toContain(
+      'Recent 3 of 4 workouts in ALL · oldest to newest',
+    );
+    press(view, 'View all 4 estimated 1RM points in ALL');
+    expect(
+      view.root
+        .findByType(FlatList)
+        .props.data.map((point: { workoutId: string }) => point.workoutId),
+    ).toEqual(['day-17', 'day-18', 'day-19', 'day-22']);
+    act(() => view.unmount());
+  });
+
+  it('distinguishes estimated points from workouts with identical finish times', () => {
+    const history = [
+      workout('morning', 22, 'bench', 'Bench', '60'),
+      workout('evening', 22, 'bench', 'Bench', '75'),
+    ];
+    const view = render(
+      <ExercisePerformance history={history} period="1M" now={now} />,
+    );
+    press(view, 'Choose exercise for logged performance');
+    press(view, 'View Bench performance');
+    const pointLabels = view.root
+      .findAllByType(View)
+      .map(
+        (item: { props: { accessibilityLabel?: string } }) =>
+          item.props.accessibilityLabel,
+      )
+      .filter((label: string | undefined) =>
+        label?.startsWith('Estimated 1RM:'),
+      );
+    expect(pointLabels).toHaveLength(2);
+    expect(pointLabels[0]).toContain('evening workout');
+    expect(pointLabels[1]).toContain('morning workout');
+    act(() => view.unmount());
+  });
+
+  it('labels a single zero estimate without claiming a trend and shows no fabricated point in an empty period', () => {
+    const history = [workout('zero', 3, 'bench', 'Bench', '0')];
+    const view = render(
+      <ExercisePerformance history={history} period="ALL" now={now} />,
+    );
+    press(view, 'Choose exercise for logged performance');
+    press(view, 'View Bench performance');
+    expect(visibleText(view)).toContain('One saved estimate; no trend yet.');
+    expect(visibleText(view)).toContain('0.0 kg estimated');
+    act(() =>
+      view.update(
+        <ExercisePerformance history={history} period="1W" now={now} />,
+      ),
+    );
+    expect(visibleText(view)).toContain(
+      'No estimated 1RM data for this exercise in 1W.',
+    );
+    expect(visibleText(view)).not.toContain('0.0 kg estimated');
+    act(() => view.unmount());
+  });
+
   it('offers only trained exercises, searches saved names, and displays saved valid sets', () => {
     const history = [
       workout('recent', 22, 'unknown-exercise', 'My saved lift', '77,5'),

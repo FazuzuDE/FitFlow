@@ -190,6 +190,20 @@ describe('Progress analytics stable exercise identity', () => {
 });
 
 describe('Progress analytics safe samples and ordering', () => {
+  it('treats a direct legacy done-only set like its normalized saved form', () => {
+    const legacy = workout('legacy', 2_000, [
+      exercise('exercise', 'bench', 'Bench', [
+        { id: 'done', weight: '42', reps: '6', done: true } as WorkoutSet,
+      ]),
+    ]);
+    const normalized = workout('legacy', 2_000, [
+      exercise('exercise', 'bench', 'Bench', [set('done', '42', '6', 2_000)]),
+    ]);
+    expect(projectProgressAnalytics([legacy])).toEqual(
+      projectProgressAnalytics([normalized]),
+    );
+  });
+
   it('excludes every invalid completed value while retaining zero weight', () => {
     const invalid = [
       set('negative-weight', '-1', '10', 10),

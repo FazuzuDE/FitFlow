@@ -1,5 +1,9 @@
 import { canonicalExerciseId } from './exercise-library';
-import { completedSetMetrics, volume } from './workout-metrics';
+import {
+  completedSetMetrics,
+  completedSetTimestamp,
+  volume,
+} from './workout-metrics';
 import type { WorkoutSession } from './workout-model';
 
 export type WorkoutVolume = {
@@ -120,7 +124,11 @@ export const projectProgressAnalytics = (
     for (const exercise of session.exercises) {
       const identity = stableExerciseIdentity(session, exercise);
       for (const savedSet of exercise.sets) {
-        if (typeof savedSet.completedAt !== 'number') continue;
+        const recordedAt = completedSetTimestamp(
+          savedSet,
+          completedAt(session),
+        );
+        if (recordedAt === undefined) continue;
         const metrics = completedSetMetrics(savedSet);
         if (!metrics) {
           excludedSampleCount += 1;
@@ -138,13 +146,13 @@ export const projectProgressAnalytics = (
           weight: metrics.weight,
           reps: metrics.reps,
           estimatedOneRepMax: metrics.estimatedOneRepMax,
-          recordedAt: savedSet.completedAt,
+          recordedAt,
           sourceKey,
         };
         const label: LabelCandidate = {
           name: exercise.name,
           finishedAt: completedAt(session),
-          completedAt: savedSet.completedAt,
+          completedAt: recordedAt,
           sourceKey,
         };
         const current = aggregates.get(identity.identityKey);

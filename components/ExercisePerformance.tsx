@@ -10,8 +10,10 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { GlassCard } from './GlassCard';
+import { EstimatedOneRepMaxSeries } from './EstimatedOneRepMaxSeries';
 import {
   listPerformanceExercises,
+  projectEstimatedOneRepMaxSeries,
   projectExercisePerformance,
 } from '@/lib/exercise-performance';
 import type { ProgressPeriodId } from '@/lib/progress-periods';
@@ -48,6 +50,13 @@ export function ExercisePerformance({ history, period, now }: Props) {
         : [],
     [history, period, now, identityKey],
   );
+  const estimates = useMemo(
+    () =>
+      identityKey
+        ? projectEstimatedOneRepMaxSeries(history, period, now, identityKey)
+        : [],
+    [history, period, now, identityKey],
+  );
   const matches = choices.filter((choice) =>
     choice.name.toLocaleLowerCase().includes(query.trim().toLocaleLowerCase()),
   );
@@ -79,30 +88,33 @@ export function ExercisePerformance({ history, period, now }: Props) {
             </Text>
           </Pressable>
           {selected ? (
-            entries.length === 0 ? (
-              <Text style={s.empty}>
-                No logged sets for this exercise in {period}.
-              </Text>
-            ) : (
-              <View style={s.entries}>
-                {entries.map((entry) => (
-                  <View
-                    key={`${entry.workoutId}:${entry.exerciseSnapshotId}`}
-                    style={s.entry}
-                  >
-                    <Text style={s.date}>
-                      {new Date(entry.finishedAt).toLocaleString()}
-                    </Text>
-                    <Text style={s.workout}>{entry.workoutName}</Text>
-                    {entry.sets.map((set) => (
-                      <Text key={set.id} style={s.set}>
-                        {set.weight} kg × {set.reps}
+            <>
+              <EstimatedOneRepMaxSeries points={estimates} period={period} />
+              {entries.length === 0 ? (
+                <Text style={s.empty}>
+                  No logged sets for this exercise in {period}.
+                </Text>
+              ) : (
+                <View style={s.entries}>
+                  {entries.map((entry) => (
+                    <View
+                      key={`${entry.workoutId}:${entry.exerciseSnapshotId}`}
+                      style={s.entry}
+                    >
+                      <Text style={s.date}>
+                        {new Date(entry.finishedAt).toLocaleString()}
                       </Text>
-                    ))}
-                  </View>
-                ))}
-              </View>
-            )
+                      <Text style={s.workout}>{entry.workoutName}</Text>
+                      {entry.sets.map((set) => (
+                        <Text key={set.id} style={s.set}>
+                          {set.weight} kg × {set.reps}
+                        </Text>
+                      ))}
+                    </View>
+                  ))}
+                </View>
+              )}
+            </>
           ) : null}
         </>
       )}

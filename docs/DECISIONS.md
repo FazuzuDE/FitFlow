@@ -2,6 +2,20 @@
 
 This chronological log records approved decisions. The owning product, design, roadmap, and engineering documents remain the detailed sources of truth.
 
+## 2026-09-24 — Exercise-specific Estimated 1RM series
+
+Status: Approved
+
+Decision:
+
+- For a selected exercise, show one explicitly estimated Epley 1RM point per completed workout: the highest valid completed-set estimate for that exercise in that workout.
+- Date the point by workout `finishedAt` and retain the source weight × reps. For equal estimates, prefer later `completedAt`, then stable ID/order. Zero is valid; one point is not a trend.
+- Reuse the selected Progress period and stable exercise identity. Do not claim measured strength, percentage growth, or a new PR definition.
+
+Implementation: Exercise-Specific Estimated 1RM Time-Series
+
+Related: `PROGRESS_ANALYTICS.md`
+
 ## 2026-09-23 — Training volume visualization
 
 Status: Approved

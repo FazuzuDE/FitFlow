@@ -14,6 +14,20 @@ export const epley = (weight: number, reps: number): number =>
 
 type AnalyticsSet = VolumeSession['exercises'][number]['sets'][number];
 
+// The legacy loader normalizes done-only sets to the workout completion time.
+export const completedSetTimestamp = (
+  set: AnalyticsSet,
+  workoutFinishedAt: number,
+): number | undefined => {
+  const timestamp =
+    set.completedAt ?? (set.done === true ? workoutFinishedAt : undefined);
+  return typeof timestamp === 'number' &&
+    Number.isFinite(timestamp) &&
+    timestamp >= 0
+    ? timestamp
+    : undefined;
+};
+
 export type CompletedSetMetrics = {
   weight: number;
   reps: number;
