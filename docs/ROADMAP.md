@@ -11,7 +11,7 @@ Onboarding → Home → Workout → Sets → Rest → Finish → History → Pro
 
 1. **Workout Engine** — reliable start/resume, logging, editing, rest timer, persistence, exactly one valid completion, tests.
 2. **Exercise Library** — browse/search/select; stable references and consistent metadata.
-3. **Workout Templates** — create/select/edit routines without corrupting historical workouts.
+3. **Workout Templates** — guided create/select/edit routines with planned sets/optional starting weight, without corrupting historical workouts.
 4. **History** — accurate completed-session list and details.
 5. **Progress** — real saved-data metrics: volume, PRs, progression, estimated 1RM, readable charts.
 6. **Local persistence/offline** — core logging does not depend on network; recover data according to current architecture.
@@ -40,6 +40,7 @@ Device/development builds, error handling, store assets/metadata, privacy/permis
 
 ## Future
 
+- First-workout calibration and adaptive progression: conservative initial work → actual exercise-specific performance and simple perceived difficulty → baseline → explainable, overrideable proposed sets/load informed by actual history. Body measurements alone are not enough for a precise working weight; actual logged values remain truth. This is not part of the Guided Workout Builder.
 - Suggested Next Workout and its Recommendation Engine: Workout → Muscle Load → Muscle Map → Training Insight → Suggested Next Workout → Customize → Start Workout → Adapt.
 - Recommendation Engine architecture may be anticipated, but implementation must not delay CRESUM Core. Muscle load is one input rather than ground truth.
 

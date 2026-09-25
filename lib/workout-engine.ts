@@ -1,6 +1,7 @@
 import {
   isSetComplete,
   LibraryExercise,
+  PlannedExercise,
   WorkoutExercise,
   WorkoutSession,
   WorkoutSet,
@@ -8,6 +9,7 @@ import {
 } from './workout-model';
 import { canonicalExerciseId } from './exercise-library';
 import { muscleLabel } from './exercise-taxonomy';
+import { normalizePlannedWeight, validPlannedSets } from './planned-exercise';
 
 const clone = <T>(value: T): T => JSON.parse(JSON.stringify(value)) as T;
 
@@ -19,16 +21,22 @@ const defaultIdFactory: IdFactory = () =>
 export const createExercise = (
   exercise: LibraryExercise,
   idFactory: IdFactory = defaultIdFactory,
+  planned?: PlannedExercise,
 ): WorkoutExercise => ({
   id: idFactory(),
   libraryId: exercise.id,
   name: exercise.name,
   muscle: muscleLabel(exercise.primaryMuscles[0]),
-  sets: Array.from({ length: 3 }, () => ({
-    id: idFactory(),
-    weight: '',
-    reps: '10',
-  })),
+  sets: Array.from(
+    { length: planned && validPlannedSets(planned.sets) ? planned.sets : 3 },
+    () => ({
+      id: idFactory(),
+      weight: planned?.weight
+        ? (normalizePlannedWeight(planned.weight) ?? '')
+        : '',
+      reps: '10',
+    }),
+  ),
 });
 
 export const resolveTemplateExercises = (
@@ -54,9 +62,13 @@ export const startWorkout = (
   startedAt: now,
   currentExerciseIndex: 0,
   restDurationSeconds: 90,
-  exercises: resolveTemplateExercises(template, library).map((item) =>
-    createExercise(item, idFactory),
-  ),
+  exercises: resolveTemplateExercises(template, library).map((item) => {
+    const planned = template.plannedExercises?.find(
+      (entry) =>
+        (canonicalExerciseId(entry.exerciseId) ?? entry.exerciseId) === item.id,
+    );
+    return createExercise(item, idFactory, planned);
+  }),
 });
 
 export const exerciseIdsMatch = (left: string, right: string): boolean =>

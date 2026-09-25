@@ -39,7 +39,7 @@ export function ProfileSettings({
       <View style={s.section}>
         <Text style={s.sectionLabel}>WORKOUT</Text>
         <Text style={s.sectionTitle} accessibilityRole="header">
-          Workout templates
+          Your workouts
         </Text>
         <WorkoutTemplates
           templates={templates}

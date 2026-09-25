@@ -192,11 +192,20 @@ export function ExerciseLibrary({
                   ) : (
                     <Pressable
                       accessibilityRole="button"
-                      accessibilityLabel={`Add ${exercise.name}`}
+                      accessibilityLabel={`${selected ? 'Already added' : 'Add'} ${exercise.name}`}
+                      accessibilityState={{ disabled: selected }}
+                      disabled={selected}
                       onPress={() => onAdd?.(exercise)}
-                      style={s.addAction}
+                      style={[s.addAction, selected && s.disabledAction]}
                     >
-                      <Text style={s.addActionText}>Add</Text>
+                      <Text
+                        style={[
+                          s.addActionText,
+                          selected && s.disabledActionText,
+                        ]}
+                      >
+                        {selected ? 'Added' : 'Add'}
+                      </Text>
                     </Pressable>
                   )}
                 </View>
@@ -323,6 +332,8 @@ const s = StyleSheet.create({
     backgroundColor: colors.primary,
   },
   addActionText: { ...typography.headline, color: colors.surface },
+  disabledAction: { backgroundColor: colors.surfaceSubtle },
+  disabledActionText: { color: colors.textSecondary },
   empty: {
     alignItems: 'center',
     gap: spacing.xs,

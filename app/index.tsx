@@ -248,7 +248,15 @@ export default function App() {
               )}
               <Stats history={data.history} />
             </>
-          ) : (
+          ) : null}
+          <View
+            style={tab === 'profile' ? s.profileVisible : s.profileHidden}
+            pointerEvents={tab === 'profile' ? 'auto' : 'none'}
+            accessibilityElementsHidden={tab !== 'profile'}
+            importantForAccessibility={
+              tab === 'profile' ? 'auto' : 'no-hide-descendants'
+            }
+          >
             <ProfileSettings
               templates={data.templates}
               busy={busy}
@@ -259,7 +267,7 @@ export default function App() {
               }
               deleteTemplate={(templateId) => store.deleteTemplate(templateId)}
             />
-          )}
+          </View>
           <Dock active={tab} onChange={setTab} />
         </>
       )}
@@ -268,6 +276,8 @@ export default function App() {
 }
 const s = StyleSheet.create({
   root: { flex: 1, backgroundColor: colors.background },
+  profileVisible: { flex: 1 },
+  profileHidden: { display: 'none' },
   content: { padding: spacing.md, gap: spacing.lg },
   notice: { padding: spacing.md, gap: spacing.xs },
   empty: {

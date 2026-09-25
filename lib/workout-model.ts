@@ -35,6 +35,13 @@ export type WorkoutTemplate = {
   id: string;
   name: string;
   exerciseIds: string[];
+  plannedExercises?: PlannedExercise[];
+};
+
+export type PlannedExercise = {
+  exerciseId: string;
+  sets: number;
+  weight?: string;
 };
 
 export type LibraryExercise = {
