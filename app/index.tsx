@@ -16,6 +16,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { GlassCard } from '@/components/GlassCard';
 import { Dock } from '@/components/Dock';
 import { AppButton } from '@/components/AppButton';
+import { HomeDashboard } from '@/components/HomeDashboard';
 import { Confirmation } from '@/components/Confirmation';
 import { Workout, duration, successHaptic } from '@/components/Workout';
 import { WorkoutHistory } from '@/components/WorkoutHistory';
@@ -34,7 +35,6 @@ import {
   WorkoutSession as Session,
   WorkoutTemplate as Template,
 } from '@/lib/workout-model';
-import { findExercise } from '@/lib/exercise-library';
 import { WorkoutRepository } from '@/lib/workout-repository';
 import { TemplateMutationResult, WorkoutStore } from '@/lib/workout-store';
 import type { TemplateDraft } from '@/lib/workout-templates';
@@ -42,198 +42,6 @@ import { colors, radius, spacing, typography } from '@/lib/theme';
 
 const blue = colors.primary,
   white = colors.surface;
-function Home({
-  history,
-  activeWorkout,
-  onResume,
-  startTemplate,
-  templates,
-}: {
-  history: Session[];
-  activeWorkout: Session | null;
-  onResume: () => void;
-  startTemplate: (t: Template) => void;
-  templates: Template[];
-}) {
-  const total = history.reduce((a, x) => a + volume(x), 0);
-  const last = history.reduce<Session | undefined>(
-    (latest, session) =>
-      !latest || (session.finishedAt ?? 0) > (latest.finishedAt ?? 0)
-        ? session
-        : latest,
-    undefined,
-  );
-  const featuredIndex = templates.findIndex((template) =>
-    template.exerciseIds.some((id) => findExercise(id)),
-  );
-  const featured = templates[featuredIndex];
-  const remainingTemplates = templates.filter(
-    (_, index) => activeWorkout || index !== featuredIndex,
-  );
-  const exerciseDetails = (template: Template) => {
-    const available = template.exerciseIds.flatMap((id) => {
-      const exercise = findExercise(id);
-      return exercise ? [exercise] : [];
-    });
-    const unavailable = template.exerciseIds.length - available.length;
-    return {
-      availableCount: available.length,
-      count: unavailable
-        ? `${available.length} available · ${unavailable} unavailable`
-        : `${available.length} exercise${available.length === 1 ? '' : 's'}`,
-      preview: available
-        .slice(0, 3)
-        .map((exercise) => exercise.name)
-        .join(' · '),
-    };
-  };
-  const featuredDetails = featured ? exerciseDetails(featured) : undefined;
-  const primaryTitle = activeWorkout
-    ? `Resume ${activeWorkout.name}`
-    : featured
-      ? `Start ${featured.name}`
-      : '';
-  const primaryAction = () => {
-    if (activeWorkout) onResume();
-    else if (featured) startTemplate(featured);
-  };
-  return (
-    <ScrollView contentContainerStyle={[s.content, s.homeContent]}>
-      <View style={s.homeHeader}>
-        <Text style={s.homeBrand}>CRESUM</Text>
-        <Text style={s.homeGreeting}>
-          {history.length ? 'Welcome back' : 'Welcome'}
-        </Text>
-        <Text style={s.homeTitle} accessibilityRole="header">
-          Ready to train?
-        </Text>
-      </View>
-      {activeWorkout || featured ? (
-        <GlassCard style={s.homeHero}>
-          <Text style={s.cardLabel}>
-            {activeWorkout ? 'IN PROGRESS' : 'QUICK START'}
-          </Text>
-          <Text style={s.homeHeroTitle} accessibilityRole="header">
-            {activeWorkout?.name ?? featured?.name}
-          </Text>
-          {activeWorkout ? (
-            <Text style={s.sub}>Your workout is ready to continue.</Text>
-          ) : (
-            <>
-              <Text style={s.homeMeta}>{featuredDetails?.count}</Text>
-              {featuredDetails?.preview ? (
-                <Text
-                  style={s.sub}
-                  accessibilityLabel={featuredDetails.preview}
-                >
-                  {featuredDetails.preview}
-                </Text>
-              ) : null}
-            </>
-          )}
-          <AppButton
-            title={primaryTitle}
-            accessibilityLabel={primaryTitle}
-            onPress={primaryAction}
-          />
-        </GlassCard>
-      ) : (
-        <GlassCard>
-          <Text style={s.homeHeroTitle}>
-            {templates.length
-              ? 'No templates with available exercises'
-              : 'No workout templates available'}
-          </Text>
-          <Text style={s.sub}>
-            {templates.length
-              ? 'Edit a template in Profile to choose available exercises.'
-              : 'Create a template in Profile to get started.'}
-          </Text>
-        </GlassCard>
-      )}
-      <GlassCard style={s.homeSummary}>
-        <Text style={s.cardLabel}>TOTAL VOLUME</Text>
-        <Text style={s.homeMetric}>
-          {Math.round(total).toLocaleString()} <Text style={s.unit}>kg</Text>
-        </Text>
-        <Text style={s.sub}>
-          {history.length} completed workout{history.length === 1 ? '' : 's'}
-          {' · saved locally'}
-        </Text>
-      </GlassCard>
-      {last ? (
-        <GlassCard style={s.homeRecent}>
-          <Text style={s.cardLabel}>LAST WORKOUT</Text>
-          <Text style={s.homeRecentName}>{last.name}</Text>
-          <Text style={s.sub}>
-            {Math.round(volume(last)).toLocaleString()} kg volume
-          </Text>
-        </GlassCard>
-      ) : (
-        <Text style={s.homeEmpty}>
-          No completed workouts yet. Finish one to see your recent training.
-        </Text>
-      )}
-      {remainingTemplates.length > 0 ? (
-        <View style={s.homeTemplates}>
-          <Text style={s.section} accessibilityRole="header">
-            {activeWorkout ? 'Workout templates' : 'More templates'}
-          </Text>
-          {activeWorkout ? (
-            <Text style={s.sub}>
-              Finish your current workout to start another.
-            </Text>
-          ) : null}
-          {remainingTemplates.map((t) => {
-            const details = exerciseDetails(t);
-            const canStart = !activeWorkout && details.availableCount > 0;
-            return (
-              <GlassCard key={t.id}>
-                <View style={s.quick}>
-                  <View style={s.homeTemplateCopy}>
-                    <Text style={s.homeTemplateName}>{t.name}</Text>
-                    <Text style={s.sub}>{details.count}</Text>
-                    {details.preview ? (
-                      <Text
-                        style={s.sub}
-                        numberOfLines={2}
-                        accessibilityLabel={details.preview}
-                      >
-                        {details.preview}
-                      </Text>
-                    ) : null}
-                  </View>
-                  <Pressable
-                    accessibilityRole="button"
-                    accessibilityLabel={'Start ' + t.name}
-                    accessibilityHint={
-                      activeWorkout
-                        ? 'Finish your current workout before starting another.'
-                        : canStart
-                          ? undefined
-                          : 'Edit this template in Profile to choose available exercises.'
-                    }
-                    accessibilityState={{ disabled: !canStart }}
-                    disabled={!canStart}
-                    onPress={canStart ? () => startTemplate(t) : undefined}
-                    style={({ pressed }) => [
-                      s.homeTemplateAction,
-                      (pressed || !canStart) && s.homePressed,
-                    ]}
-                  >
-                    <Text style={s.homeTemplateActionText}>Start</Text>
-                    <Ionicons name="arrow-forward" size={18} color={blue} />
-                  </Pressable>
-                </View>
-              </GlassCard>
-            );
-          })}
-        </View>
-      ) : null}
-    </ScrollView>
-  );
-}
-
 function Stats({ history }: { history: Session[] }) {
   const [period, setPeriod] = useState<ProgressPeriodId>(
     DEFAULT_PROGRESS_PERIOD,
@@ -442,7 +250,7 @@ export default function App() {
       ) : (
         <>
           {tab === 'home' ? (
-            <Home
+            <HomeDashboard
               history={data.history}
               activeWorkout={data.activeWorkout}
               onResume={() => setTab('workout')}
@@ -499,45 +307,6 @@ export default function App() {
 const s = StyleSheet.create({
   root: { flex: 1, backgroundColor: colors.background },
   content: { padding: spacing.md, gap: spacing.lg },
-  homeContent: {
-    width: '100%',
-    maxWidth: 600,
-    alignSelf: 'center',
-    paddingBottom: spacing.lg,
-  },
-  homeHeader: { gap: spacing.xxs },
-  homeBrand: { ...typography.caption, color: colors.primary },
-  homeGreeting: { ...typography.subheadline, color: colors.textSecondary },
-  homeTitle: { ...typography.title1, color: colors.textPrimary },
-  homeHero: { gap: spacing.sm },
-  homeHeroTitle: { ...typography.title2, color: colors.textPrimary },
-  homeMeta: { ...typography.subheadline, color: colors.textSecondary },
-  homeSummary: { gap: spacing.xxs },
-  homeMetric: {
-    ...typography.title1,
-    color: colors.textPrimary,
-    fontVariant: ['tabular-nums'],
-  },
-  homeRecent: { gap: spacing.xxs },
-  homeRecentName: { ...typography.headline, color: colors.textPrimary },
-  homeEmpty: { ...typography.footnote, color: colors.textSecondary },
-  homeTemplateCopy: { flex: 1, minWidth: 0, gap: spacing.xxs },
-  homeTemplates: { gap: spacing.sm },
-  homeTemplateName: { ...typography.headline, color: colors.textPrimary },
-  homeTemplateAction: {
-    minWidth: 80,
-    minHeight: 44,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    alignSelf: 'center',
-    gap: spacing.xxs,
-    paddingHorizontal: spacing.sm,
-    borderRadius: radius.md,
-    backgroundColor: colors.surfaceSubtle,
-  },
-  homeTemplateActionText: { ...typography.caption, color: colors.primary },
-  homePressed: { opacity: 0.6 },
   notice: { padding: spacing.md, gap: spacing.xs },
   empty: {
     flex: 1,
@@ -571,18 +340,7 @@ const s = StyleSheet.create({
     marginBottom: spacing.sm,
   },
   profile: { alignItems: 'center', paddingVertical: spacing.md },
-  cardLabel: {
-    ...typography.caption,
-    color: colors.textSecondary,
-  },
-  unit: { ...typography.footnote, color: colors.textSecondary },
-  quick: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    gap: spacing.sm,
-  },
   h3: { ...typography.headline, color: colors.textPrimary },
-  section: { ...typography.title3, color: colors.textPrimary },
   pr: { ...typography.caption, color: colors.textSecondary },
   history: {
     flexDirection: 'row',

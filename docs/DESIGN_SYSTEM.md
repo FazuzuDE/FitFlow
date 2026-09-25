@@ -164,16 +164,25 @@ Future Training Insight presentation follows Result → Analysis → Suggestion.
 
 Purpose: answer “What should I do now, and how am I progressing?”
 
+Dashboard-style content uses a constrained, mobile-first grid of independent
+modules. Modules have stable identities and explicit supported sizes; the grid
+owns placement, while modules own size-specific presentation and neither owns
+workout/domain logic. Use design-system spacing, predictable alignment, and
+content-driven height so Dynamic Type does not overflow. Wider layouts remain
+bounded rather than stretching cards indefinitely. Safe Area, screen identity,
+primary navigation, and essential global actions stay structural. This is
+inspired by the organization of iOS Home Screen widgets, not their visual
+appearance or actual system widgets. Do not use arbitrary x/y positioning or
+pixel resizing. Current Home retains its polished appearance and may use only
+one supported size per module; more sizes and user customization are future work.
+
 ```text
 Safe Area
-  Header: greeting + profile
-  Today's Workout Card
-    workout name + metadata
-    [Start Workout]
-  Quick Stats Bento
-    streak / workouts / volume / PRs
-  Weekly Progress
-  optional short supporting line
+  Header: CRESUM identity + greeting
+  Primary Workout Module: Resume active workout or Start an existing template
+  Training Summary Module: factual completed workouts + total volume
+  Latest Workout Module: factual saved result or empty state
+  Workout Templates Module: other existing templates and Start actions
   Bottom Dock
 ```
 

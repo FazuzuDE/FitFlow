@@ -21,6 +21,9 @@ Onboarding → Home → Workout → Sets → Rest → Finish → History → Pro
 
 - Minimal onboarding.
 - Home Dashboard using real app data and `docs/DESIGN_SYSTEM.md`.
+- Modular dashboard foundation for existing Home content. Reorder/show-hide,
+  supported-size selection, and saved/synced layouts come later as a separate
+  task; do not add drag/drop or layout persistence to the foundation.
 - Essential Settings/Profile.
 - UI consistency, interaction states, haptics, accessibility, phone-sized layouts.
 
