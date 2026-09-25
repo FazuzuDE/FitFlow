@@ -1,3 +1,4 @@
+import { HIDDEN_BUILT_INS_KEY } from './hidden-builtins';
 import { ONBOARDING_KEY } from './onboarding-repository';
 import { LEGACY_KEYS, STATE_KEY } from './workout-repository';
 
@@ -5,6 +6,7 @@ import { LEGACY_KEYS, STATE_KEY } from './workout-repository';
 // protects the existing workouts from legacy re-import or first-run gating.
 export const LOCAL_DATA_KEYS = [
   ONBOARDING_KEY,
+  HIDDEN_BUILT_INS_KEY,
   ...LEGACY_KEYS,
   STATE_KEY,
 ] as const;

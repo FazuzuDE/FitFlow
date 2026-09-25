@@ -239,3 +239,28 @@ export const deleteTemplate = (
     throw new Error('Duplicate template IDs cannot be deleted safely.');
   return templates.filter((template) => template.id !== templateId);
 };
+
+export const duplicateTemplate = (
+  templates: readonly WorkoutTemplate[],
+  templateId: string,
+  idFactory: TemplateIdFactory = defaultTemplateIdFactory,
+): CreatedTemplate => {
+  const matches = templates.filter((template) => template.id === templateId);
+  if (matches.length !== 1)
+    throw new Error('Template cannot be duplicated safely.');
+  const original = matches[0];
+  const template: WorkoutTemplate = {
+    ...original,
+    id: uniqueTemplateId(templates, idFactory),
+    name: `${original.name} Copy`,
+    exerciseIds: [...original.exerciseIds],
+    ...(original.plannedExercises
+      ? {
+          plannedExercises: original.plannedExercises.map((item) => ({
+            ...item,
+          })),
+        }
+      : {}),
+  };
+  return { template, templates: [...templates, template] };
+};

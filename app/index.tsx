@@ -51,6 +51,7 @@ import {
 } from '@/lib/onboarding';
 import { OnboardingRepository } from '@/lib/onboarding-repository';
 import { resetLocalData } from '@/lib/local-data-reset';
+import { HiddenBuiltInsRepository } from '@/lib/hidden-builtins';
 import type { TemplateDraft } from '@/lib/workout-templates';
 import { colors, radius, spacing, typography } from '@/lib/theme';
 
@@ -158,6 +159,16 @@ export default function App() {
   const [onboardingRepository] = useState(
     () => new OnboardingRepository(AsyncStorage),
   );
+  const [hiddenRepository] = useState(
+    () => new HiddenBuiltInsRepository(AsyncStorage),
+  );
+  const [hiddenBuiltInIds, setHiddenBuiltInIds] = useState<string[]>([]);
+  const [hiddenReady, setHiddenReady] = useState(false);
+  const [hiddenBusy, setHiddenBusy] = useState(false);
+  const [hiddenError, setHiddenError] = useState('');
+  const hiddenWrites = useRef(Promise.resolve());
+  const hiddenOperation = useRef(false);
+  const hiddenEpoch = useRef(0);
   const [onboardingState, setOnboardingState] = useState<OnboardingState>(
     initialOnboardingState,
   );
@@ -178,6 +189,25 @@ export default function App() {
     void store.load();
     let mounted = true;
     const epoch = onboardingEpoch.current;
+    const visibilityEpoch = hiddenEpoch.current;
+    void hiddenRepository
+      .load()
+      .then(
+        (ids) => {
+          if (mounted && hiddenEpoch.current === visibilityEpoch)
+            setHiddenBuiltInIds(ids);
+        },
+        () => {
+          if (mounted && hiddenEpoch.current === visibilityEpoch)
+            setHiddenError(
+              'Hidden workout settings are unavailable. All built-ins remain visible.',
+            );
+        },
+      )
+      .finally(() => {
+        if (mounted && hiddenEpoch.current === visibilityEpoch)
+          setHiddenReady(true);
+      });
     void onboardingRepository
       .load()
       .then(
@@ -201,7 +231,7 @@ export default function App() {
     return () => {
       mounted = false;
     };
-  }, [store, onboardingRepository]);
+  }, [store, onboardingRepository, hiddenRepository]);
   const queueOnboardingSave = (next: OnboardingState): Promise<void> => {
     if (resetInProgress.current)
       return Promise.reject(new Error('Reset in progress.'));
@@ -264,6 +294,32 @@ export default function App() {
       Alert.alert('Cannot start workout', (problem as Error).message);
     }
   };
+  const updateHiddenBuiltIns = async (next: string[]): Promise<boolean> => {
+    if (hiddenOperation.current || resetInProgress.current) return false;
+    hiddenOperation.current = true;
+    const epoch = hiddenEpoch.current;
+    setHiddenBusy(true);
+    setHiddenError('');
+    const write = hiddenRepository.save(next);
+    hiddenWrites.current = write.catch(() => undefined);
+    try {
+      await write;
+      if (hiddenEpoch.current === epoch) setHiddenBuiltInIds(next);
+      return true;
+    } catch {
+      if (hiddenEpoch.current === epoch)
+        setHiddenError(
+          'Hidden workout settings could not be saved. Try again.',
+        );
+      return false;
+    } finally {
+      hiddenOperation.current = false;
+      setHiddenBusy(false);
+    }
+  };
+  const visibleTemplates = data.templates.filter(
+    (template) => !hiddenBuiltInIds.includes(template.id),
+  );
   const finish = async () => {
     if (!data.activeWorkout || busy) return;
     const completed = await store.finish();
@@ -277,15 +333,20 @@ export default function App() {
     if (resetInProgress.current || busy) return;
     resetInProgress.current = true;
     ++onboardingEpoch.current;
+    ++hiddenEpoch.current;
     setResetBusy(true);
     setResetError('');
     try {
       await resetLocalData(AsyncStorage, async () => {
         await onboardingWrites.current;
         await store.waitForPendingWrites();
+        await hiddenWrites.current;
       });
       store.resetAfterLocalDataRemoval();
       setOnboardingState(initialOnboardingState);
+      setHiddenBuiltInIds([]);
+      setHiddenError('');
+      setHiddenReady(true);
       setOnboardingError('');
       setOnboardingLoadFailed(false);
       setOnboardingBypass(false);
@@ -311,7 +372,7 @@ export default function App() {
       <Confirmation
         visible={confirmReset}
         title="Reset CRESUM?"
-        message="All local CRESUM data on this device — workouts, history, templates, active workout, personalization and onboarding data — will be permanently deleted. This cannot be undone."
+        message="All local CRESUM data on this device — workouts, history, templates, active workout, hidden-workout settings, personalization and onboarding data — will be permanently deleted. This cannot be undone."
         confirmLabel="Reset local data"
         cancelLabel="Keep data"
         destructive
@@ -355,11 +416,13 @@ export default function App() {
           />
         </View>
       ) : null}
-      {!ready || !onboardingReady ? (
+      {!ready || !onboardingReady || !hiddenReady ? (
         <View style={s.empty}>
-          {busy || !onboardingReady ? <ActivityIndicator color={blue} /> : null}
+          {busy || !onboardingReady || !hiddenReady ? (
+            <ActivityIndicator color={blue} />
+          ) : null}
           <Text style={s.sub}>
-            {busy || !onboardingReady
+            {busy || !onboardingReady || !hiddenReady
               ? 'Loading your workouts…'
               : 'Saved workouts are unavailable. Retry above.'}
           </Text>
@@ -436,7 +499,7 @@ export default function App() {
               history={data.history}
               activeWorkout={data.activeWorkout}
               onResume={() => setTab('workout')}
-              templates={data.templates}
+              templates={visibleTemplates}
               startTemplate={startTemplate}
             />
           ) : tab === 'workout' ? (
@@ -479,14 +542,29 @@ export default function App() {
             }
           >
             <ProfileSettings
-              templates={data.templates}
-              busy={busy}
+              templates={visibleTemplates}
+              busy={busy || hiddenBusy}
               version={Constants.expoConfig?.version}
               createTemplate={(draft) => store.createTemplate(draft)}
               updateTemplate={(templateId, draft) =>
                 store.updateTemplate(templateId, draft)
               }
               deleteTemplate={(templateId) => store.deleteTemplate(templateId)}
+              duplicateTemplate={(templateId) =>
+                store.duplicateTemplate(templateId)
+              }
+              startTemplate={startTemplate}
+              hideBuiltIn={(templateId) =>
+                updateHiddenBuiltIns([...hiddenBuiltInIds, templateId])
+              }
+              restoreBuiltIn={(templateId) =>
+                updateHiddenBuiltIns(
+                  hiddenBuiltInIds.filter((id) => id !== templateId),
+                )
+              }
+              hiddenBuiltInIds={hiddenBuiltInIds}
+              hiddenError={hiddenError}
+              hasActiveWorkout={Boolean(data.activeWorkout)}
               onPersonalize={() => setEditingPersonalization(true)}
               onResetLocalData={() => {
                 setResetError('');

@@ -5,6 +5,7 @@ import { emptyWorkoutState, WorkoutRepository } from './workout-repository';
 import {
   createTemplate as createTemplateInList,
   deleteTemplate as deleteTemplateFromList,
+  duplicateTemplate as duplicateTemplateInList,
   TemplateDraft,
   TemplateIdFactory,
   updateTemplate as updateTemplateInList,
@@ -121,6 +122,14 @@ export class WorkoutStore {
   ): Promise<TemplateMutationResult> {
     return this.commitTemplates((templates) =>
       createTemplateInList(templates, draft, idFactory),
+    );
+  }
+  duplicateTemplate(
+    templateId: string,
+    idFactory?: TemplateIdFactory,
+  ): Promise<TemplateMutationResult> {
+    return this.commitTemplates((templates) =>
+      duplicateTemplateInList(templates, templateId, idFactory),
     );
   }
   updateTemplate(

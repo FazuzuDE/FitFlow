@@ -4,7 +4,9 @@ Workout Templates are reusable ordered workout plans stored inside the existing 
 
 ## Built-in and custom templates
 
-Built-in template identity is owned centrally by `lib/workout-templates.ts`. Built-ins remain visible and startable but cannot be edited or deleted. Custom templates can be created, edited, reordered, and deleted after explicit confirmation. Duplicate template names are allowed because identity is the template ID.
+Built-in template identity is owned centrally by `lib/workout-templates.ts`. Built-ins start visible and startable but cannot be edited or deleted. Users may hide and later restore them without changing their canonical definitions. Custom templates can be created, edited, reordered, and deleted after explicit confirmation. Duplicate template names are allowed because identity is the template ID.
+
+Visibility of built-ins is a separate device-local preference containing built-in IDs, not a mutation of canonical definitions or workout schema v1. A hidden built-in is omitted from visible Home/Profile lists but remains in the catalog and can be restored in Profile. Reset local data removes this preference. Duplicating either kind of template creates a new custom ID and independent editable plan; hiding a built-in or deleting a custom template never changes active/completed snapshots.
 
 New custom IDs are generated with collision checks against every persisted template ID. New and edited templates require a trimmed non-empty name, at least one available exercise, no duplicate exercise IDs, and no unresolved stale references.
 

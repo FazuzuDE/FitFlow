@@ -136,6 +136,10 @@ Profile → Data includes a destructive **Reset local data** action using the ex
 
 Use one obvious primary action per focused step: Workout Name → Exercise Library single selection → planned sets/optional starting weight → ordered composition → Save Workout. Keep Back and Cancel distinct; Back retains the local draft, and Cancel confirms before discarding meaningful changes. Use existing type, color, spacing, radius and card tokens. Exact manual weight entry remains available; no inferred or recommended weight is shown here. Planned values must be labeled as editable starting values, not performed sets.
 
+### Workout list interactions
+
+For manageable workout rows, tap performs the primary Start/Resume action. Swipe left reveals only concise contextual actions; long press opens the complete action menu. An accessible More actions control exposes the same menu without gestures. Do not assign a swipe-right product action for symmetry. Custom rows use Edit (including rename), Duplicate, and confirmed Delete; built-in rows use Duplicate/Customize and Hide, never direct mutation or deletion of the canonical definition. Profile → Workout settings provides Restore for hidden built-ins. Use existing tokens, readable Dynamic Type layouts, compact-screen scrolling, and practical touch targets rather than permanent edit/delete buttons on every row.
+
 ### ExerciseCard
 
 Order:

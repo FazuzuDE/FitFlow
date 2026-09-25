@@ -2,6 +2,7 @@ import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { GlassCard } from './GlassCard';
 import { AppButton } from './AppButton';
 import { WorkoutTemplates } from './WorkoutTemplates';
+import { defaultTemplates } from '@/lib/workout-catalog';
 import type { WorkoutTemplate } from '@/lib/workout-model';
 import type { TemplateMutationResult } from '@/lib/workout-store';
 import type { TemplateDraft } from '@/lib/workout-templates';
@@ -17,6 +18,13 @@ export type ProfileSettingsProps = {
     draft: TemplateDraft,
   ) => Promise<TemplateMutationResult>;
   deleteTemplate: (templateId: string) => Promise<TemplateMutationResult>;
+  duplicateTemplate?: (templateId: string) => Promise<TemplateMutationResult>;
+  startTemplate?: (template: WorkoutTemplate) => void;
+  hideBuiltIn?: (templateId: string) => Promise<boolean>;
+  restoreBuiltIn?: (templateId: string) => Promise<boolean>;
+  hiddenBuiltInIds?: string[];
+  hiddenError?: string;
+  hasActiveWorkout?: boolean;
   onPersonalize?: () => void;
   onResetLocalData?: () => void;
 };
@@ -28,6 +36,13 @@ export function ProfileSettings({
   createTemplate,
   updateTemplate,
   deleteTemplate,
+  duplicateTemplate,
+  startTemplate,
+  hideBuiltIn,
+  restoreBuiltIn,
+  hiddenBuiltInIds = [],
+  hiddenError,
+  hasActiveWorkout = false,
   onPersonalize,
   onResetLocalData,
 }: ProfileSettingsProps) {
@@ -52,8 +67,42 @@ export function ProfileSettings({
           onCreate={createTemplate}
           onUpdate={updateTemplate}
           onDelete={deleteTemplate}
+          onDuplicate={duplicateTemplate}
+          onStart={startTemplate}
+          onHide={hideBuiltIn}
+          hasActiveWorkout={hasActiveWorkout}
         />
       </View>
+
+      {hiddenBuiltInIds.length ? (
+        <View style={s.section}>
+          <Text style={s.sectionLabel}>WORKOUT SETTINGS</Text>
+          <GlassCard style={s.about}>
+            <Text style={s.sectionTitle} accessibilityRole="header">
+              Hidden built-in workouts
+            </Text>
+            <Text style={s.sub}>
+              Restore a built-in workout to My Workouts.
+            </Text>
+            {defaultTemplates
+              .filter((template) => hiddenBuiltInIds.includes(template.id))
+              .map((template) => (
+                <AppButton
+                  key={template.id}
+                  title={`Restore ${template.name}`}
+                  secondary
+                  disabled={busy || !restoreBuiltIn}
+                  onPress={() => void restoreBuiltIn?.(template.id)}
+                />
+              ))}
+          </GlassCard>
+        </View>
+      ) : null}
+      {hiddenError ? (
+        <Text accessibilityRole="alert" style={s.sub}>
+          {hiddenError}
+        </Text>
+      ) : null}
 
       <View style={s.section}>
         <Text style={s.sectionLabel}>PERSONALIZATION</Text>

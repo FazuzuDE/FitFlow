@@ -4,6 +4,7 @@ import { defaultTemplates } from '../workout-catalog';
 
 const original = new Map([
   ['cresum_onboarding_v1', '{"version":1}'],
+  ['cresum_hidden_builtins_v1', '{"version":1,"ids":["upper"]}'],
   ['fitflow_history', '[{"id":"legacy"}]'],
   ['fitflow_active', '{"id":"active"}'],
   ['fitflow_templates', '[{"id":"custom"}]'],
@@ -25,7 +26,7 @@ function memoryStorage() {
   };
 }
 
-it('waits for pending writes, then deletes only all five CRESUM storage keys', async () => {
+it('waits for pending writes, then deletes all CRESUM storage keys including hidden built-ins', async () => {
   const storage = memoryStorage();
   let release!: () => void;
   const pending = new Promise<void>((resolve) => {

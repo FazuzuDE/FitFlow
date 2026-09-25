@@ -210,6 +210,127 @@ describe('TemplateEditor', () => {
 });
 
 describe('WorkoutTemplates', () => {
+  it('starts a workout from a row tap without exposing permanent edit/delete controls', () => {
+    const onStart = jest.fn();
+    const view = render(
+      <WorkoutTemplates
+        templates={[...defaultTemplates, custom]}
+        busy={false}
+        onCreate={jest.fn()}
+        onUpdate={jest.fn()}
+        onDelete={jest.fn()}
+        onStart={onStart}
+      />,
+    );
+    expect(action(view, 'Edit My Push')).toBeUndefined();
+    expect(action(view, 'Delete My Push')).toBeUndefined();
+    act(() => action(view, 'Start My Push')?.props.onPress());
+    expect(onStart).toHaveBeenCalledWith(custom);
+  });
+
+  it('reveals only quick actions on swipe left and leaves swipe right unassigned', () => {
+    const view = render(
+      <WorkoutTemplates
+        templates={[...defaultTemplates, custom]}
+        busy={false}
+        onCreate={jest.fn()}
+        onUpdate={jest.fn()}
+        onDelete={jest.fn()}
+      />,
+    );
+    const swipe = view.root.findByProps({
+      testID: 'template-swipe-custom-one',
+    });
+    act(() => {
+      swipe.props.onTouchStart({ nativeEvent: { pageX: 200, pageY: 100 } });
+      swipe.props.onTouchEnd({ nativeEvent: { pageX: 90, pageY: 100 } });
+    });
+    expect(action(view, 'Edit My Push')).toBeDefined();
+    expect(action(view, 'Delete My Push')).toBeDefined();
+    act(() => {
+      swipe.props.onTouchStart({ nativeEvent: { pageX: 100, pageY: 100 } });
+      swipe.props.onTouchEnd({ nativeEvent: { pageX: 210, pageY: 100 } });
+    });
+    expect(action(view, 'Edit My Push')).toBeUndefined();
+    expect(action(view, 'Delete My Push')).toBeUndefined();
+  });
+
+  it('does not start a workout when a swipe release also emits a row press', () => {
+    const onStart = jest.fn();
+    const view = render(
+      <WorkoutTemplates
+        templates={[custom]}
+        busy={false}
+        onCreate={jest.fn()}
+        onUpdate={jest.fn()}
+        onDelete={jest.fn()}
+        onStart={onStart}
+      />,
+    );
+    const swipe = view.root.findByProps({
+      testID: 'template-swipe-custom-one',
+    });
+    act(() => {
+      swipe.props.onTouchStart({ nativeEvent: { pageX: 200, pageY: 100 } });
+      swipe.props.onTouchMove({ nativeEvent: { pageX: 100, pageY: 100 } });
+      action(view, 'Start My Push')?.props.onPress();
+    });
+    expect(onStart).not.toHaveBeenCalled();
+  });
+
+  it('opens complete custom actions on long press and through accessible More actions', async () => {
+    const onDuplicate = jest.fn(async () => ({ ok: true as const }));
+    const view = render(
+      <WorkoutTemplates
+        templates={[...defaultTemplates, custom]}
+        busy={false}
+        onCreate={jest.fn()}
+        onUpdate={jest.fn()}
+        onDelete={jest.fn()}
+        onDuplicate={onDuplicate}
+      />,
+    );
+    act(() => action(view, 'Start My Push')?.props.onLongPress());
+    expect(appButton(view, 'Start Workout')).toBeDefined();
+    expect(appButton(view, 'Edit')).toBeDefined();
+    expect(appButton(view, 'Duplicate')).toBeDefined();
+    expect(appButton(view, 'Delete')).toBeDefined();
+    await act(async () => appButton(view, 'Duplicate')?.props.onPress());
+    expect(onDuplicate).toHaveBeenCalledWith(custom.id);
+    act(() => action(view, 'More actions for My Push')?.props.onPress());
+    expect(appButton(view, 'Edit')).toBeDefined();
+  });
+
+  it('offers built-in Duplicate/Customize and Hide but never Edit/Delete', async () => {
+    const onDuplicate = jest.fn(async () => ({ ok: true as const }));
+    const onHide = jest.fn(async () => true);
+    const view = render(
+      <WorkoutTemplates
+        templates={defaultTemplates}
+        busy={false}
+        onCreate={jest.fn()}
+        onUpdate={jest.fn()}
+        onDelete={jest.fn()}
+        onDuplicate={onDuplicate}
+        onHide={onHide}
+      />,
+    );
+    act(() => action(view, 'More actions for Upper Body')?.props.onPress());
+    expect(appButton(view, 'Duplicate / Customize')).toBeDefined();
+    expect(appButton(view, 'Hide from My Workouts')).toBeDefined();
+    expect(appButton(view, 'Edit')).toBeUndefined();
+    expect(appButton(view, 'Delete')).toBeUndefined();
+    await act(async () =>
+      appButton(view, 'Duplicate / Customize')?.props.onPress(),
+    );
+    expect(onDuplicate).toHaveBeenCalledWith(defaultTemplates[0].id);
+    act(() => action(view, 'More actions for Upper Body')?.props.onPress());
+    await act(async () =>
+      appButton(view, 'Hide from My Workouts')?.props.onPress(),
+    );
+    expect(onHide).toHaveBeenCalledWith(defaultTemplates[0].id);
+  });
+
   it('keeps built-ins immutable and exposes Edit/Delete only for custom templates', () => {
     const view = render(
       <WorkoutTemplates
@@ -223,8 +344,9 @@ describe('WorkoutTemplates', () => {
 
     expect(action(view, 'Edit Upper Body')).toBeUndefined();
     expect(action(view, 'Delete Upper Body')).toBeUndefined();
-    expect(action(view, 'Edit My Push')).toBeDefined();
-    expect(action(view, 'Delete My Push')).toBeDefined();
+    act(() => action(view, 'More actions for My Push')?.props.onPress());
+    expect(appButton(view, 'Edit')).toBeDefined();
+    expect(appButton(view, 'Delete')).toBeDefined();
   });
 
   it('disables competing template actions while a local draft is open', () => {
@@ -238,10 +360,13 @@ describe('WorkoutTemplates', () => {
       />,
     );
 
-    act(() => action(view, 'Edit My Push')?.props.onPress());
+    act(() => action(view, 'More actions for My Push')?.props.onPress());
+    act(() => appButton(view, 'Edit')?.props.onPress());
 
-    expect(action(view, 'Edit My Push')?.props.disabled).toBe(true);
-    expect(action(view, 'Delete My Push')?.props.disabled).toBe(true);
+    expect(action(view, 'More actions for My Push')?.props.disabled).toBe(true);
+    expect(action(view, 'More actions for Upper Body')?.props.disabled).toBe(
+      true,
+    );
   });
 
   it('does not create a replacement when an edited template disappears', async () => {
@@ -257,7 +382,8 @@ describe('WorkoutTemplates', () => {
       />,
     );
 
-    act(() => action(view, 'Edit My Push')?.props.onPress());
+    act(() => action(view, 'More actions for My Push')?.props.onPress());
+    act(() => appButton(view, 'Edit')?.props.onPress());
     act(() =>
       view.update(
         <WorkoutTemplates
@@ -290,13 +416,15 @@ describe('WorkoutTemplates', () => {
       />,
     );
 
-    act(() => action(view, 'Delete My Push')?.props.onPress());
+    act(() => action(view, 'More actions for My Push')?.props.onPress());
+    act(() => appButton(view, 'Delete')?.props.onPress());
     let confirmation = view.root.findByType(Confirmation);
     expect(confirmation.props.visible).toBe(true);
     act(() => confirmation.props.onCancel());
     expect(onDelete).not.toHaveBeenCalled();
 
-    act(() => action(view, 'Delete My Push')?.props.onPress());
+    act(() => action(view, 'More actions for My Push')?.props.onPress());
+    act(() => appButton(view, 'Delete')?.props.onPress());
     confirmation = view.root.findByType(Confirmation);
     await act(async () => confirmation.props.onConfirm());
     expect(onDelete).toHaveBeenCalledWith(custom.id);
@@ -402,7 +530,8 @@ describe('Workout Templates app integration', () => {
     );
     let view = await renderApp();
     act(() => view.root.findByType(Dock).props.onChange('profile'));
-    act(() => action(view, 'Edit My Push')?.props.onPress());
+    act(() => action(view, 'More actions for My Push')?.props.onPress());
+    act(() => appButton(view, 'Edit')?.props.onPress());
     act(() => appButton(view, 'Back')?.props.onPress());
     act(() =>
       view.root
@@ -436,13 +565,15 @@ describe('Workout Templates app integration', () => {
     );
     const view = await renderApp();
     act(() => view.root.findByType(Dock).props.onChange('profile'));
-    act(() => action(view, 'Delete My Push')?.props.onPress());
+    act(() => action(view, 'More actions for My Push')?.props.onPress());
+    act(() => appButton(view, 'Delete')?.props.onPress());
     act(() => view.root.findAllByType(Confirmation).at(-1)?.props.onCancel());
     expect(
       JSON.parse((await AsyncStorage.getItem('fitflow_state_v1'))!).templates,
     ).toContainEqual(custom);
 
-    act(() => action(view, 'Delete My Push')?.props.onPress());
+    act(() => action(view, 'More actions for My Push')?.props.onPress());
+    act(() => appButton(view, 'Delete')?.props.onPress());
     await act(async () => {
       view.root.findAllByType(Confirmation).at(-1)?.props.onConfirm();
       await settle();
@@ -467,7 +598,8 @@ describe('Workout Templates app integration', () => {
     await AsyncStorage.setItem('fitflow_state_v1', raw);
     const view = await renderApp();
     act(() => view.root.findByType(Dock).props.onChange('profile'));
-    act(() => action(view, 'Edit Old custom')?.props.onPress());
+    act(() => action(view, 'More actions for Old custom')?.props.onPress());
+    act(() => appButton(view, 'Edit')?.props.onPress());
     expect(JSON.stringify(view.toJSON())).toContain('removed-exercise');
     act(() => appButton(view, 'Cancel')?.props.onPress());
 
