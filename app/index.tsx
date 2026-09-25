@@ -11,18 +11,18 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
-import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import Constants from 'expo-constants';
 import { GlassCard } from '@/components/GlassCard';
 import { Dock } from '@/components/Dock';
 import { AppButton } from '@/components/AppButton';
 import { HomeDashboard } from '@/components/HomeDashboard';
+import { ProfileSettings } from '@/components/ProfileSettings';
 import { Confirmation } from '@/components/Confirmation';
 import { Workout, duration, successHaptic } from '@/components/Workout';
 import { WorkoutHistory } from '@/components/WorkoutHistory';
 import { ExercisePerformance } from '@/components/ExercisePerformance';
 import { TrainingVolume } from '@/components/TrainingVolume';
-import { WorkoutTemplates } from '@/components/WorkoutTemplates';
 import { volume } from '@/lib/workout-metrics';
 import {
   DEFAULT_PROGRESS_PERIOD,
@@ -36,12 +36,10 @@ import {
   WorkoutTemplate as Template,
 } from '@/lib/workout-model';
 import { WorkoutRepository } from '@/lib/workout-repository';
-import { TemplateMutationResult, WorkoutStore } from '@/lib/workout-store';
-import type { TemplateDraft } from '@/lib/workout-templates';
+import { WorkoutStore } from '@/lib/workout-store';
 import { colors, radius, spacing, typography } from '@/lib/theme';
 
-const blue = colors.primary,
-  white = colors.surface;
+const blue = colors.primary;
 function Stats({ history }: { history: Session[] }) {
   const [period, setPeriod] = useState<ProgressPeriodId>(
     DEFAULT_PROGRESS_PERIOD,
@@ -133,43 +131,6 @@ function Stats({ history }: { history: Session[] }) {
     </ScrollView>
   );
 }
-function Profile({
-  templates,
-  busy,
-  createTemplate,
-  updateTemplate,
-  deleteTemplate,
-}: {
-  templates: Template[];
-  busy: boolean;
-  createTemplate: (draft: TemplateDraft) => Promise<TemplateMutationResult>;
-  updateTemplate: (
-    templateId: string,
-    draft: TemplateDraft,
-  ) => Promise<TemplateMutationResult>;
-  deleteTemplate: (templateId: string) => Promise<TemplateMutationResult>;
-}) {
-  return (
-    <ScrollView contentContainerStyle={s.content}>
-      <Text style={s.eyebrow}>YOUR TEMPLATES</Text>
-      <View style={s.profile}>
-        <View style={s.bigAvatar}>
-          <Ionicons name="person" size={34} color={white} />
-        </View>
-        <Text style={s.title}>FitFlow</Text>
-        <Text style={s.sub}>Local MVP · v0.3.0</Text>
-      </View>
-      <WorkoutTemplates
-        templates={templates}
-        busy={busy}
-        onCreate={createTemplate}
-        onUpdate={updateTemplate}
-        onDelete={deleteTemplate}
-      />
-    </ScrollView>
-  );
-}
-
 export default function App() {
   const [store] = useState(
     () => new WorkoutStore(new WorkoutRepository(AsyncStorage)),
@@ -288,9 +249,10 @@ export default function App() {
               <Stats history={data.history} />
             </>
           ) : (
-            <Profile
+            <ProfileSettings
               templates={data.templates}
               busy={busy}
+              version={Constants.expoConfig?.version}
               createTemplate={(draft) => store.createTemplate(draft)}
               updateTemplate={(templateId, draft) =>
                 store.updateTemplate(templateId, draft)
@@ -330,16 +292,6 @@ const s = StyleSheet.create({
   periodSelected: { backgroundColor: colors.primary },
   periodText: { ...typography.caption, color: colors.textPrimary },
   periodSelectedText: { color: colors.surface },
-  bigAvatar: {
-    width: 80,
-    height: 80,
-    borderRadius: radius.pill,
-    backgroundColor: colors.primary,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: spacing.sm,
-  },
-  profile: { alignItems: 'center', paddingVertical: spacing.md },
   h3: { ...typography.headline, color: colors.textPrimary },
   pr: { ...typography.caption, color: colors.textSecondary },
   history: {
