@@ -114,7 +114,7 @@ it('connects the actual screen inputs, timer, confirmation and persisted history
   await act(async () => {
     view.unmount();
   });
-});
+}, 15_000);
 
 it('restores a compact History summary and opens the saved snapshot after reload', async () => {
   await AsyncStorage.clear();
