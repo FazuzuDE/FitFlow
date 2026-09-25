@@ -126,6 +126,10 @@ Active tab uses `primary`, inactive tabs `textSecondary`. A translucent/floating
 
 ## 9. Workout UI
 
+### Guided Workout Builder
+
+Use one obvious primary action per focused step: Workout Name → Exercise Library single selection → planned sets/optional starting weight → ordered composition → Save Workout. Keep Back and Cancel distinct; Back retains the local draft, and Cancel confirms before discarding meaningful changes. Use existing type, color, spacing, radius and card tokens. Exact manual weight entry remains available; no inferred or recommended weight is shown here. Planned values must be labeled as editable starting values, not performed sets.
+
 ### ExerciseCard
 
 Order:

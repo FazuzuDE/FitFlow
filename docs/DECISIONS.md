@@ -2,6 +2,34 @@
 
 This chronological log records approved decisions. The owning product, design, roadmap, and engineering documents remain the detailed sources of truth.
 
+## 2026-09-25 — Guided Workout Builder
+
+Status: Approved — pending Git sync
+
+Decision:
+
+- Create a custom Workout through focused steps: Workout Name → one Exercise Library selection → planned sets/optional starting weight → composition → Save Workout.
+- Back preserves the local draft; only Save persists. Reuse the flow for custom workout editing where safe, retain built-in protection and explicit delete confirmation.
+- Keep legacy templates valid through optional planned configuration in schema v1. Planned values may prefill a new workout but never count as completed work or rewrite history.
+
+Implementation: Guided Workout Builder
+
+Related: `PRODUCT.md`, `DESIGN_SYSTEM.md`, `WORKOUT_TEMPLATES.md`
+
+## 2026-09-25 — Future first-workout calibration and adaptive progression
+
+Status: Approved — pending Git sync
+
+Decision:
+
+- Future onboarding may lead into a conservative calibration/first workout, collect actual exercise-specific performance and simple perceived difficulty, establish a baseline, and adapt later proposed sets/load from actual history.
+- Height, body weight, and sex alone do not justify a precise working weight. Recommendations must be explainable, avoid false precision, and always allow manual override; actual performed values remain historical truth. Muscle Map may be one signal, never ground truth.
+- Calibration, difficulty feedback, and recommendations are not part of Guided Workout Builder and must not delay Core unnecessarily.
+
+Implementation: Future, not this PR
+
+Related: `PRODUCT.md`, `ROADMAP.md`
+
 ## 2026-09-25 — Modular dashboard / widget architecture
 
 Status: Approved — pending Git sync

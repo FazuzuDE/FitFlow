@@ -1,6 +1,6 @@
 # Workout Templates contracts
 
-Workout Templates are reusable ordered workout plans stored inside the existing Workout State schema version 1. The persisted shape remains `{ id, name, exerciseIds }`; this feature adds no fields and performs no schema migration.
+Workout Templates are reusable ordered workout plans stored inside the existing Workout State schema version 1 under `fitflow_state_v1`. The original persisted shape `{ id, name, exerciseIds }` remains valid. Custom workouts may additionally store `plannedExercises?: { exerciseId, sets, weight? }[]`; no migration or schema-version change is needed.
 
 ## Built-in and custom templates
 
@@ -10,9 +10,11 @@ New custom IDs are generated with collision checks against every persisted templ
 
 ## Draft and Save behavior
 
-Create and Edit use a local draft. Exercise Library selection, name changes, removal, and Move up/Move down ordering affect only that draft. Cancel discards it without writing. Save publishes the template state only after the schema-v1 document is written successfully; a busy or failed write keeps the editor and draft open and does not emit success feedback.
+Create and Edit use a local draft. Creating a workout follows Workout Name → Exercise Library single selection → planned configuration → ordered composition → Save Workout. A valid name opens the Library directly. From composition, users may add, edit, remove, reorder, or return to the name. Back keeps the draft in memory; switching app tabs also retains it until Save or explicit Cancel. Cancel confirms if meaningful unsaved changes would be lost. No partial step writes. Save publishes the template state only after the schema-v1 document is written successfully; a busy or failed write keeps the editor and draft open and does not emit success feedback.
 
 Exercise order is the `exerciseIds` array order. The editor uses explicit accessible Move up and Move down controls rather than drag and drop.
+
+`plannedExercises` is optional and keyed by stable exercise ID. Configured sets must be a whole number from 1 through 20. Optional starting weight must be a finite, non-negative decimal value entered manually; comma input is normalized to a decimal point. Empty weight is unset, never guessed. Planned IDs must belong to `exerciseIds`, and duplicate planned IDs are invalid. Legacy exercises without configuration start with three rows of unset weight as before. At workout start, configured rows and weights are copied into a new active snapshot without `completedAt`; users may change actual values. Only completed actual sets contribute to History and Progress. Later template edits never alter an active or completed snapshot.
 
 ## Legacy and stale exercise references
 

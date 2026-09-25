@@ -1,8 +1,12 @@
 import { defaultTemplates } from './workout-catalog';
 import { canonicalExerciseId, findExercise } from './exercise-library';
-import type { WorkoutTemplate } from './workout-model';
+import type { PlannedExercise, WorkoutTemplate } from './workout-model';
+import { normalizePlannedWeight, validPlannedSets } from './planned-exercise';
 
-export type TemplateDraft = Pick<WorkoutTemplate, 'name' | 'exerciseIds'>;
+export type TemplateDraft = Pick<
+  WorkoutTemplate,
+  'name' | 'exerciseIds' | 'plannedExercises'
+>;
 
 export type TemplateValidation =
   { ok: true; draft: TemplateDraft } | { ok: false; error: string };
@@ -27,8 +31,16 @@ export const isBuiltInTemplate = (id: string): boolean => builtInIds.has(id);
 export const createTemplateDraft = (
   template?: WorkoutTemplate,
 ): TemplateDraft => ({
-  name: template?.name ?? 'My Workout',
+  name: template?.name ?? '',
   exerciseIds: (template?.exerciseIds ?? []).map(normalizeExerciseId),
+  ...(template?.plannedExercises === undefined
+    ? {}
+    : {
+        plannedExercises: template.plannedExercises.map((item) => ({
+          ...item,
+          exerciseId: normalizeExerciseId(item.exerciseId),
+        })),
+      }),
 });
 
 export const staleExerciseIds = (draft: TemplateDraft): string[] =>
@@ -54,7 +66,47 @@ export const validateTemplateDraft = (
       error: 'Remove or replace unavailable exercises before saving.',
     };
 
-  return { ok: true, draft: { name, exerciseIds } };
+  let plannedExercises: PlannedExercise[] | undefined;
+  if (draft.plannedExercises !== undefined) {
+    plannedExercises = [];
+    const seen = new Set<string>();
+    for (const item of draft.plannedExercises) {
+      if (!validPlannedSets(item.sets))
+        return {
+          ok: false,
+          error: 'Enter 1–20 planned sets for each exercise.',
+        };
+      const exerciseId = normalizeExerciseId(item.exerciseId);
+      if (seen.has(exerciseId))
+        return { ok: false, error: 'Remove duplicate planned exercises.' };
+      seen.add(exerciseId);
+      if (!exerciseIds.includes(exerciseId))
+        return {
+          ok: false,
+          error: 'Planned exercise must belong to this workout.',
+        };
+      const weight = item.weight?.trim();
+      const normalizedWeight = weight
+        ? normalizePlannedWeight(weight)
+        : undefined;
+      if (weight && normalizedWeight === null)
+        return { ok: false, error: 'Enter a valid non-negative weight.' };
+      plannedExercises.push({
+        exerciseId,
+        sets: item.sets,
+        ...(normalizedWeight ? { weight: normalizedWeight } : {}),
+      });
+    }
+  }
+
+  return {
+    ok: true,
+    draft: {
+      name,
+      exerciseIds,
+      ...(plannedExercises === undefined ? {} : { plannedExercises }),
+    },
+  };
 };
 
 export const toggleDraftExercise = (
@@ -72,6 +124,13 @@ export const toggleDraftExercise = (
           (id) => normalizeExerciseId(id) !== canonicalId,
         )
       : [...draft.exerciseIds, canonicalId],
+    ...(selected && draft.plannedExercises
+      ? {
+          plannedExercises: draft.plannedExercises.filter(
+            (item) => normalizeExerciseId(item.exerciseId) !== canonicalId,
+          ),
+        }
+      : {}),
   };
 };
 
@@ -101,6 +160,15 @@ export const removeDraftExercise = (
     exerciseIds: draft.exerciseIds.filter(
       (_exerciseId, exerciseIndex) => exerciseIndex !== index,
     ),
+    ...(draft.plannedExercises
+      ? {
+          plannedExercises: draft.plannedExercises.filter(
+            (item) =>
+              normalizeExerciseId(item.exerciseId) !==
+              normalizeExerciseId(draft.exerciseIds[index]),
+          ),
+        }
+      : {}),
   };
 };
 

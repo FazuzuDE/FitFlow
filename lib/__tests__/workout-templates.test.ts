@@ -107,6 +107,165 @@ describe('workout template domain', () => {
     });
   });
 
+  it('keeps optional planned settings aligned with canonical exercise ids during draft edits', () => {
+    const source: WorkoutTemplate = {
+      id: 'configured',
+      name: 'Push',
+      exerciseIds: ['bench', 'row'],
+      plannedExercises: [{ exerciseId: 'bench', sets: 4, weight: '60' }],
+    };
+    const draft = createTemplateDraft(source);
+    expect(draft.plannedExercises).toEqual([
+      { exerciseId: 'barbell-bench-press', sets: 4, weight: '60' },
+    ]);
+    const removed = removeDraftExercise(draft, 0);
+    expect(removed.exerciseIds).toEqual(['seated-cable-row']);
+    expect(removed.plannedExercises).toEqual([]);
+    expect(source.plannedExercises?.[0].exerciseId).toBe('bench');
+  });
+
+  it('persists valid planned settings without changing legacy template shape', () => {
+    const configured = createTemplate(
+      [],
+      {
+        name: ' Push ',
+        exerciseIds: ['bench', 'row'],
+        plannedExercises: [
+          { exerciseId: 'bench', sets: 4, weight: '60,5' },
+          { exerciseId: 'row', sets: 2 },
+        ],
+      },
+      () => 'configured',
+    ).template;
+    expect(configured).toEqual({
+      id: 'configured',
+      name: 'Push',
+      exerciseIds: ['barbell-bench-press', 'seated-cable-row'],
+      plannedExercises: [
+        { exerciseId: 'barbell-bench-press', sets: 4, weight: '60.5' },
+        { exerciseId: 'seated-cable-row', sets: 2 },
+      ],
+    });
+    expect(
+      createTemplate(
+        [],
+        { name: 'Legacy', exerciseIds: ['bench'] },
+        () => 'legacy',
+      ).template,
+    ).not.toHaveProperty('plannedExercises');
+  });
+
+  it.each([
+    [
+      [{ exerciseId: 'bench', sets: 0 }],
+      'Enter 1–20 planned sets for each exercise.',
+    ],
+    [
+      [{ exerciseId: 'bench', sets: 21 }],
+      'Enter 1–20 planned sets for each exercise.',
+    ],
+    [
+      [{ exerciseId: 'bench', sets: 1.5 }],
+      'Enter 1–20 planned sets for each exercise.',
+    ],
+    [
+      [{ exerciseId: 'bench', sets: 3, weight: '-1' }],
+      'Enter a valid non-negative weight.',
+    ],
+    [
+      [{ exerciseId: 'bench', sets: 3, weight: '1e2' }],
+      'Enter a valid non-negative weight.',
+    ],
+    [
+      [{ exerciseId: 'row', sets: 3 }],
+      'Planned exercise must belong to this workout.',
+    ],
+    [
+      [
+        { exerciseId: 'bench', sets: 3 },
+        { exerciseId: 'barbell-bench-press', sets: 2 },
+      ],
+      'Remove duplicate planned exercises.',
+    ],
+  ] as const)(
+    'rejects invalid planned configuration %#',
+    (plannedExercises, error) => {
+      expect(
+        validateTemplateDraft({
+          name: 'Push',
+          exerciseIds: ['bench'],
+          plannedExercises: [...plannedExercises],
+        }),
+      ).toEqual({ ok: false, error });
+    },
+  );
+
+  it('loads v1 configured templates and rejects malformed persisted settings without overwrite', async () => {
+    const storage = memoryStorage();
+    const base = {
+      schemaVersion: 1 as const,
+      activeWorkout: null,
+      history: [],
+      templates: [
+        {
+          id: 'push',
+          name: 'Push',
+          exerciseIds: ['bench'],
+          plannedExercises: [{ exerciseId: 'bench', sets: 4, weight: '60' }],
+        },
+      ],
+    };
+    storage.values.set(STATE_KEY, JSON.stringify(base));
+    const repository = new WorkoutRepository(storage);
+    expect((await repository.load()).templates[0].plannedExercises).toEqual(
+      base.templates[0].plannedExercises,
+    );
+    expect(storage.setItem).not.toHaveBeenCalled();
+    storage.values.set(
+      STATE_KEY,
+      JSON.stringify({
+        ...base,
+        templates: [
+          {
+            ...base.templates[0],
+            plannedExercises: [{ exerciseId: 'bench', sets: -1 }],
+          },
+        ],
+      }),
+    );
+    await expect(repository.load()).rejects.toThrow(
+      'Saved workout data could not be read',
+    );
+    expect(storage.setItem).not.toHaveBeenCalled();
+  });
+
+  it('rejects duplicate planned configuration through canonical and legacy aliases on load', async () => {
+    const storage = memoryStorage();
+    storage.values.set(
+      STATE_KEY,
+      JSON.stringify({
+        schemaVersion: 1,
+        activeWorkout: null,
+        history: [],
+        templates: [
+          {
+            id: 'ambiguous',
+            name: 'Push',
+            exerciseIds: ['bench', 'barbell-bench-press'],
+            plannedExercises: [
+              { exerciseId: 'bench', sets: 2, weight: '50' },
+              { exerciseId: 'barbell-bench-press', sets: 4, weight: '60' },
+            ],
+          },
+        ],
+      }),
+    );
+    await expect(new WorkoutRepository(storage).load()).rejects.toThrow(
+      'Saved workout data could not be read',
+    );
+    expect(storage.setItem).not.toHaveBeenCalled();
+  });
+
   it('toggles without duplicates, reorders, and removes exercises immutably', () => {
     const original = createTemplateDraft(custom);
     const added = toggleDraftExercise(original, 'barbell-back-squat');

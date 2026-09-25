@@ -73,14 +73,15 @@ describe('TemplateEditor', () => {
         onCancel={onCancel}
       />,
     );
-    expect(JSON.stringify(view.toJSON())).toContain('Create workout template');
+    expect(JSON.stringify(view.toJSON())).toContain('Create Workout');
 
     act(() =>
       view.root
-        .findByProps({ accessibilityLabel: 'Template name' })
+        .findByProps({ accessibilityLabel: 'Workout Name' })
         .props.onChangeText('Unsaved name'),
     );
     act(() => appButton(view, 'Cancel')?.props.onPress());
+    act(() => view.root.findByType(Confirmation).props.onConfirm());
     expect(onCancel).toHaveBeenCalledTimes(1);
     expect(onSave).not.toHaveBeenCalled();
 
@@ -96,7 +97,8 @@ describe('TemplateEditor', () => {
         />,
       ),
     );
-    expect(JSON.stringify(view.toJSON())).toContain('Edit workout template');
+    expect(JSON.stringify(view.toJSON())).toContain('Edit Workout');
+    act(() => appButton(view, 'Back')?.props.onPress());
     expect(view.root.findByType(TextInput).props.value).toBe('My Push');
   });
 
@@ -150,7 +152,7 @@ describe('TemplateEditor', () => {
     );
 
     expect(JSON.stringify(view.toJSON())).toContain('removed-exercise');
-    await act(async () => appButton(view, 'Save Template')?.props.onPress());
+    await act(async () => appButton(view, 'Save Workout')?.props.onPress());
     expect(onSave).not.toHaveBeenCalled();
     expect(JSON.stringify(view.toJSON())).toContain(
       'Remove or replace unavailable exercises before saving.',
@@ -162,7 +164,7 @@ describe('TemplateEditor', () => {
         'Remove unavailable exercise removed-exercise',
       )?.props.onPress(),
     );
-    await act(async () => appButton(view, 'Save Template')?.props.onPress());
+    await act(async () => appButton(view, 'Save Workout')?.props.onPress());
     expect(onSave).toHaveBeenCalledWith({
       name: 'Old day',
       exerciseIds: ['barbell-bench-press'],
@@ -189,7 +191,7 @@ describe('TemplateEditor', () => {
       />,
     );
 
-    expect(view.root.findByType(TextInput).props.value).toBe(many.name);
+    expect(JSON.stringify(view.toJSON())).toContain(many.name);
     expect(
       view.root
         .findAll(isPressable)
@@ -198,11 +200,11 @@ describe('TemplateEditor', () => {
         ),
     ).toHaveLength(many.exerciseIds.length);
 
-    await act(async () => appButton(view, 'Save Template')?.props.onPress());
+    await act(async () => appButton(view, 'Save Workout')?.props.onPress());
     expect(JSON.stringify(view.toJSON())).toContain(
       'Template changes could not be saved. Try again.',
     );
-    expect(view.root.findByType(TextInput).props.value).toBe(many.name);
+    expect(JSON.stringify(view.toJSON())).toContain(many.name);
   });
 });
 
@@ -266,7 +268,7 @@ describe('WorkoutTemplates', () => {
         />,
       ),
     );
-    await act(async () => appButton(view, 'Save Template')?.props.onPress());
+    await act(async () => appButton(view, 'Save Workout')?.props.onPress());
 
     expect(onCreate).not.toHaveBeenCalled();
     expect(onUpdate).not.toHaveBeenCalled();
@@ -326,22 +328,55 @@ describe('Workout Templates app integration', () => {
     await AsyncStorage.clear();
   });
 
+  it('keeps an unfinished workout draft when switching tabs and returning to Profile', async () => {
+    const view = await renderApp();
+    act(() => view.root.findByType(Dock).props.onChange('profile'));
+    act(() => appButton(view, 'Create Workout')?.props.onPress());
+    act(() =>
+      view.root
+        .findByProps({ accessibilityLabel: 'Workout Name' })
+        .props.onChangeText('Draft day'),
+    );
+    act(() => appButton(view, 'Next')?.props.onPress());
+    act(() =>
+      view.root
+        .findByType(ExerciseLibrary)
+        .props.onAdd({ id: 'barbell-bench-press' }),
+    );
+    act(() => appButton(view, 'Add Exercise')?.props.onPress());
+    act(() => view.root.findByType(Dock).props.onChange('home'));
+    act(() => view.root.findByType(Dock).props.onChange('profile'));
+    expect(JSON.stringify(view.toJSON())).toContain('Draft day');
+    expect(JSON.stringify(view.toJSON())).toContain('Barbell Bench Press');
+    expect(appButton(view, 'Save Workout')).toBeDefined();
+    act(() => view.unmount());
+  });
+
   it('creates, reloads, and starts a custom template in saved order', async () => {
     let view = await renderApp();
     act(() => view.root.findByType(Dock).props.onChange('profile'));
-    act(() => appButton(view, 'Create Template')?.props.onPress());
-    act(() => action(view, 'Choose exercises')?.props.onPress());
-    const sheet = view.root.findByType(ExerciseLibrary);
-    act(() => sheet.props.onToggle('seated-cable-row'));
-    act(() => sheet.props.onToggle('barbell-bench-press'));
-    act(() => sheet.props.onClose());
+    act(() => appButton(view, 'Create Workout')?.props.onPress());
     act(() =>
       view.root
-        .findByProps({ accessibilityLabel: 'Template name' })
+        .findByProps({ accessibilityLabel: 'Workout Name' })
         .props.onChangeText('Pull first'),
     );
+    act(() => appButton(view, 'Next')?.props.onPress());
+    act(() =>
+      view.root
+        .findByType(ExerciseLibrary)
+        .props.onAdd({ id: 'seated-cable-row' }),
+    );
+    act(() => appButton(view, 'Add Exercise')?.props.onPress());
+    act(() => appButton(view, 'Add Exercise')?.props.onPress());
+    act(() =>
+      view.root
+        .findByType(ExerciseLibrary)
+        .props.onAdd({ id: 'barbell-bench-press' }),
+    );
+    act(() => appButton(view, 'Add Exercise')?.props.onPress());
     await act(async () => {
-      appButton(view, 'Save Template')?.props.onPress();
+      appButton(view, 'Save Workout')?.props.onPress();
       await settle();
     });
     act(() => view.unmount());
@@ -366,14 +401,16 @@ describe('Workout Templates app integration', () => {
     let view = await renderApp();
     act(() => view.root.findByType(Dock).props.onChange('profile'));
     act(() => action(view, 'Edit My Push')?.props.onPress());
+    act(() => appButton(view, 'Back')?.props.onPress());
     act(() =>
       view.root
-        .findByProps({ accessibilityLabel: 'Template name' })
+        .findByProps({ accessibilityLabel: 'Workout Name' })
         .props.onChangeText('Pull first'),
     );
+    act(() => appButton(view, 'Next')?.props.onPress());
     act(() => action(view, 'Move Barbell Bench Press down')?.props.onPress());
     await act(async () => {
-      appButton(view, 'Save Template')?.props.onPress();
+      appButton(view, 'Save Workout')?.props.onPress();
       await settle();
     });
     act(() => view.unmount());

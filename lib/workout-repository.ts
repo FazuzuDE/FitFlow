@@ -1,5 +1,7 @@
 import { defaultTemplates } from './workout-catalog';
 import { WorkoutSession, WorkoutState, WorkoutTemplate } from './workout-model';
+import { validPlannedExerciseShape } from './planned-exercise';
+import { canonicalExerciseId } from './exercise-library';
 
 export const STATE_KEY = 'fitflow_state_v1';
 const LEGACY_KEYS = [
@@ -42,7 +44,32 @@ function template(value: unknown): WorkoutTemplate {
     !value.exerciseIds.every(string)
   )
     return invalid();
-  return { id: value.id, name: value.name, exerciseIds: value.exerciseIds };
+  const exerciseIds = value.exerciseIds as string[];
+  let plannedExercises: WorkoutTemplate['plannedExercises'];
+  if (value.plannedExercises !== undefined) {
+    if (
+      !Array.isArray(value.plannedExercises) ||
+      !value.plannedExercises.every(validPlannedExerciseShape)
+    )
+      return invalid();
+    const canonical = (id: string) => canonicalExerciseId(id) ?? id;
+    const availableIds = new Set(exerciseIds.map(canonical));
+    const ids = value.plannedExercises.map((item) =>
+      canonical(item.exerciseId),
+    );
+    if (
+      new Set(ids).size !== ids.length ||
+      ids.some((id) => !availableIds.has(id))
+    )
+      return invalid();
+    plannedExercises = value.plannedExercises.map((item) => ({ ...item }));
+  }
+  return {
+    id: value.id,
+    name: value.name,
+    exerciseIds,
+    ...(plannedExercises === undefined ? {} : { plannedExercises }),
+  };
 }
 
 type SessionKind = 'active' | 'history';

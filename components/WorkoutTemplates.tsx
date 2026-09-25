@@ -78,14 +78,14 @@ export function WorkoutTemplates({
     <>
       <Confirmation
         visible={Boolean(deleteTarget)}
-        title="Delete template?"
+        title="Delete workout?"
         message={
           deleteTarget
             ? `Delete “${deleteTarget.name}”? Active and completed workouts will stay unchanged.`
             : ''
         }
-        confirmLabel="Delete Template"
-        cancelLabel="Keep Template"
+        confirmLabel="Delete Workout"
+        cancelLabel="Keep Workout"
         busy={busy}
         error={deleteError}
         onConfirm={() => {
@@ -113,14 +113,14 @@ export function WorkoutTemplates({
         />
       ) : (
         <AppButton
-          title="Create Template"
+          title="Create Workout"
           disabled={busy}
           onPress={() => setEditor({ mode: 'create' })}
         />
       )}
 
       <GlassCard style={s.card}>
-        <Text style={s.title}>Saved templates</Text>
+        <Text style={s.title}>Saved workouts</Text>
         {templates.length ? (
           templates.map((template, index) => {
             const builtIn = isBuiltInTemplate(template.id);
@@ -164,7 +164,7 @@ export function WorkoutTemplates({
             );
           })
         ) : (
-          <Text style={s.metadata}>No templates available.</Text>
+          <Text style={s.metadata}>No workouts available.</Text>
         )}
       </GlassCard>
     </>

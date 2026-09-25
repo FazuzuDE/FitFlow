@@ -61,6 +61,49 @@ describe('workout engine', () => {
     ]);
   });
 
+  it('prefills planned sets and weight only in a new incomplete workout snapshot', () => {
+    const template = {
+      id: 'planned',
+      name: 'Push',
+      exerciseIds: ['bench', 'row'],
+      plannedExercises: [
+        { exerciseId: 'barbell-bench-press', sets: 4, weight: '60' },
+      ],
+    };
+    const session = startWorkout(template, exerciseLibrary, 1000, () => 'id');
+    expect(session.exercises[0].sets).toHaveLength(4);
+    expect(session.exercises[0].sets.map((set) => set.weight)).toEqual([
+      '60',
+      '60',
+      '60',
+      '60',
+    ]);
+    expect(
+      session.exercises[0].sets.every((set) => set.completedAt === undefined),
+    ).toBe(true);
+    expect(session.exercises[1].sets).toHaveLength(3);
+    expect(session.exercises[1].sets[0].weight).toBe('');
+
+    const actual = toggleSet(
+      updateSet(session, 0, 0, { weight: '65', reps: '8' }),
+      0,
+      0,
+      2000,
+    ).session;
+    const finished = finishWorkout(actual, 3000);
+    expect(finished.exercises[0].sets[0]).toMatchObject({
+      weight: '65',
+      reps: '8',
+      completedAt: 2000,
+    });
+    expect(finished.exercises[0].sets[1]).toMatchObject({
+      weight: '60',
+      reps: '10',
+    });
+    expect(finished.exercises[0].sets[1].completedAt).toBeUndefined();
+    expect(template.plannedExercises[0].weight).toBe('60');
+  });
+
   it('resolves mixed templates in source order and skips unknown ids', () => {
     expect(
       resolveTemplateExercises(
