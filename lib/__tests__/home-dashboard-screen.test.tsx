@@ -2,6 +2,7 @@ import App from '../../app/index';
 import { AppButton } from '../../components/AppButton';
 import { Dock } from '../../components/Dock';
 import { GlassCard } from '../../components/GlassCard';
+import { DashboardGrid } from '../../components/DashboardGrid';
 import { Workout } from '../../components/Workout';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { defaultTemplates, exerciseLibrary } from '../workout-catalog';
@@ -82,6 +83,23 @@ const completed = (
       ],
     },
   ],
+});
+
+it('renders the established Home modules in stable grid order', async () => {
+  await AsyncStorage.clear();
+  const view = await renderApp();
+  const grid = view.root.findByType(DashboardGrid);
+  expect(grid.props.items.map((item: { id: string }) => item.id)).toEqual([
+    'primary',
+    'summary',
+    'latest',
+    'templates',
+  ]);
+  expect(
+    grid.props.items.every((item: { size: string }) => item.size === 'medium'),
+  ).toBe(true);
+  expect(visibleText(view)).toContain('Ready to train?');
+  await act(async () => view.unmount());
 });
 
 it('shows CRESUM, a prominent template action, and truthful empty training stats', async () => {

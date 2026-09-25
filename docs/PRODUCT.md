@@ -42,7 +42,14 @@ Short first-run experience.
 
 ### Home
 
-Current/recommended workout entry and useful recent stats. Starting/resuming a workout is dominant.
+An existing workout-template entry and useful recent stats. Starting/resuming a workout is dominant; the template is not labeled as a recommendation.
+
+Dashboard content is composed of independent modules with stable identities. The
+module's position must not own workout or analytics logic. The current Home
+keeps its primary workout action, factual training summary, latest workout,
+and workout templates; header and navigation remain structural. Future
+reordering, visibility, supported-size selection, and saved layouts are not
+part of the current Core implementation.
 
 ### Workout Engine
 

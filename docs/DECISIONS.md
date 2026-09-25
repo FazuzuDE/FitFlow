@@ -2,6 +2,25 @@
 
 This chronological log records approved decisions. The owning product, design, roadmap, and engineering documents remain the detailed sources of truth.
 
+## 2026-09-25 — Modular dashboard / widget architecture
+
+Status: Approved — pending Git sync
+
+Decision:
+
+- Compose dashboard content from independent, stable-identity modules in a
+  constrained grid with explicit supported sizes. Placement never owns domain
+  logic; screen structure such as the header and navigation stays structural.
+- Use the polished Home as the first consumer without changing its workout
+  behavior or factual content. Inspired by iOS widget organization, not its
+  visual design or system widgets.
+- Defer reorder/show-hide, size controls, drag/drop, layout persistence/sync,
+  and any schema change to separately approved work.
+
+Implementation: Modular Dashboard Foundation
+
+Related: `PRODUCT.md`, `DESIGN_SYSTEM.md`, `ROADMAP.md`
+
 ## 2026-09-24 — Exercise-specific Estimated 1RM series
 
 Status: Approved
