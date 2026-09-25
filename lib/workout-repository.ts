@@ -4,7 +4,7 @@ import { validPlannedExerciseShape } from './planned-exercise';
 import { canonicalExerciseId } from './exercise-library';
 
 export const STATE_KEY = 'fitflow_state_v1';
-const LEGACY_KEYS = [
+export const LEGACY_KEYS = [
   'fitflow_history',
   'fitflow_active',
   'fitflow_templates',
@@ -239,5 +239,10 @@ export class WorkoutRepository {
       .then(() => this.storage.setItem(STATE_KEY, payload));
     this.pending = write;
     return write;
+  }
+
+  async waitForWrites(): Promise<void> {
+    // A failed write is still settled; reset intentionally removes local data.
+    await this.pending.catch(() => undefined);
   }
 }

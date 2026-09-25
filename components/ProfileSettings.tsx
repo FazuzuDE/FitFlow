@@ -18,6 +18,7 @@ export type ProfileSettingsProps = {
   ) => Promise<TemplateMutationResult>;
   deleteTemplate: (templateId: string) => Promise<TemplateMutationResult>;
   onPersonalize?: () => void;
+  onResetLocalData?: () => void;
 };
 
 export function ProfileSettings({
@@ -28,6 +29,7 @@ export function ProfileSettings({
   updateTemplate,
   deleteTemplate,
   onPersonalize,
+  onResetLocalData,
 }: ProfileSettingsProps) {
   return (
     <ScrollView contentContainerStyle={s.content}>
@@ -67,6 +69,26 @@ export function ProfileSettings({
               title="Personalization"
               secondary
               onPress={onPersonalize}
+            />
+          ) : null}
+        </GlassCard>
+      </View>
+
+      <View style={s.section}>
+        <Text style={s.sectionLabel}>DATA</Text>
+        <GlassCard style={s.about}>
+          <Text style={s.sectionTitle} accessibilityRole="header">
+            Local data
+          </Text>
+          <Text style={s.sub}>
+            Remove all CRESUM data saved on this device.
+          </Text>
+          {onResetLocalData ? (
+            <AppButton
+              title="Reset local data"
+              destructive
+              disabled={busy}
+              onPress={onResetLocalData}
             />
           ) : null}
         </GlassCard>

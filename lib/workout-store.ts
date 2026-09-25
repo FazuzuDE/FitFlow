@@ -141,6 +141,18 @@ export class WorkoutStore {
     if (this.snapshot.busy) return;
     this.persist(this.snapshot.data);
   }
+  waitForPendingWrites(): Promise<void> {
+    return this.repository.waitForWrites();
+  }
+  resetAfterLocalDataRemoval() {
+    ++this.revision;
+    this.publish({
+      data: emptyWorkoutState(),
+      ready: true,
+      busy: false,
+      error: '',
+    });
+  }
   async finish(): Promise<WorkoutSession | undefined> {
     const { data, ready, busy } = this.snapshot;
     if (!ready || busy || !data.activeWorkout) return;

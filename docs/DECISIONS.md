@@ -269,3 +269,24 @@ Related:
 - `PRODUCT.md`
 - `DESIGN_SYSTEM.md`
 - `ROADMAP.md`
+
+## 2026-09-25 — Complete local data reset
+
+Status: Approved — pending Git sync
+
+Decision:
+
+- Profile → Data exposes **Reset local data** with destructive styling and explicit confirmation. It is not **Delete Account**; the two actions remain separate when Account + Cloud Sync arrives.
+- After pending writes settle, temporarily back up the raw values of `fitflow_state_v1`, `cresum_onboarding_v1`, `fitflow_history`, `fitflow_active`, and `fitflow_templates`; delete and verify all five. Only then clear in-memory state and return to the true first-run Welcome screen.
+- On failure, attempt to restore the backed-up values, retain the current in-memory state, and show an error. Cancel is a no-op. Keep workout persistence at schema version 1.
+
+Rationale:
+
+- Ensure a real device-local reset without accidental loss or re-import of legacy data, while avoiding a misleading cloud-account deletion claim.
+
+Implementation: PR #16 Onboarding Foundation
+
+Related:
+
+- `PRODUCT.md`
+- `DESIGN_SYSTEM.md`

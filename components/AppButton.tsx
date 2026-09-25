@@ -8,6 +8,7 @@ export function AppButton({
   secondary = false,
   disabled = false,
   selected,
+  destructive = false,
 }: {
   title: string;
   accessibilityLabel?: string;
@@ -15,6 +16,7 @@ export function AppButton({
   secondary?: boolean;
   disabled?: boolean;
   selected?: boolean;
+  destructive?: boolean;
 }) {
   return (
     <Pressable
@@ -29,10 +31,19 @@ export function AppButton({
       style={({ pressed }) => [
         s.button,
         secondary && s.secondary,
+        destructive && s.destructive,
         (pressed || disabled) && s.dim,
       ]}
     >
-      <Text style={[s.text, secondary && s.secondaryText]}>{title}</Text>
+      <Text
+        style={[
+          s.text,
+          secondary && s.secondaryText,
+          destructive && s.destructiveText,
+        ]}
+      >
+        {title}
+      </Text>
     </Pressable>
   );
 }
@@ -47,7 +58,9 @@ const s = StyleSheet.create({
     backgroundColor: colors.primary,
   },
   secondary: { backgroundColor: colors.surfaceSubtle },
+  destructive: { backgroundColor: colors.surfaceSubtle },
   text: { ...typography.headline, color: colors.surface, textAlign: 'center' },
   secondaryText: { color: colors.textPrimary },
+  destructiveText: { color: colors.danger },
   dim: { opacity: 0.6 },
 });

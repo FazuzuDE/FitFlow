@@ -50,6 +50,7 @@ import {
   type OnboardingState,
 } from '@/lib/onboarding';
 import { OnboardingRepository } from '@/lib/onboarding-repository';
+import { resetLocalData } from '@/lib/local-data-reset';
 import type { TemplateDraft } from '@/lib/workout-templates';
 import { colors, radius, spacing, typography } from '@/lib/theme';
 
@@ -166,49 +167,62 @@ export default function App() {
   const [onboardingBypass, setOnboardingBypass] = useState(false);
   const [editingPersonalization, setEditingPersonalization] = useState(false);
   const onboardingWrites = useRef(Promise.resolve());
+  const onboardingEpoch = useRef(0);
+  const resetInProgress = useRef(false);
   const [summary, setSummary] = useState<Session | null>(null);
   const [confirmFinish, setConfirmFinish] = useState(false);
+  const [confirmReset, setConfirmReset] = useState(false);
+  const [resetBusy, setResetBusy] = useState(false);
+  const [resetError, setResetError] = useState('');
   useEffect(() => {
     void store.load();
     let mounted = true;
+    const epoch = onboardingEpoch.current;
     void onboardingRepository
       .load()
       .then(
         (state) => {
-          if (mounted) {
+          if (mounted && onboardingEpoch.current === epoch) {
             setOnboardingState(state);
             setOnboardingLoadFailed(false);
           }
         },
         (problem: Error) => {
-          if (mounted) {
+          if (mounted && onboardingEpoch.current === epoch) {
             setOnboardingError(problem.message);
             setOnboardingLoadFailed(true);
           }
         },
       )
       .finally(() => {
-        if (mounted) setOnboardingReady(true);
+        if (mounted && onboardingEpoch.current === epoch)
+          setOnboardingReady(true);
       });
     return () => {
       mounted = false;
     };
   }, [store, onboardingRepository]);
-  const saveOnboardingProgress = (next: OnboardingState) => {
-    setOnboardingState(next);
-    onboardingWrites.current = onboardingWrites.current
+  const queueOnboardingSave = (next: OnboardingState): Promise<void> => {
+    if (resetInProgress.current)
+      return Promise.reject(new Error('Reset in progress.'));
+    const write = onboardingWrites.current
       .catch(() => undefined)
-      .then(() => onboardingRepository.save(next))
-      .catch(() => {
-        setOnboardingLoadFailed(false);
-        setOnboardingError(
-          'Onboarding progress could not be saved. Retry before closing the app.',
-        );
-      });
+      .then(() => onboardingRepository.save(next));
+    onboardingWrites.current = write.catch(() => undefined);
+    return write;
+  };
+  const saveOnboardingProgress = (next: OnboardingState) => {
+    if (resetInProgress.current) return;
+    setOnboardingState(next);
+    void queueOnboardingSave(next).catch(() => {
+      setOnboardingLoadFailed(false);
+      setOnboardingError(
+        'Onboarding progress could not be saved. Retry before closing the app.',
+      );
+    });
   };
   const completeOnboarding = async (next: OnboardingState) => {
-    await onboardingWrites.current;
-    await onboardingRepository.save(next);
+    await queueOnboardingSave(next);
     setOnboardingError('');
     setOnboardingState(next);
     setEditingPersonalization(false);
@@ -259,9 +273,58 @@ export default function App() {
     setSummary(completed);
     setTab('progress');
   };
+  const reset = async () => {
+    if (resetInProgress.current || busy) return;
+    resetInProgress.current = true;
+    ++onboardingEpoch.current;
+    setResetBusy(true);
+    setResetError('');
+    try {
+      await resetLocalData(AsyncStorage, async () => {
+        await onboardingWrites.current;
+        await store.waitForPendingWrites();
+      });
+      store.resetAfterLocalDataRemoval();
+      setOnboardingState(initialOnboardingState);
+      setOnboardingError('');
+      setOnboardingLoadFailed(false);
+      setOnboardingBypass(false);
+      setEditingPersonalization(false);
+      setSummary(null);
+      setConfirmFinish(false);
+      setTab('home');
+      setConfirmReset(false);
+    } catch (problem) {
+      setResetError(
+        problem instanceof Error
+          ? problem.message
+          : 'Local data could not be reset. Try again.',
+      );
+    } finally {
+      resetInProgress.current = false;
+      setResetBusy(false);
+    }
+  };
   return (
     <SafeAreaView style={s.root}>
       <StatusBar style="dark" />
+      <Confirmation
+        visible={confirmReset}
+        title="Reset CRESUM?"
+        message="All local CRESUM data on this device — workouts, history, templates, active workout, personalization and onboarding data — will be permanently deleted. This cannot be undone."
+        confirmLabel="Reset local data"
+        cancelLabel="Keep data"
+        destructive
+        busy={resetBusy}
+        busyLabel="Resetting…"
+        error={resetError}
+        onConfirm={() => void reset()}
+        onCancel={() => {
+          if (resetInProgress.current) return;
+          setConfirmReset(false);
+          setResetError('');
+        }}
+      />
       <Confirmation
         visible={confirmFinish}
         title="Finish workout?"
@@ -310,24 +373,27 @@ export default function App() {
             title="Retry onboarding"
             onPress={() => {
               if (onboardingLoadFailed) {
+                const epoch = onboardingEpoch.current;
                 void onboardingRepository.load().then(
                   (state) => {
+                    if (onboardingEpoch.current !== epoch) return;
                     setOnboardingState(state);
                     setOnboardingError('');
                     setOnboardingLoadFailed(false);
                   },
-                  (problem: Error) => setOnboardingError(problem.message),
+                  (problem: Error) => {
+                    if (onboardingEpoch.current === epoch)
+                      setOnboardingError(problem.message);
+                  },
                 );
               } else {
-                void onboardingWrites.current
-                  .then(() => onboardingRepository.save(onboardingState))
-                  .then(
-                    () => setOnboardingError(''),
-                    () =>
-                      setOnboardingError(
-                        'Onboarding progress could not be saved. Retry before closing the app.',
-                      ),
-                  );
+                void queueOnboardingSave(onboardingState).then(
+                  () => setOnboardingError(''),
+                  () =>
+                    setOnboardingError(
+                      'Onboarding progress could not be saved. Retry before closing the app.',
+                    ),
+                );
               }
             }}
           />
@@ -422,6 +488,10 @@ export default function App() {
               }
               deleteTemplate={(templateId) => store.deleteTemplate(templateId)}
               onPersonalize={() => setEditingPersonalization(true)}
+              onResetLocalData={() => {
+                setResetError('');
+                setConfirmReset(true);
+              }}
             />
           </View>
           <Dock active={tab} onChange={setTab} />
