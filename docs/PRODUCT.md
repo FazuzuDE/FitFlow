@@ -38,7 +38,11 @@ Home · Workout · Progress · Profile
 
 ### Onboarding
 
-Short first-run experience.
+On first launch without meaningful existing workout data, Welcome offers two distinct paths: **Personalize my training** (CRESUM will help me get started) and **Set up workouts myself** (skip personalization for now). The latter goes directly to the existing Guided Workout Builder and completes only after a custom workout is durably created. Cancel/Back do not complete onboarding. Built-in templates alone do not identify an existing user; an active workout, completed history, or a custom workout does. Existing users are never gated by the new flow.
+
+Personalization is short and resumable: Goal (build muscle / get stronger / general fitness) → Experience (beginner / some experience / experienced) → Environment (gym / home / both) → optional age, height, and body weight → truthful completion → Home. Answers survive Back and app restart. Skipping personalization is reversible; Profile can reopen it later. The app learns progressively from performed workouts rather than demanding detailed training history, 1RM, target reps, working weights, or a favorite split up front.
+
+Onboarding has its own versioned local state. It must not alter `fitflow_state_v1`, schema version 1, active workouts, historical snapshots, or the Workout Engine. Corrupt onboarding data cannot corrupt or block access to saved workouts/history. Demographic/body data do not determine an exact working weight. Calibration, baseline generation, and recommendations remain future work.
 
 ### Home
 

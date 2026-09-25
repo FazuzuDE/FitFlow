@@ -7,18 +7,23 @@ export function AppButton({
   onPress,
   secondary = false,
   disabled = false,
+  selected,
 }: {
   title: string;
   accessibilityLabel?: string;
   onPress: () => void;
   secondary?: boolean;
   disabled?: boolean;
+  selected?: boolean;
 }) {
   return (
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel}
-      accessibilityState={{ disabled }}
+      accessibilityState={{
+        disabled,
+        ...(selected === undefined ? {} : { selected }),
+      }}
       disabled={disabled}
       onPress={onPress}
       style={({ pressed }) => [

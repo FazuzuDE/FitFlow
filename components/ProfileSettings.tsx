@@ -1,5 +1,6 @@
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { GlassCard } from './GlassCard';
+import { AppButton } from './AppButton';
 import { WorkoutTemplates } from './WorkoutTemplates';
 import type { WorkoutTemplate } from '@/lib/workout-model';
 import type { TemplateMutationResult } from '@/lib/workout-store';
@@ -16,6 +17,7 @@ export type ProfileSettingsProps = {
     draft: TemplateDraft,
   ) => Promise<TemplateMutationResult>;
   deleteTemplate: (templateId: string) => Promise<TemplateMutationResult>;
+  onPersonalize?: () => void;
 };
 
 export function ProfileSettings({
@@ -25,6 +27,7 @@ export function ProfileSettings({
   createTemplate,
   updateTemplate,
   deleteTemplate,
+  onPersonalize,
 }: ProfileSettingsProps) {
   return (
     <ScrollView contentContainerStyle={s.content}>
@@ -48,6 +51,25 @@ export function ProfileSettings({
           onUpdate={updateTemplate}
           onDelete={deleteTemplate}
         />
+      </View>
+
+      <View style={s.section}>
+        <Text style={s.sectionLabel}>PERSONALIZATION</Text>
+        <GlassCard style={s.about}>
+          <Text style={s.sectionTitle} accessibilityRole="header">
+            Training preferences
+          </Text>
+          <Text style={s.sub}>
+            You can add or change your preferences at any time.
+          </Text>
+          {onPersonalize ? (
+            <AppButton
+              title="Personalization"
+              secondary
+              onPress={onPersonalize}
+            />
+          ) : null}
+        </GlassCard>
       </View>
 
       <View style={s.section}>

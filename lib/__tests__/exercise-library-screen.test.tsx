@@ -11,6 +11,7 @@ import { startWorkout } from '../workout-engine';
 import App from '../../app/index';
 import { Dock } from '../../components/Dock';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { completeOnboardingForTest } from './onboarding-fixture';
 
 const { act, create } = jest.requireActual('react-test-renderer');
 type ScrollNode = {
@@ -208,6 +209,7 @@ it('uses the reusable library to append an exercise to an active workout', () =>
 
 it('selects canonical exercises for a template without rendering the full catalog', async () => {
   await AsyncStorage.clear();
+  await completeOnboardingForTest();
   let view!: ReturnType<typeof create>;
   await act(async () => {
     view = create(<App />);

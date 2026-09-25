@@ -124,6 +124,10 @@ Primary tabs: **Home · Workout · Progress · Profile**.
 
 Active tab uses `primary`, inactive tabs `textSecondary`. A translucent/floating dock is allowed if it does not steal useful workout space. During an active workout, avoid navigation that can accidentally discard the session.
 
+### Onboarding
+
+Welcome presents the two approved choices with equal clarity: a primary **Personalize my training** action and a secondary **Set up workouts myself** action with explanatory copy. The self-setup choice is valid, not an error or permanent opt-out. Personalization uses one focused, scrollable step at a time: Goal → Experience → Environment → optional body details → completion. Back retains answers; controls have labels, selection state, and practical touch targets. The first-workout path uses the existing Guided Workout Builder. Completion copy must not imply that a workout, exact weight, or AI recommendation was generated. Profile keeps a later personalization entry. Use existing light theme tokens, safe-area layout, keyboard-aware scrolling, Dynamic Type-friendly text, and compact-screen spacing.
+
 ## 9. Workout UI
 
 ### Guided Workout Builder

@@ -1,4 +1,10 @@
-import { useEffect, useMemo, useState, useSyncExternalStore } from 'react';
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  useSyncExternalStore,
+} from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -18,6 +24,7 @@ import { Dock } from '@/components/Dock';
 import { AppButton } from '@/components/AppButton';
 import { HomeDashboard } from '@/components/HomeDashboard';
 import { ProfileSettings } from '@/components/ProfileSettings';
+import { Onboarding } from '@/components/Onboarding';
 import { Confirmation } from '@/components/Confirmation';
 import { Workout, duration, successHaptic } from '@/components/Workout';
 import { WorkoutHistory } from '@/components/WorkoutHistory';
@@ -37,6 +44,13 @@ import {
 } from '@/lib/workout-model';
 import { WorkoutRepository } from '@/lib/workout-repository';
 import { WorkoutStore } from '@/lib/workout-store';
+import {
+  hasMeaningfulWorkoutData,
+  initialOnboardingState,
+  type OnboardingState,
+} from '@/lib/onboarding';
+import { OnboardingRepository } from '@/lib/onboarding-repository';
+import type { TemplateDraft } from '@/lib/workout-templates';
 import { colors, radius, spacing, typography } from '@/lib/theme';
 
 const blue = colors.primary;
@@ -140,11 +154,90 @@ export default function App() {
     store.getSnapshot,
   );
   const [tab, setTab] = useState('home');
+  const [onboardingRepository] = useState(
+    () => new OnboardingRepository(AsyncStorage),
+  );
+  const [onboardingState, setOnboardingState] = useState<OnboardingState>(
+    initialOnboardingState,
+  );
+  const [onboardingReady, setOnboardingReady] = useState(false);
+  const [onboardingError, setOnboardingError] = useState('');
+  const [onboardingLoadFailed, setOnboardingLoadFailed] = useState(false);
+  const [onboardingBypass, setOnboardingBypass] = useState(false);
+  const [editingPersonalization, setEditingPersonalization] = useState(false);
+  const onboardingWrites = useRef(Promise.resolve());
   const [summary, setSummary] = useState<Session | null>(null);
   const [confirmFinish, setConfirmFinish] = useState(false);
   useEffect(() => {
     void store.load();
-  }, [store]);
+    let mounted = true;
+    void onboardingRepository
+      .load()
+      .then(
+        (state) => {
+          if (mounted) {
+            setOnboardingState(state);
+            setOnboardingLoadFailed(false);
+          }
+        },
+        (problem: Error) => {
+          if (mounted) {
+            setOnboardingError(problem.message);
+            setOnboardingLoadFailed(true);
+          }
+        },
+      )
+      .finally(() => {
+        if (mounted) setOnboardingReady(true);
+      });
+    return () => {
+      mounted = false;
+    };
+  }, [store, onboardingRepository]);
+  const saveOnboardingProgress = (next: OnboardingState) => {
+    setOnboardingState(next);
+    onboardingWrites.current = onboardingWrites.current
+      .catch(() => undefined)
+      .then(() => onboardingRepository.save(next))
+      .catch(() => {
+        setOnboardingLoadFailed(false);
+        setOnboardingError(
+          'Onboarding progress could not be saved. Retry before closing the app.',
+        );
+      });
+  };
+  const completeOnboarding = async (next: OnboardingState) => {
+    await onboardingWrites.current;
+    await onboardingRepository.save(next);
+    setOnboardingError('');
+    setOnboardingState(next);
+    setEditingPersonalization(false);
+    setTab('home');
+  };
+  const createFirstWorkout = async (draft: TemplateDraft) => {
+    const result = await store.createTemplate(draft);
+    if (result.ok) {
+      try {
+        await completeOnboarding({
+          ...onboardingState,
+          status: 'completed',
+          step: 'complete',
+        });
+      } catch {
+        // The durable custom workout independently identifies a returning user.
+        // Never retry creation to repair the separate onboarding record.
+        setOnboardingError(
+          'Your workout was saved. Onboarding status could not be saved.',
+        );
+      }
+    }
+    return result;
+  };
+  const showOnboarding =
+    onboardingReady &&
+    !onboardingBypass &&
+    !hasMeaningfulWorkoutData(data) &&
+    onboardingState.status !== 'completed';
   const startTemplate = (template: Template) => {
     if (data.activeWorkout) {
       setTab('workout');
@@ -199,17 +292,79 @@ export default function App() {
           />
         </View>
       ) : null}
-      {!ready ? (
+      {!ready || !onboardingReady ? (
         <View style={s.empty}>
-          {busy ? <ActivityIndicator color={blue} /> : null}
+          {busy || !onboardingReady ? <ActivityIndicator color={blue} /> : null}
           <Text style={s.sub}>
-            {busy
+            {busy || !onboardingReady
               ? 'Loading your workouts…'
               : 'Saved workouts are unavailable. Retry above.'}
           </Text>
         </View>
+      ) : onboardingError && showOnboarding ? (
+        <View style={s.empty}>
+          <Text style={s.sub} accessibilityRole="alert">
+            {onboardingError}
+          </Text>
+          <AppButton
+            title="Retry onboarding"
+            onPress={() => {
+              if (onboardingLoadFailed) {
+                void onboardingRepository.load().then(
+                  (state) => {
+                    setOnboardingState(state);
+                    setOnboardingError('');
+                    setOnboardingLoadFailed(false);
+                  },
+                  (problem: Error) => setOnboardingError(problem.message),
+                );
+              } else {
+                void onboardingWrites.current
+                  .then(() => onboardingRepository.save(onboardingState))
+                  .then(
+                    () => setOnboardingError(''),
+                    () =>
+                      setOnboardingError(
+                        'Onboarding progress could not be saved. Retry before closing the app.',
+                      ),
+                  );
+              }
+            }}
+          />
+          <AppButton
+            title="Continue to app"
+            secondary
+            onPress={() => setOnboardingBypass(true)}
+          />
+        </View>
+      ) : showOnboarding || editingPersonalization ? (
+        <Onboarding
+          key={editingPersonalization ? 'edit' : 'first-run'}
+          state={
+            editingPersonalization
+              ? {
+                  ...onboardingState,
+                  step:
+                    onboardingState.step === 'complete'
+                      ? 'goal'
+                      : onboardingState.step,
+                }
+              : onboardingState
+          }
+          editing={editingPersonalization}
+          busy={busy}
+          onChange={saveOnboardingProgress}
+          onComplete={completeOnboarding}
+          onCreateWorkout={createFirstWorkout}
+          onExit={() => setEditingPersonalization(false)}
+        />
       ) : (
         <>
+          {onboardingError ? (
+            <View style={s.notice} accessibilityRole="alert">
+              <Text style={s.sub}>{onboardingError}</Text>
+            </View>
+          ) : null}
           {tab === 'home' ? (
             <HomeDashboard
               history={data.history}
@@ -266,6 +421,7 @@ export default function App() {
                 store.updateTemplate(templateId, draft)
               }
               deleteTemplate={(templateId) => store.deleteTemplate(templateId)}
+              onPersonalize={() => setEditingPersonalization(true)}
             />
           </View>
           <Dock active={tab} onChange={setTab} />

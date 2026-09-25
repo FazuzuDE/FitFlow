@@ -245,3 +245,27 @@ Implementation: Now
 Related:
 
 - `AGENTS.md`
+
+## 2026-09-25 — Onboarding Foundation and persistence boundary
+
+Status: Approved — pending Git sync
+
+Decision:
+
+- Welcome offers Personalize my training and Set up workouts myself as distinct paths; self-setup reuses the Guided Workout Builder and completes only after successful custom-workout creation.
+- Personalization collects goal, experience, environment, and optional body details in resumable steps; Skip is not a permanent opt-out and Profile can reopen it.
+- Persist only onboarding version, status, step, and partial answers under a separate local key. Keep `fitflow_state_v1` and `schemaVersion: 1` unchanged.
+- Active workouts, history, or custom workouts bypass first-run onboarding; built-in templates alone do not. Damaged onboarding storage must not corrupt or block workout/history storage.
+- Do not infer exact working weights from demographics. Calibration and Recommendation Engine remain future work.
+
+Rationale:
+
+- Give new users a low-friction, truthful start while preserving existing users' data and Workout Engine invariants.
+
+Implementation: PR #16 Onboarding Foundation
+
+Related:
+
+- `PRODUCT.md`
+- `DESIGN_SYSTEM.md`
+- `ROADMAP.md`

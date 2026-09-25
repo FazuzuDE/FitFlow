@@ -10,6 +10,7 @@ import { startWorkout } from '../workout-engine';
 import type { WorkoutSession } from '../workout-model';
 import { STATE_KEY } from '../workout-repository';
 import { isPressable } from './pressable';
+import { completeOnboardingForTest } from './onboarding-fixture';
 import { Text } from 'react-native';
 
 const { act, create } = jest.requireActual('react-test-renderer');
@@ -87,6 +88,7 @@ const completed = (
 
 it('renders the established Home modules in stable grid order', async () => {
   await AsyncStorage.clear();
+  await completeOnboardingForTest();
   const view = await renderApp();
   const grid = view.root.findByType(DashboardGrid);
   expect(grid.props.items.map((item: { id: string }) => item.id)).toEqual([
@@ -104,6 +106,7 @@ it('renders the established Home modules in stable grid order', async () => {
 
 it('shows CRESUM, a prominent template action, and truthful empty training stats', async () => {
   await AsyncStorage.clear();
+  await completeOnboardingForTest();
   const view = await renderApp();
 
   expect(visibleText(view)).toContain('CRESUM');

@@ -12,6 +12,7 @@ import App from '../../app/index';
 import { defaultTemplates, exerciseLibrary } from '../workout-catalog';
 import type { WorkoutTemplate } from '../workout-model';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { completeOnboardingForTest } from './onboarding-fixture';
 
 const { act, create } = jest.requireActual('react-test-renderer');
 
@@ -326,6 +327,7 @@ const settle = async () => {
 describe('Workout Templates app integration', () => {
   beforeEach(async () => {
     await AsyncStorage.clear();
+    await completeOnboardingForTest();
   });
 
   it('keeps an unfinished workout draft when switching tabs and returning to Profile', async () => {
