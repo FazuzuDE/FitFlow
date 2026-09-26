@@ -1,6 +1,7 @@
 import { isPressable } from './pressable';
-import { TextInput } from 'react-native';
-import type { ReactElement } from 'react';
+import { StyleSheet, TextInput } from 'react-native';
+import Swipeable from 'react-native-gesture-handler/ReanimatedSwipeable';
+import type { ReactElement, ReactNode } from 'react';
 import { AppButton } from '../../components/AppButton';
 import { Confirmation } from '../../components/Confirmation';
 import { ExerciseLibrary } from '../../components/ExerciseLibrary';
@@ -12,8 +13,10 @@ import App from '../../app/index';
 import { defaultTemplates, exerciseLibrary } from '../workout-catalog';
 import type { WorkoutTemplate } from '../workout-model';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { completeOnboardingForTest } from './onboarding-fixture';
 
 const { act, create } = jest.requireActual('react-test-renderer');
+const mockSwipeMethods = new Map<string, { close: jest.Mock }>();
 
 jest.mock('react-native-safe-area-context', () => ({
   SafeAreaView: jest.requireActual('react-native').View,
@@ -33,6 +36,39 @@ jest.mock('@react-native-async-storage/async-storage', () =>
 jest.mock('expo-blur', () => ({
   BlurView: jest.requireActual('react-native').View,
 }));
+jest.mock('react-native-gesture-handler/ReanimatedSwipeable', () => {
+  const React = jest.requireActual('react');
+  const View = jest.requireActual('react-native').View;
+  return {
+    __esModule: true,
+    default: React.forwardRef(function MockSwipeable(
+      props: {
+        children: ReactNode;
+        testID: string;
+        renderRightActions?: (...args: unknown[]) => ReactNode;
+      },
+      ref: unknown,
+    ) {
+      const methods = React.useMemo(
+        () => ({
+          close: jest.fn(),
+          openLeft: jest.fn(),
+          openRight: jest.fn(),
+          reset: jest.fn(),
+        }),
+        [],
+      );
+      mockSwipeMethods.set(props.testID, methods);
+      React.useImperativeHandle(ref, () => methods);
+      return React.createElement(
+        View,
+        { testID: props.testID },
+        props.children,
+        props.renderRightActions?.({ value: 0 }, { value: 0 }, methods),
+      );
+    }),
+  };
+});
 
 const custom: WorkoutTemplate = {
   id: 'custom-one',
@@ -209,6 +245,278 @@ describe('TemplateEditor', () => {
 });
 
 describe('WorkoutTemplates', () => {
+  beforeEach(() => mockSwipeMethods.clear());
+
+  it('stacks equal full-row rounded foreground and action background without closed-state gutters', () => {
+    const view = render(
+      <WorkoutTemplates
+        templates={[custom]}
+        busy={false}
+        onCreate={jest.fn()}
+        onUpdate={jest.fn()}
+        onDelete={jest.fn()}
+      />,
+    );
+    const swipe = view.root.findByType(Swipeable);
+    const foreground = StyleSheet.flatten(swipe.props.childrenContainerStyle);
+    const row = StyleSheet.flatten(swipe.props.children.props.style);
+    const underlay = StyleSheet.flatten(swipe.props.containerStyle);
+    const rail = StyleSheet.flatten(
+      view.root.findByProps({ testID: 'quick-actions-custom-one' }).props.style,
+    );
+    const actionBackground = StyleSheet.flatten(
+      view.root.findByProps({ testID: 'quick-background-custom-one' }).props
+        .style,
+    );
+
+    expect(foreground).toMatchObject({
+      backgroundColor: '#FFFFFF',
+      borderRadius: 14,
+      overflow: 'hidden',
+    });
+    expect(row.backgroundColor).toBeUndefined();
+    expect(underlay.backgroundColor).toBe('#FFFFFF');
+    expect(actionBackground).toMatchObject({
+      backgroundColor: '#F7F7F9',
+      position: 'absolute',
+      left: 0,
+      right: 0,
+      top: 0,
+      bottom: 0,
+      borderRadius: 14,
+    });
+    expect(actionBackground.borderTopRightRadius).toBeUndefined();
+    expect(rail.width).toBe(112);
+    expect(rail.backgroundColor).toBeUndefined();
+  });
+
+  it('gives More and the two quick actions a symmetric 8pt edge rhythm', () => {
+    const view = render(
+      <WorkoutTemplates
+        templates={[custom]}
+        busy={false}
+        onCreate={jest.fn()}
+        onUpdate={jest.fn()}
+        onDelete={jest.fn()}
+      />,
+    );
+    const swipe = view.root.findByType(Swipeable);
+    const row = StyleSheet.flatten(swipe.props.children.props.style);
+    const rail = StyleSheet.flatten(
+      view.root.findByProps({ testID: 'quick-actions-custom-one' }).props.style,
+    );
+
+    expect(row.paddingRight).toBe(8);
+    expect(rail).toMatchObject({
+      width: 112,
+      gap: 8,
+      paddingHorizontal: 8,
+    });
+  });
+
+  it('suppresses a row press after swipe and permits a later tap after close', () => {
+    const onStart = jest.fn();
+    const view = render(
+      <WorkoutTemplates
+        templates={[custom]}
+        busy={false}
+        onCreate={jest.fn()}
+        onUpdate={jest.fn()}
+        onDelete={jest.fn()}
+        onStart={onStart}
+      />,
+    );
+    const swipe = view.root.findByType(Swipeable);
+    act(() => swipe.props.onSwipeableOpenStartDrag('left'));
+    act(() => action(view, 'Start My Push')?.props.onPress());
+    expect(onStart).not.toHaveBeenCalled();
+    act(() => swipe.props.onSwipeableClose('left'));
+    act(() => action(view, 'Start My Push')?.props.onPress());
+    expect(onStart).toHaveBeenCalledWith(custom);
+  });
+
+  it('allows a fresh tap after an interrupted swipe without a close callback', () => {
+    const onStart = jest.fn();
+    const view = render(
+      <WorkoutTemplates
+        templates={[custom]}
+        busy={false}
+        onCreate={jest.fn()}
+        onUpdate={jest.fn()}
+        onDelete={jest.fn()}
+        onStart={onStart}
+      />,
+    );
+    const swipe = view.root.findByType(Swipeable);
+    act(() => swipe.props.onSwipeableOpenStartDrag('left'));
+    act(() => action(view, 'Start My Push')?.props.onTouchStart?.());
+    act(() => action(view, 'Start My Push')?.props.onPress());
+    expect(onStart).toHaveBeenCalledWith(custom);
+  });
+
+  it('closes the previous row when another row opens', () => {
+    const view = render(
+      <WorkoutTemplates
+        templates={[...defaultTemplates, custom]}
+        busy={false}
+        onCreate={jest.fn()}
+        onUpdate={jest.fn()}
+        onDelete={jest.fn()}
+      />,
+    );
+    const swipes = view.root.findAllByType(Swipeable);
+    act(() => swipes[0].props.onSwipeableWillOpen('left'));
+    act(() => swipes[2].props.onSwipeableWillOpen('left'));
+    expect(
+      mockSwipeMethods.get(`template-swipe-${defaultTemplates[0].id}`)?.close,
+    ).toHaveBeenCalledTimes(1);
+  });
+
+  it('allows a normal tap after an open workout row is removed', () => {
+    const onStart = jest.fn();
+    const props = {
+      busy: false,
+      onCreate: jest.fn(),
+      onUpdate: jest.fn(),
+      onDelete: jest.fn(),
+      onStart,
+    };
+    const view = render(
+      <WorkoutTemplates templates={[defaultTemplates[0], custom]} {...props} />,
+    );
+    act(() =>
+      view.root.findAllByType(Swipeable)[0].props.onSwipeableWillOpen('left'),
+    );
+    act(() =>
+      view.update(<WorkoutTemplates templates={[custom]} {...props} />),
+    );
+    act(() => action(view, 'Start My Push')?.props.onPress());
+    expect(onStart).toHaveBeenCalledWith(custom);
+  });
+  it('starts a workout from a row tap while quick actions remain hidden to accessibility', () => {
+    const onStart = jest.fn();
+    const view = render(
+      <WorkoutTemplates
+        templates={[...defaultTemplates, custom]}
+        busy={false}
+        onCreate={jest.fn()}
+        onUpdate={jest.fn()}
+        onDelete={jest.fn()}
+        onStart={onStart}
+      />,
+    );
+    expect(
+      view.root.findByProps({ testID: 'quick-actions-custom-one' }).props
+        .accessibilityElementsHidden,
+    ).toBe(true);
+    act(() => action(view, 'Start My Push')?.props.onPress());
+    expect(onStart).toHaveBeenCalledWith(custom);
+  });
+
+  it('reveals quick actions on left swipe and assigns no right-swipe actions', () => {
+    const view = render(
+      <WorkoutTemplates
+        templates={[...defaultTemplates, custom]}
+        busy={false}
+        onCreate={jest.fn()}
+        onUpdate={jest.fn()}
+        onDelete={jest.fn()}
+      />,
+    );
+    const swipe = view.root
+      .findAllByType(Swipeable)
+      .find((item: { props: { testID: string } }) =>
+        item.props.testID.endsWith('custom-one'),
+      )!;
+    expect(swipe.props.renderLeftActions).toBeUndefined();
+    act(() => swipe.props.onSwipeableWillOpen('left'));
+    expect(action(view, 'Edit My Push')).toBeDefined();
+    expect(action(view, 'Delete My Push')).toBeDefined();
+    expect(
+      view.root.findByProps({ testID: 'quick-actions-custom-one' }).props
+        .accessibilityElementsHidden,
+    ).toBe(false);
+    act(() => swipe.props.onSwipeableClose('right'));
+    expect(
+      view.root.findByProps({ testID: 'quick-actions-custom-one' }).props
+        .accessibilityElementsHidden,
+    ).toBe(true);
+  });
+
+  it('does not start a workout when closing an open swipe also emits a row press', () => {
+    const onStart = jest.fn();
+    const view = render(
+      <WorkoutTemplates
+        templates={[custom]}
+        busy={false}
+        onCreate={jest.fn()}
+        onUpdate={jest.fn()}
+        onDelete={jest.fn()}
+        onStart={onStart}
+      />,
+    );
+    const swipe = view.root.findByType(Swipeable);
+    act(() => {
+      swipe.props.onSwipeableWillOpen('left');
+      swipe.props.onSwipeableCloseStartDrag('right');
+      action(view, 'Start My Push')?.props.onPress();
+    });
+    expect(onStart).not.toHaveBeenCalled();
+  });
+
+  it('opens complete custom actions on long press and through accessible More actions', async () => {
+    const onDuplicate = jest.fn(async () => ({ ok: true as const }));
+    const view = render(
+      <WorkoutTemplates
+        templates={[...defaultTemplates, custom]}
+        busy={false}
+        onCreate={jest.fn()}
+        onUpdate={jest.fn()}
+        onDelete={jest.fn()}
+        onDuplicate={onDuplicate}
+      />,
+    );
+    act(() => action(view, 'Start My Push')?.props.onLongPress());
+    expect(appButton(view, 'Start Workout')).toBeDefined();
+    expect(appButton(view, 'Edit')).toBeDefined();
+    expect(appButton(view, 'Duplicate')).toBeDefined();
+    expect(appButton(view, 'Delete')).toBeDefined();
+    await act(async () => appButton(view, 'Duplicate')?.props.onPress());
+    expect(onDuplicate).toHaveBeenCalledWith(custom.id);
+    act(() => action(view, 'More actions for My Push')?.props.onPress());
+    expect(appButton(view, 'Edit')).toBeDefined();
+  });
+
+  it('offers built-in Duplicate/Customize and Hide but never Edit/Delete', async () => {
+    const onDuplicate = jest.fn(async () => ({ ok: true as const }));
+    const onHide = jest.fn(async () => true);
+    const view = render(
+      <WorkoutTemplates
+        templates={defaultTemplates}
+        busy={false}
+        onCreate={jest.fn()}
+        onUpdate={jest.fn()}
+        onDelete={jest.fn()}
+        onDuplicate={onDuplicate}
+        onHide={onHide}
+      />,
+    );
+    act(() => action(view, 'More actions for Upper Body')?.props.onPress());
+    expect(appButton(view, 'Duplicate / Customize')).toBeDefined();
+    expect(appButton(view, 'Hide from My Workouts')).toBeDefined();
+    expect(appButton(view, 'Edit')).toBeUndefined();
+    expect(appButton(view, 'Delete')).toBeUndefined();
+    await act(async () =>
+      appButton(view, 'Duplicate / Customize')?.props.onPress(),
+    );
+    expect(onDuplicate).toHaveBeenCalledWith(defaultTemplates[0].id);
+    act(() => action(view, 'More actions for Upper Body')?.props.onPress());
+    await act(async () =>
+      appButton(view, 'Hide from My Workouts')?.props.onPress(),
+    );
+    expect(onHide).toHaveBeenCalledWith(defaultTemplates[0].id);
+  });
+
   it('keeps built-ins immutable and exposes Edit/Delete only for custom templates', () => {
     const view = render(
       <WorkoutTemplates
@@ -222,8 +530,9 @@ describe('WorkoutTemplates', () => {
 
     expect(action(view, 'Edit Upper Body')).toBeUndefined();
     expect(action(view, 'Delete Upper Body')).toBeUndefined();
-    expect(action(view, 'Edit My Push')).toBeDefined();
-    expect(action(view, 'Delete My Push')).toBeDefined();
+    act(() => action(view, 'More actions for My Push')?.props.onPress());
+    expect(appButton(view, 'Edit')).toBeDefined();
+    expect(appButton(view, 'Delete')).toBeDefined();
   });
 
   it('disables competing template actions while a local draft is open', () => {
@@ -237,10 +546,13 @@ describe('WorkoutTemplates', () => {
       />,
     );
 
-    act(() => action(view, 'Edit My Push')?.props.onPress());
+    act(() => action(view, 'More actions for My Push')?.props.onPress());
+    act(() => appButton(view, 'Edit')?.props.onPress());
 
-    expect(action(view, 'Edit My Push')?.props.disabled).toBe(true);
-    expect(action(view, 'Delete My Push')?.props.disabled).toBe(true);
+    expect(action(view, 'More actions for My Push')?.props.disabled).toBe(true);
+    expect(action(view, 'More actions for Upper Body')?.props.disabled).toBe(
+      true,
+    );
   });
 
   it('does not create a replacement when an edited template disappears', async () => {
@@ -256,7 +568,8 @@ describe('WorkoutTemplates', () => {
       />,
     );
 
-    act(() => action(view, 'Edit My Push')?.props.onPress());
+    act(() => action(view, 'More actions for My Push')?.props.onPress());
+    act(() => appButton(view, 'Edit')?.props.onPress());
     act(() =>
       view.update(
         <WorkoutTemplates
@@ -289,13 +602,15 @@ describe('WorkoutTemplates', () => {
       />,
     );
 
-    act(() => action(view, 'Delete My Push')?.props.onPress());
+    act(() => action(view, 'More actions for My Push')?.props.onPress());
+    act(() => appButton(view, 'Delete')?.props.onPress());
     let confirmation = view.root.findByType(Confirmation);
     expect(confirmation.props.visible).toBe(true);
     act(() => confirmation.props.onCancel());
     expect(onDelete).not.toHaveBeenCalled();
 
-    act(() => action(view, 'Delete My Push')?.props.onPress());
+    act(() => action(view, 'More actions for My Push')?.props.onPress());
+    act(() => appButton(view, 'Delete')?.props.onPress());
     confirmation = view.root.findByType(Confirmation);
     await act(async () => confirmation.props.onConfirm());
     expect(onDelete).toHaveBeenCalledWith(custom.id);
@@ -326,6 +641,7 @@ const settle = async () => {
 describe('Workout Templates app integration', () => {
   beforeEach(async () => {
     await AsyncStorage.clear();
+    await completeOnboardingForTest();
   });
 
   it('keeps an unfinished workout draft when switching tabs and returning to Profile', async () => {
@@ -400,7 +716,8 @@ describe('Workout Templates app integration', () => {
     );
     let view = await renderApp();
     act(() => view.root.findByType(Dock).props.onChange('profile'));
-    act(() => action(view, 'Edit My Push')?.props.onPress());
+    act(() => action(view, 'More actions for My Push')?.props.onPress());
+    act(() => appButton(view, 'Edit')?.props.onPress());
     act(() => appButton(view, 'Back')?.props.onPress());
     act(() =>
       view.root
@@ -434,13 +751,15 @@ describe('Workout Templates app integration', () => {
     );
     const view = await renderApp();
     act(() => view.root.findByType(Dock).props.onChange('profile'));
-    act(() => action(view, 'Delete My Push')?.props.onPress());
+    act(() => action(view, 'More actions for My Push')?.props.onPress());
+    act(() => appButton(view, 'Delete')?.props.onPress());
     act(() => view.root.findAllByType(Confirmation).at(-1)?.props.onCancel());
     expect(
       JSON.parse((await AsyncStorage.getItem('fitflow_state_v1'))!).templates,
     ).toContainEqual(custom);
 
-    act(() => action(view, 'Delete My Push')?.props.onPress());
+    act(() => action(view, 'More actions for My Push')?.props.onPress());
+    act(() => appButton(view, 'Delete')?.props.onPress());
     await act(async () => {
       view.root.findAllByType(Confirmation).at(-1)?.props.onConfirm();
       await settle();
@@ -465,7 +784,8 @@ describe('Workout Templates app integration', () => {
     await AsyncStorage.setItem('fitflow_state_v1', raw);
     const view = await renderApp();
     act(() => view.root.findByType(Dock).props.onChange('profile'));
-    act(() => action(view, 'Edit Old custom')?.props.onPress());
+    act(() => action(view, 'More actions for Old custom')?.props.onPress());
+    act(() => appButton(view, 'Edit')?.props.onPress());
     expect(JSON.stringify(view.toJSON())).toContain('removed-exercise');
     act(() => appButton(view, 'Cancel')?.props.onPress());
 

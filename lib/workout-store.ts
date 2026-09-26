@@ -5,6 +5,7 @@ import { emptyWorkoutState, WorkoutRepository } from './workout-repository';
 import {
   createTemplate as createTemplateInList,
   deleteTemplate as deleteTemplateFromList,
+  duplicateTemplate as duplicateTemplateInList,
   TemplateDraft,
   TemplateIdFactory,
   updateTemplate as updateTemplateInList,
@@ -123,6 +124,14 @@ export class WorkoutStore {
       createTemplateInList(templates, draft, idFactory),
     );
   }
+  duplicateTemplate(
+    templateId: string,
+    idFactory?: TemplateIdFactory,
+  ): Promise<TemplateMutationResult> {
+    return this.commitTemplates((templates) =>
+      duplicateTemplateInList(templates, templateId, idFactory),
+    );
+  }
   updateTemplate(
     templateId: string,
     draft: TemplateDraft,
@@ -140,6 +149,18 @@ export class WorkoutStore {
     if (!this.snapshot.ready) return this.load();
     if (this.snapshot.busy) return;
     this.persist(this.snapshot.data);
+  }
+  waitForPendingWrites(): Promise<void> {
+    return this.repository.waitForWrites();
+  }
+  resetAfterLocalDataRemoval() {
+    ++this.revision;
+    this.publish({
+      data: emptyWorkoutState(),
+      ready: true,
+      busy: false,
+      error: '',
+    });
   }
   async finish(): Promise<WorkoutSession | undefined> {
     const { data, ready, busy } = this.snapshot;

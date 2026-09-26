@@ -7,6 +7,7 @@ import { Dock } from '../../components/Dock';
 import { GlassCard } from '../../components/GlassCard';
 import { Workout } from '../../components/Workout';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { completeOnboardingForTest } from './onboarding-fixture';
 import { STATE_KEY } from '../workout-repository';
 import type { WorkoutSession } from '../workout-model';
 
@@ -32,6 +33,7 @@ jest.mock('expo-blur', () => ({
 
 it('connects the actual screen inputs, timer, confirmation and persisted history', async () => {
   await AsyncStorage.clear();
+  await completeOnboardingForTest();
   let view: ReturnType<typeof create>;
   await act(async () => {
     view = create(<App />);

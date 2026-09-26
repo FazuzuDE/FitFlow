@@ -245,3 +245,70 @@ Implementation: Now
 Related:
 
 - `AGENTS.md`
+
+## 2026-09-25 — Onboarding Foundation and persistence boundary
+
+Status: Approved — pending Git sync
+
+Decision:
+
+- Welcome offers Personalize my training and Set up workouts myself as distinct paths; self-setup reuses the Guided Workout Builder and completes only after successful custom-workout creation.
+- Personalization collects goal, experience, environment, and optional body details in resumable steps; Skip is not a permanent opt-out and Profile can reopen it.
+- Persist only onboarding version, status, step, and partial answers under a separate local key. Keep `fitflow_state_v1` and `schemaVersion: 1` unchanged.
+- Active workouts, history, or custom workouts bypass first-run onboarding; built-in templates alone do not. Damaged onboarding storage must not corrupt or block workout/history storage.
+- Do not infer exact working weights from demographics. Calibration and Recommendation Engine remain future work.
+
+Rationale:
+
+- Give new users a low-friction, truthful start while preserving existing users' data and Workout Engine invariants.
+
+Implementation: PR #16 Onboarding Foundation
+
+Related:
+
+- `PRODUCT.md`
+- `DESIGN_SYSTEM.md`
+- `ROADMAP.md`
+
+## 2026-09-25 — Complete local data reset
+
+Status: Approved — pending Git sync
+
+Decision:
+
+- Profile → Data exposes **Reset local data** with destructive styling and explicit confirmation. It is not **Delete Account**; the two actions remain separate when Account + Cloud Sync arrives.
+- After pending writes settle, temporarily back up the raw values of `fitflow_state_v1`, `cresum_onboarding_v1`, `fitflow_history`, `fitflow_active`, and `fitflow_templates`; delete and verify them. The separately approved hidden-built-in preference is also included in the complete device reset. Only then clear in-memory state and return to the true first-run Welcome screen.
+- On failure, attempt to restore the backed-up values, retain the current in-memory state, and show an error. Cancel is a no-op. Keep workout persistence at schema version 1.
+
+Rationale:
+
+- Ensure a real device-local reset without accidental loss or re-import of legacy data, while avoiding a misleading cloud-account deletion claim.
+
+Implementation: PR #16 Onboarding Foundation
+
+Related:
+
+- `PRODUCT.md`
+- `DESIGN_SYSTEM.md`
+
+## 2026-09-25 — Workout list contextual interactions
+
+Status: Approved — pending Git sync
+
+Decision:
+
+- A manageable workout row uses tap for Start/Resume, swipe left for concise quick actions, and long press for all available actions; provide an accessible non-gesture menu and leave swipe right unassigned.
+- Custom workouts support Edit (including rename), Duplicate, and confirmed Delete. Built-in definitions remain immutable; Duplicate/Customize creates an independent custom workout, while Hide removes the built-in from the visible list without deleting its canonical definition.
+- Persist hidden built-in IDs separately from workout schema v1, restore them from Profile, and clear that preference during Reset local data. Hide/delete never rewrites active or historical workout snapshots.
+
+Rationale:
+
+- Make workout management compact and native-feeling while preserving canonical built-ins, historical truth, and the existing persistence boundary.
+
+Implementation: PR #16 Onboarding Foundation (focused UX correction)
+
+Related:
+
+- `PRODUCT.md`
+- `DESIGN_SYSTEM.md`
+- `WORKOUT_TEMPLATES.md`

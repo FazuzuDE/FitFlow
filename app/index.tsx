@@ -1,4 +1,10 @@
-import { useEffect, useMemo, useState, useSyncExternalStore } from 'react';
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  useSyncExternalStore,
+} from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -18,6 +24,7 @@ import { Dock } from '@/components/Dock';
 import { AppButton } from '@/components/AppButton';
 import { HomeDashboard } from '@/components/HomeDashboard';
 import { ProfileSettings } from '@/components/ProfileSettings';
+import { Onboarding } from '@/components/Onboarding';
 import { Confirmation } from '@/components/Confirmation';
 import { Workout, duration, successHaptic } from '@/components/Workout';
 import { WorkoutHistory } from '@/components/WorkoutHistory';
@@ -37,6 +44,15 @@ import {
 } from '@/lib/workout-model';
 import { WorkoutRepository } from '@/lib/workout-repository';
 import { WorkoutStore } from '@/lib/workout-store';
+import {
+  hasMeaningfulWorkoutData,
+  initialOnboardingState,
+  type OnboardingState,
+} from '@/lib/onboarding';
+import { OnboardingRepository } from '@/lib/onboarding-repository';
+import { resetLocalData } from '@/lib/local-data-reset';
+import { HiddenBuiltInsRepository } from '@/lib/hidden-builtins';
+import type { TemplateDraft } from '@/lib/workout-templates';
 import { colors, radius, spacing, typography } from '@/lib/theme';
 
 const blue = colors.primary;
@@ -140,11 +156,132 @@ export default function App() {
     store.getSnapshot,
   );
   const [tab, setTab] = useState('home');
+  const [onboardingRepository] = useState(
+    () => new OnboardingRepository(AsyncStorage),
+  );
+  const [hiddenRepository] = useState(
+    () => new HiddenBuiltInsRepository(AsyncStorage),
+  );
+  const [hiddenBuiltInIds, setHiddenBuiltInIds] = useState<string[]>([]);
+  const [hiddenReady, setHiddenReady] = useState(false);
+  const [hiddenBusy, setHiddenBusy] = useState(false);
+  const [hiddenError, setHiddenError] = useState('');
+  const hiddenWrites = useRef(Promise.resolve());
+  const hiddenOperation = useRef(false);
+  const hiddenEpoch = useRef(0);
+  const [onboardingState, setOnboardingState] = useState<OnboardingState>(
+    initialOnboardingState,
+  );
+  const [onboardingReady, setOnboardingReady] = useState(false);
+  const [onboardingError, setOnboardingError] = useState('');
+  const [onboardingLoadFailed, setOnboardingLoadFailed] = useState(false);
+  const [onboardingBypass, setOnboardingBypass] = useState(false);
+  const [editingPersonalization, setEditingPersonalization] = useState(false);
+  const onboardingWrites = useRef(Promise.resolve());
+  const onboardingEpoch = useRef(0);
+  const resetInProgress = useRef(false);
   const [summary, setSummary] = useState<Session | null>(null);
   const [confirmFinish, setConfirmFinish] = useState(false);
+  const [confirmReset, setConfirmReset] = useState(false);
+  const [resetBusy, setResetBusy] = useState(false);
+  const [resetError, setResetError] = useState('');
   useEffect(() => {
     void store.load();
-  }, [store]);
+    let mounted = true;
+    const epoch = onboardingEpoch.current;
+    const visibilityEpoch = hiddenEpoch.current;
+    void hiddenRepository
+      .load()
+      .then(
+        (ids) => {
+          if (mounted && hiddenEpoch.current === visibilityEpoch)
+            setHiddenBuiltInIds(ids);
+        },
+        () => {
+          if (mounted && hiddenEpoch.current === visibilityEpoch)
+            setHiddenError(
+              'Hidden workout settings are unavailable. All built-ins remain visible.',
+            );
+        },
+      )
+      .finally(() => {
+        if (mounted && hiddenEpoch.current === visibilityEpoch)
+          setHiddenReady(true);
+      });
+    void onboardingRepository
+      .load()
+      .then(
+        (state) => {
+          if (mounted && onboardingEpoch.current === epoch) {
+            setOnboardingState(state);
+            setOnboardingLoadFailed(false);
+          }
+        },
+        (problem: Error) => {
+          if (mounted && onboardingEpoch.current === epoch) {
+            setOnboardingError(problem.message);
+            setOnboardingLoadFailed(true);
+          }
+        },
+      )
+      .finally(() => {
+        if (mounted && onboardingEpoch.current === epoch)
+          setOnboardingReady(true);
+      });
+    return () => {
+      mounted = false;
+    };
+  }, [store, onboardingRepository, hiddenRepository]);
+  const queueOnboardingSave = (next: OnboardingState): Promise<void> => {
+    if (resetInProgress.current)
+      return Promise.reject(new Error('Reset in progress.'));
+    const write = onboardingWrites.current
+      .catch(() => undefined)
+      .then(() => onboardingRepository.save(next));
+    onboardingWrites.current = write.catch(() => undefined);
+    return write;
+  };
+  const saveOnboardingProgress = (next: OnboardingState) => {
+    if (resetInProgress.current) return;
+    setOnboardingState(next);
+    void queueOnboardingSave(next).catch(() => {
+      setOnboardingLoadFailed(false);
+      setOnboardingError(
+        'Onboarding progress could not be saved. Retry before closing the app.',
+      );
+    });
+  };
+  const completeOnboarding = async (next: OnboardingState) => {
+    await queueOnboardingSave(next);
+    setOnboardingError('');
+    setOnboardingState(next);
+    setEditingPersonalization(false);
+    setTab('home');
+  };
+  const createFirstWorkout = async (draft: TemplateDraft) => {
+    const result = await store.createTemplate(draft);
+    if (result.ok) {
+      try {
+        await completeOnboarding({
+          ...onboardingState,
+          status: 'completed',
+          step: 'complete',
+        });
+      } catch {
+        // The durable custom workout independently identifies a returning user.
+        // Never retry creation to repair the separate onboarding record.
+        setOnboardingError(
+          'Your workout was saved. Onboarding status could not be saved.',
+        );
+      }
+    }
+    return result;
+  };
+  const showOnboarding =
+    onboardingReady &&
+    !onboardingBypass &&
+    !hasMeaningfulWorkoutData(data) &&
+    onboardingState.status !== 'completed';
   const startTemplate = (template: Template) => {
     if (data.activeWorkout) {
       setTab('workout');
@@ -157,6 +294,32 @@ export default function App() {
       Alert.alert('Cannot start workout', (problem as Error).message);
     }
   };
+  const updateHiddenBuiltIns = async (next: string[]): Promise<boolean> => {
+    if (hiddenOperation.current || resetInProgress.current) return false;
+    hiddenOperation.current = true;
+    const epoch = hiddenEpoch.current;
+    setHiddenBusy(true);
+    setHiddenError('');
+    const write = hiddenRepository.save(next);
+    hiddenWrites.current = write.catch(() => undefined);
+    try {
+      await write;
+      if (hiddenEpoch.current === epoch) setHiddenBuiltInIds(next);
+      return true;
+    } catch {
+      if (hiddenEpoch.current === epoch)
+        setHiddenError(
+          'Hidden workout settings could not be saved. Try again.',
+        );
+      return false;
+    } finally {
+      hiddenOperation.current = false;
+      setHiddenBusy(false);
+    }
+  };
+  const visibleTemplates = data.templates.filter(
+    (template) => !hiddenBuiltInIds.includes(template.id),
+  );
   const finish = async () => {
     if (!data.activeWorkout || busy) return;
     const completed = await store.finish();
@@ -166,9 +329,63 @@ export default function App() {
     setSummary(completed);
     setTab('progress');
   };
+  const reset = async () => {
+    if (resetInProgress.current || busy) return;
+    resetInProgress.current = true;
+    ++onboardingEpoch.current;
+    ++hiddenEpoch.current;
+    setResetBusy(true);
+    setResetError('');
+    try {
+      await resetLocalData(AsyncStorage, async () => {
+        await onboardingWrites.current;
+        await store.waitForPendingWrites();
+        await hiddenWrites.current;
+      });
+      store.resetAfterLocalDataRemoval();
+      setOnboardingState(initialOnboardingState);
+      setHiddenBuiltInIds([]);
+      setHiddenError('');
+      setHiddenReady(true);
+      setOnboardingError('');
+      setOnboardingLoadFailed(false);
+      setOnboardingBypass(false);
+      setEditingPersonalization(false);
+      setSummary(null);
+      setConfirmFinish(false);
+      setTab('home');
+      setConfirmReset(false);
+    } catch (problem) {
+      setResetError(
+        problem instanceof Error
+          ? problem.message
+          : 'Local data could not be reset. Try again.',
+      );
+    } finally {
+      resetInProgress.current = false;
+      setResetBusy(false);
+    }
+  };
   return (
     <SafeAreaView style={s.root}>
       <StatusBar style="dark" />
+      <Confirmation
+        visible={confirmReset}
+        title="Reset CRESUM?"
+        message="All local CRESUM data on this device — workouts, history, templates, active workout, hidden-workout settings, personalization and onboarding data — will be permanently deleted. This cannot be undone."
+        confirmLabel="Reset local data"
+        cancelLabel="Keep data"
+        destructive
+        busy={resetBusy}
+        busyLabel="Resetting…"
+        error={resetError}
+        onConfirm={() => void reset()}
+        onCancel={() => {
+          if (resetInProgress.current) return;
+          setConfirmReset(false);
+          setResetError('');
+        }}
+      />
       <Confirmation
         visible={confirmFinish}
         title="Finish workout?"
@@ -199,23 +416,90 @@ export default function App() {
           />
         </View>
       ) : null}
-      {!ready ? (
+      {!ready || !onboardingReady || !hiddenReady ? (
         <View style={s.empty}>
-          {busy ? <ActivityIndicator color={blue} /> : null}
+          {busy || !onboardingReady || !hiddenReady ? (
+            <ActivityIndicator color={blue} />
+          ) : null}
           <Text style={s.sub}>
-            {busy
+            {busy || !onboardingReady || !hiddenReady
               ? 'Loading your workouts…'
               : 'Saved workouts are unavailable. Retry above.'}
           </Text>
         </View>
+      ) : onboardingError && showOnboarding ? (
+        <View style={s.empty}>
+          <Text style={s.sub} accessibilityRole="alert">
+            {onboardingError}
+          </Text>
+          <AppButton
+            title="Retry onboarding"
+            onPress={() => {
+              if (onboardingLoadFailed) {
+                const epoch = onboardingEpoch.current;
+                void onboardingRepository.load().then(
+                  (state) => {
+                    if (onboardingEpoch.current !== epoch) return;
+                    setOnboardingState(state);
+                    setOnboardingError('');
+                    setOnboardingLoadFailed(false);
+                  },
+                  (problem: Error) => {
+                    if (onboardingEpoch.current === epoch)
+                      setOnboardingError(problem.message);
+                  },
+                );
+              } else {
+                void queueOnboardingSave(onboardingState).then(
+                  () => setOnboardingError(''),
+                  () =>
+                    setOnboardingError(
+                      'Onboarding progress could not be saved. Retry before closing the app.',
+                    ),
+                );
+              }
+            }}
+          />
+          <AppButton
+            title="Continue to app"
+            secondary
+            onPress={() => setOnboardingBypass(true)}
+          />
+        </View>
+      ) : showOnboarding || editingPersonalization ? (
+        <Onboarding
+          key={editingPersonalization ? 'edit' : 'first-run'}
+          state={
+            editingPersonalization
+              ? {
+                  ...onboardingState,
+                  step:
+                    onboardingState.step === 'complete'
+                      ? 'goal'
+                      : onboardingState.step,
+                }
+              : onboardingState
+          }
+          editing={editingPersonalization}
+          busy={busy}
+          onChange={saveOnboardingProgress}
+          onComplete={completeOnboarding}
+          onCreateWorkout={createFirstWorkout}
+          onExit={() => setEditingPersonalization(false)}
+        />
       ) : (
         <>
+          {onboardingError ? (
+            <View style={s.notice} accessibilityRole="alert">
+              <Text style={s.sub}>{onboardingError}</Text>
+            </View>
+          ) : null}
           {tab === 'home' ? (
             <HomeDashboard
               history={data.history}
               activeWorkout={data.activeWorkout}
               onResume={() => setTab('workout')}
-              templates={data.templates}
+              templates={visibleTemplates}
               startTemplate={startTemplate}
             />
           ) : tab === 'workout' ? (
@@ -258,14 +542,34 @@ export default function App() {
             }
           >
             <ProfileSettings
-              templates={data.templates}
-              busy={busy}
+              templates={visibleTemplates}
+              busy={busy || hiddenBusy}
               version={Constants.expoConfig?.version}
               createTemplate={(draft) => store.createTemplate(draft)}
               updateTemplate={(templateId, draft) =>
                 store.updateTemplate(templateId, draft)
               }
               deleteTemplate={(templateId) => store.deleteTemplate(templateId)}
+              duplicateTemplate={(templateId) =>
+                store.duplicateTemplate(templateId)
+              }
+              startTemplate={startTemplate}
+              hideBuiltIn={(templateId) =>
+                updateHiddenBuiltIns([...hiddenBuiltInIds, templateId])
+              }
+              restoreBuiltIn={(templateId) =>
+                updateHiddenBuiltIns(
+                  hiddenBuiltInIds.filter((id) => id !== templateId),
+                )
+              }
+              hiddenBuiltInIds={hiddenBuiltInIds}
+              hiddenError={hiddenError}
+              hasActiveWorkout={Boolean(data.activeWorkout)}
+              onPersonalize={() => setEditingPersonalization(true)}
+              onResetLocalData={() => {
+                setResetError('');
+                setConfirmReset(true);
+              }}
             />
           </View>
           <Dock active={tab} onChange={setTab} />

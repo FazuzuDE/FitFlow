@@ -124,11 +124,23 @@ Primary tabs: **Home · Workout · Progress · Profile**.
 
 Active tab uses `primary`, inactive tabs `textSecondary`. A translucent/floating dock is allowed if it does not steal useful workout space. During an active workout, avoid navigation that can accidentally discard the session.
 
+### Onboarding
+
+Welcome presents the two approved choices with equal clarity: a primary **Personalize my training** action and a secondary **Set up workouts myself** action with explanatory copy. The self-setup choice is valid, not an error or permanent opt-out. Personalization uses one focused, scrollable step at a time: Goal → Experience → Environment → optional body details → completion. Back retains answers; controls have labels, selection state, and practical touch targets. The first-workout path uses the existing Guided Workout Builder. Completion copy must not imply that a workout, exact weight, or AI recommendation was generated. Profile keeps a later personalization entry. Use existing light theme tokens, safe-area layout, keyboard-aware scrolling, Dynamic Type-friendly text, and compact-screen spacing.
+
+Profile → Data includes a destructive **Reset local data** action using the existing `danger` token. Require confirmation that explicitly names local workouts, history, templates, active workout, personalization, and onboarding data and states the deletion is irreversible on this device. Cancel changes nothing. Show an error rather than a success or Welcome state if deletion fails. Do not label this action **Delete Account**.
+
 ## 9. Workout UI
 
 ### Guided Workout Builder
 
 Use one obvious primary action per focused step: Workout Name → Exercise Library single selection → planned sets/optional starting weight → ordered composition → Save Workout. Keep Back and Cancel distinct; Back retains the local draft, and Cancel confirms before discarding meaningful changes. Use existing type, color, spacing, radius and card tokens. Exact manual weight entry remains available; no inferred or recommended weight is shown here. Planned values must be labeled as editable starting values, not performed sets.
+
+### Workout list interactions
+
+For manageable workout rows, tap performs the primary Start/Resume action. Swipe left reveals only concise contextual actions; long press opens the complete action menu. An accessible More actions control exposes the same menu without gestures. Do not assign a swipe-right product action for symmetry. Custom rows use Edit (including rename), Duplicate, and confirmed Delete; built-in rows use Duplicate/Customize and Hide, never direct mutation or deletion of the canonical definition. Profile → Workout settings provides Restore for hidden built-ins. Use existing tokens, readable Dynamic Type layouts, compact-screen scrolling, and practical touch targets rather than permanent edit/delete buttons on every row.
+
+For swipe presentation, stack matching full-row foreground and action-background layers with a constant 14 pt radius on all corners. Keep the closed Saved workouts list visually continuous; reveal only the right-side actions as the foreground moves.
 
 ### ExerciseCard
 

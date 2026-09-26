@@ -19,7 +19,7 @@ Onboarding → Home → Workout → Sets → Rest → Finish → History → Pro
 
 ## P1 — Product polish
 
-- Minimal onboarding.
+- Onboarding Foundation: resumable lightweight personalization or direct first-workout creation through the Guided Workout Builder, separate versioned local state, legacy-user bypass, and later Profile re-entry. Calibration and recommendations remain separate future work.
 - Home Dashboard using real app data and `docs/DESIGN_SYSTEM.md`.
 - Modular dashboard foundation for existing Home content. Reorder/show-hide,
   supported-size selection, and saved/synced layouts come later as a separate

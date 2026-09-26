@@ -11,7 +11,9 @@ export function Confirmation({
   confirmLabel,
   cancelLabel,
   busy = false,
+  busyLabel = 'Saving…',
   error,
+  destructive = false,
   onConfirm,
   onCancel,
 }: {
@@ -21,7 +23,9 @@ export function Confirmation({
   confirmLabel: string;
   cancelLabel: string;
   busy?: boolean;
+  busyLabel?: string;
   error?: string;
+  destructive?: boolean;
   onConfirm: () => void;
   onCancel: () => void;
 }) {
@@ -45,8 +49,9 @@ export function Confirmation({
             </Text>
           ) : null}
           <AppButton
-            title={busy ? 'Saving…' : confirmLabel}
+            title={busy ? busyLabel : confirmLabel}
             disabled={busy}
+            destructive={destructive}
             onPress={onConfirm}
           />
           <AppButton

@@ -4,6 +4,7 @@ import { AppButton } from '../../components/AppButton';
 import { Dock } from '../../components/Dock';
 import { WorkoutTemplates } from '../../components/WorkoutTemplates';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { completeOnboardingForTest } from './onboarding-fixture';
 import { defaultTemplates } from '../workout-catalog';
 import { Text } from 'react-native';
 
@@ -78,6 +79,7 @@ it('shows a truthful Profile and About without fake account or preference contro
 
 it('keeps the Profile tab and navigation to Home functional', async () => {
   await AsyncStorage.clear();
+  await completeOnboardingForTest();
   let view!: ReturnType<typeof create>;
   await act(async () => {
     view = create(<App />);
