@@ -15,6 +15,7 @@ import { GlassCard } from './GlassCard';
 import { AppButton } from './AppButton';
 import { Confirmation } from './Confirmation';
 import { ExerciseLibrary } from './ExerciseLibrary';
+import { WorkoutCalibration } from './WorkoutCalibration';
 import {
   addSet,
   appendExercise,
@@ -34,6 +35,11 @@ import {
 import { isSetComplete, WorkoutSession } from '@/lib/workout-model';
 import { volume } from '@/lib/workout-metrics';
 import { colors, radius, spacing, typography } from '@/lib/theme';
+import type {
+  CalibrationFeedback,
+  CalibrationPathChoice,
+  CalibrationState,
+} from '@/lib/calibration';
 
 export const successHaptic = () => {
   void Haptics.notificationAsync(
@@ -53,12 +59,31 @@ export function Workout({
   update,
   finish,
   busy,
+  calibration,
+  calibrationBusy = false,
+  calibrationError = '',
+  chooseCalibration,
+  giveCalibrationFeedback,
+  failCalibrationAttempt,
 }: {
   session: WorkoutSession | null;
   history: WorkoutSession[];
   update: (transform: (session: WorkoutSession) => WorkoutSession) => void;
   finish: () => void;
   busy: boolean;
+  calibration?: CalibrationState;
+  calibrationBusy?: boolean;
+  calibrationError?: string;
+  chooseCalibration?: (
+    exerciseId: string,
+    choice: CalibrationPathChoice,
+  ) => void;
+  giveCalibrationFeedback?: (
+    exerciseId: string,
+    setId: string,
+    feedback: CalibrationFeedback,
+  ) => void;
+  failCalibrationAttempt?: (exerciseId: string, setId: string) => void;
 }) {
   const [now, setNow] = useState(Date.now());
   const [picker, setPicker] = useState(false);
@@ -165,6 +190,34 @@ export function Workout({
             </Pressable>
           ))}
         </ScrollView>
+        {exercise &&
+          (calibration &&
+          chooseCalibration &&
+          giveCalibrationFeedback &&
+          failCalibrationAttempt ? (
+            <WorkoutCalibration
+              key={`${session.id}:${exercise.id}`}
+              session={session}
+              exercise={exercise}
+              history={history}
+              state={calibration}
+              busy={busy || calibrationBusy}
+              error={calibrationError}
+              onChoose={(choice) =>
+                chooseCalibration(exercise.libraryId, choice)
+              }
+              onFeedback={(setId, feedback) =>
+                giveCalibrationFeedback(exercise.libraryId, setId, feedback)
+              }
+              onFailedAttempt={(setId) =>
+                failCalibrationAttempt(exercise.libraryId, setId)
+              }
+              onContinue={() => {
+                if (exercise.sets.every(isSetComplete))
+                  update((current) => addSet(current, index));
+              }}
+            />
+          ) : null)}
         {exercise && (
           <GlassCard>
             <Text style={s.heading}>{exercise.name}</Text>

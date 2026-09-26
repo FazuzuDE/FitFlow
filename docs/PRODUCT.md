@@ -42,7 +42,7 @@ On first launch without meaningful existing workout data, Welcome offers two dis
 
 Personalization is short and resumable: Goal (build muscle / get stronger / general fitness) → Experience (beginner / some experience / experienced) → Environment (gym / home / both) → optional age, height, and body weight → truthful completion → Home. Answers survive Back and app restart. Skipping personalization is reversible; Profile can reopen it later. The app learns progressively from performed workouts rather than demanding detailed training history, 1RM, target reps, working weights, or a favorite split up front.
 
-Onboarding has its own versioned local state. It must not alter `fitflow_state_v1`, schema version 1, active workouts, historical snapshots, or the Workout Engine. Corrupt onboarding data cannot corrupt or block access to saved workouts/history. Demographic/body data do not determine an exact working weight. Calibration, baseline generation, and recommendations remain future work.
+Onboarding has its own versioned local state. It must not alter `fitflow_state_v1`, schema version 1, active workouts, historical snapshots, or the Workout Engine. Corrupt onboarding data cannot corrupt or block access to saved workouts/history. Demographic/body data do not determine an exact working weight. Onboarding does not generate a workout or recommend a load.
 
 ### Home
 
@@ -73,7 +73,13 @@ Create/edit/select reusable routines. User-facing creation is a guided Workout B
 
 In the manageable workout list, tapping a row starts that workout (or resumes the already-active session). A left swipe reveals concise quick actions; a long press opens all actions, with an accessible non-gesture alternative. Custom workouts can be edited (including renaming), duplicated, or deleted after confirmation. Built-in definitions cannot be edited, renamed, or deleted: users can duplicate one into an independent custom workout or hide it from My Workouts. Hidden built-ins can be restored from Profile. Hiding or deleting a template never removes or rewrites active/completed workout snapshots. Do not assign a swipe-right action without a separately approved use.
 
-A future first-workout calibration may collect actual exercise-specific work and simple perceived difficulty to establish a baseline for later adaptive progression. Proposed sets/load must rely primarily on actual exercise history, be explainable and manually overrideable, and never replace actual performed values in History. Body measurements alone do not provide a precise working weight. This direction does not add calibration or recommendations to the current builder.
+### First Workout Calibration v1
+
+Calibration is an optional part of a normal first workout for exercises with meaningful external-load kilograms and insufficient reliable exercise-specific history. A user may enter a known approximate working weight, or choose **Help me find a starting weight**, select a light controllable weight on their actual equipment, and enter its displayed value. Neither path proves a baseline in advance. Age, sex/gender, height and body weight never determine an exact starting load.
+
+After an actual completed set, the user may report **Too easy**, **Good**, **Hard**, or **Too hard**. A user who cannot complete an entered load can also mark that attempt **Too hard** without falsely completing a set. Too easy invites a user-chosen increase on a later attempt; Hard does not invite an increase; Too hard invites a reduction and retry. No percentage or universal kilogram recommendation is calculated, and exact manual entry remains available. Approximately two or three attempts is guidance, not a forced limit; after repeated attempts the user may continue or use the current load for today. A Good completed set may establish an exercise-specific **Starting baseline**, identified as based on the first workout and editable through future training. Only actual completed sets belong in History and Progress; calibration feedback is auxiliary and must not create fake sets or rewrite snapshots.
+
+Bodyweight and assisted-bodyweight exercises continue through the normal workout flow without a kilogram Starting baseline in v1. Assistance must never be stored as ordinary lifted weight for calibration. A future load model may distinguish external load, bodyweight, added load, and assistance; this PR does not change `schemaVersion: 1`, `fitflow_state_v1`, History, or Progress semantics. Adaptive progression, proposed loads, and Recommendation Engine remain future work.
 
 ### History
 

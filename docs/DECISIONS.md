@@ -2,6 +2,21 @@
 
 This chronological log records approved decisions. The owning product, design, roadmap, and engineering documents remain the detailed sources of truth.
 
+## 2026-09-26 — First Workout Calibration v1 boundary
+
+Status: Approved — pending Git sync
+
+Decision:
+
+- Offer optional calibration within a real first workout for externally loaded exercises lacking reliable exercise-specific history. Known load is a starting reference; unknown load uses light controllable equipment and exact user-entered kilograms, never a demographic or percentage formula.
+- Interpret actual-set feedback as Too easy, Good, Hard, or Too hard. A Good completed set can establish a truthful Starting baseline; attempts remain user-controlled with no forced increase or hard three-attempt limit.
+- Bodyweight and assisted-bodyweight movements retain normal workouts but have no kilogram calibration baseline in v1. Never treat assistance as ordinary lifted weight. Defer a type-aware load model and all adaptive recommendations.
+- Keep workout schema v1, `fitflow_state_v1`, History, and Progress semantics unchanged. Auxiliary calibration data cannot block normal workout storage.
+
+Implementation: First Workout Calibration v1 feature PR
+
+Related: `PRODUCT.md`, `DESIGN_SYSTEM.md`, `ROADMAP.md`
+
 ## 2026-09-25 — Guided Workout Builder
 
 Status: Approved — pending Git sync

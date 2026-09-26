@@ -52,6 +52,17 @@ import {
 import { OnboardingRepository } from '@/lib/onboarding-repository';
 import { resetLocalData } from '@/lib/local-data-reset';
 import { HiddenBuiltInsRepository } from '@/lib/hidden-builtins';
+import { CalibrationRepository } from '@/lib/calibration-repository';
+import {
+  chooseCalibrationPath,
+  initialCalibrationState,
+  recordCalibrationFeedback,
+  recordFailedCalibrationAttempt,
+  startingBaseline,
+  type CalibrationFeedback,
+  type CalibrationPathChoice,
+  type CalibrationState,
+} from '@/lib/calibration';
 import type { TemplateDraft } from '@/lib/workout-templates';
 import { colors, radius, spacing, typography } from '@/lib/theme';
 
@@ -162,6 +173,17 @@ export default function App() {
   const [hiddenRepository] = useState(
     () => new HiddenBuiltInsRepository(AsyncStorage),
   );
+  const [calibrationRepository] = useState(
+    () => new CalibrationRepository(AsyncStorage),
+  );
+  const [calibrationState, setCalibrationState] = useState<CalibrationState>(
+    initialCalibrationState,
+  );
+  const [calibrationReady, setCalibrationReady] = useState(false);
+  const [calibrationBusy, setCalibrationBusy] = useState(false);
+  const [calibrationError, setCalibrationError] = useState('');
+  const calibrationOperation = useRef(false);
+  const calibrationEpoch = useRef(0);
   const [hiddenBuiltInIds, setHiddenBuiltInIds] = useState<string[]>([]);
   const [hiddenReady, setHiddenReady] = useState(false);
   const [hiddenBusy, setHiddenBusy] = useState(false);
@@ -190,6 +212,13 @@ export default function App() {
     let mounted = true;
     const epoch = onboardingEpoch.current;
     const visibilityEpoch = hiddenEpoch.current;
+    const feedbackEpoch = calibrationEpoch.current;
+    void calibrationRepository.load().then((state) => {
+      if (mounted && calibrationEpoch.current === feedbackEpoch) {
+        setCalibrationState(state);
+        setCalibrationReady(true);
+      }
+    });
     void hiddenRepository
       .load()
       .then(
@@ -231,7 +260,7 @@ export default function App() {
     return () => {
       mounted = false;
     };
-  }, [store, onboardingRepository, hiddenRepository]);
+  }, [store, onboardingRepository, hiddenRepository, calibrationRepository]);
   const queueOnboardingSave = (next: OnboardingState): Promise<void> => {
     if (resetInProgress.current)
       return Promise.reject(new Error('Reset in progress.'));
@@ -320,6 +349,61 @@ export default function App() {
   const visibleTemplates = data.templates.filter(
     (template) => !hiddenBuiltInIds.includes(template.id),
   );
+  const saveCalibration = async (
+    transform: (state: CalibrationState) => CalibrationState,
+  ) => {
+    if (
+      resetInProgress.current ||
+      calibrationOperation.current ||
+      !calibrationReady
+    )
+      return;
+    calibrationOperation.current = true;
+    const epoch = calibrationEpoch.current;
+    setCalibrationBusy(true);
+    setCalibrationError('');
+    const next = transform(calibrationState);
+    try {
+      await calibrationRepository.save(next);
+      if (calibrationEpoch.current === epoch) setCalibrationState(next);
+    } catch {
+      if (calibrationEpoch.current === epoch)
+        setCalibrationError(
+          'Calibration feedback could not be saved. Your workout is unaffected; try again.',
+        );
+    } finally {
+      calibrationOperation.current = false;
+      if (calibrationEpoch.current === epoch) setCalibrationBusy(false);
+    }
+  };
+  const chooseCalibration = (
+    exerciseId: string,
+    choice: CalibrationPathChoice,
+  ) => {
+    const session = data.activeWorkout;
+    if (!session) return;
+    void saveCalibration((state) =>
+      chooseCalibrationPath(state, session.id, exerciseId, choice),
+    );
+  };
+  const giveCalibrationFeedback = (
+    exerciseId: string,
+    setId: string,
+    feedback: CalibrationFeedback,
+  ) => {
+    const session = data.activeWorkout;
+    if (!session) return;
+    void saveCalibration((state) =>
+      recordCalibrationFeedback(state, session, exerciseId, setId, feedback),
+    );
+  };
+  const failCalibrationAttempt = (exerciseId: string, setId: string) => {
+    const session = data.activeWorkout;
+    if (!session) return;
+    void saveCalibration((state) =>
+      recordFailedCalibrationAttempt(state, session, exerciseId, setId),
+    );
+  };
   const finish = async () => {
     if (!data.activeWorkout || busy) return;
     const completed = await store.finish();
@@ -337,14 +421,21 @@ export default function App() {
     setResetBusy(true);
     setResetError('');
     try {
+      await calibrationRepository.waitForWrites();
+      ++calibrationEpoch.current;
       await resetLocalData(AsyncStorage, async () => {
         await onboardingWrites.current;
         await store.waitForPendingWrites();
         await hiddenWrites.current;
+        await calibrationRepository.waitForWrites();
       });
       store.resetAfterLocalDataRemoval();
       setOnboardingState(initialOnboardingState);
       setHiddenBuiltInIds([]);
+      setCalibrationState(initialCalibrationState());
+      setCalibrationReady(true);
+      setCalibrationError('');
+      setCalibrationBusy(false);
       setHiddenError('');
       setHiddenReady(true);
       setOnboardingError('');
@@ -356,6 +447,9 @@ export default function App() {
       setTab('home');
       setConfirmReset(false);
     } catch (problem) {
+      setCalibrationState(await calibrationRepository.load());
+      setCalibrationReady(true);
+      setCalibrationBusy(false);
       setResetError(
         problem instanceof Error
           ? problem.message
@@ -372,7 +466,7 @@ export default function App() {
       <Confirmation
         visible={confirmReset}
         title="Reset CRESUM?"
-        message="All local CRESUM data on this device — workouts, history, templates, active workout, hidden-workout settings, personalization and onboarding data — will be permanently deleted. This cannot be undone."
+        message="All local CRESUM data on this device — workouts, history, templates, active workout, hidden-workout settings, calibration, personalization and onboarding data — will be permanently deleted. This cannot be undone."
         confirmLabel="Reset local data"
         cancelLabel="Keep data"
         destructive
@@ -509,6 +603,12 @@ export default function App() {
               update={(transform) => store.updateWorkout(transform)}
               finish={() => setConfirmFinish(true)}
               busy={busy}
+              calibration={calibrationReady ? calibrationState : undefined}
+              calibrationBusy={calibrationBusy}
+              calibrationError={calibrationError}
+              chooseCalibration={chooseCalibration}
+              giveCalibrationFeedback={giveCalibrationFeedback}
+              failCalibrationAttempt={failCalibrationAttempt}
             />
           ) : tab === 'progress' ? (
             <>
@@ -523,6 +623,20 @@ export default function App() {
                         summary.startedAt,
                     )}
                   </Text>
+                  {summary.exercises.map((exercise) => {
+                    const baseline = startingBaseline(
+                      calibrationState,
+                      data.history,
+                      exercise.libraryId,
+                    );
+                    return baseline?.sessionId === summary.id ? (
+                      <Text key={exercise.id} style={s.sub}>
+                        Starting baseline · {exercise.name}: {baseline.weight}{' '}
+                        kg × {baseline.reps} reps. Based on your first workout;
+                        you can change this anytime.
+                      </Text>
+                    ) : null;
+                  })}
                   <AppButton
                     title="Done"
                     secondary

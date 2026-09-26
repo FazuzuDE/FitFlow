@@ -158,6 +158,10 @@ Recommended columns: `SET | PREVIOUS | KG | REPS | ✓`
 
 Completion must be easy to hit during training. Completed state uses `success` without reducing readability.
 
+### First-workout calibration
+
+Integrate the optional known-weight / **Help me find a starting weight** choice into the active exercise, not a separate strength test or the Guided Workout Builder. Help copy says to start light, select a controllable available weight, and enter the actual value; it never displays an inferred kilogram target. Ask **How did that feel?** only after a performed set, with four accessible choices: Too easy, Good, Hard, Too hard. For an entered but uncompleted load, offer an explicitly labeled **Couldn't complete this load** action without creating a completed set. Explain the next attempt without forcing an increase or obscuring the exact weight field. After repeated attempts, offer both Continue calibrating and Use current load for today. Label a qualifying result **Starting baseline**, **Based on your first workout**, and **You can change this anytime**; never call it optimal or measured strength. For bodyweight and assisted movements, omit kilogram-baseline controls and retain normal workout logging. Use existing tokens, 44-point targets, scrollable compact layout, and Dynamic Type-friendly text.
+
 ### RestTimer
 
 Functional, not decorative: prominent remaining time, pause/skip where useful, `+15s/-15s`, completion haptic, recoverable while navigating inside the active workout.
