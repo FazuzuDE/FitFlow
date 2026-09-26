@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   Modal,
   Pressable,
@@ -9,6 +9,9 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import Swipeable, {
+  type SwipeableMethods,
+} from 'react-native-gesture-handler/ReanimatedSwipeable';
 import { AppButton } from './AppButton';
 import { Confirmation } from './Confirmation';
 import { GlassCard } from './GlassCard';
@@ -23,6 +26,12 @@ import { colors, radius, spacing, typography } from '@/lib/theme';
 
 type EditorState =
   { mode: 'create' } | { mode: 'edit'; templateId: string } | null;
+
+const quickActionSize = 44;
+const quickActionGap = spacing.xs;
+const quickActionInset = spacing.xs;
+const quickActionsWidth =
+  quickActionSize * 2 + quickActionGap + quickActionInset * 2;
 
 type WorkoutTemplatesProps = {
   templates: WorkoutTemplate[];
@@ -53,9 +62,10 @@ export function WorkoutTemplates({
   const [editor, setEditor] = useState<EditorState>(null);
   const [menuTemplateId, setMenuTemplateId] = useState<string>();
   const [menuError, setMenuError] = useState('');
-  const [quickOpenId, setQuickOpenId] = useState<string>();
-  const swipeStart = useRef<{ x: number; y: number } | null>(null);
-  const swipeRecognized = useRef(false);
+  const [openSwipeId, setOpenSwipeId] = useState<string>();
+  const swipeableRefs = useRef(new Map<string, SwipeableMethods>());
+  const openSwipeRef = useRef<string | undefined>(undefined);
+  const gestureRowRef = useRef<string | undefined>(undefined);
   const [deleteTargetId, setDeleteTargetId] = useState<string>();
   const [deleteError, setDeleteError] = useState('');
   const editTemplate =
@@ -70,9 +80,23 @@ export function WorkoutTemplates({
   );
   const listActionsDisabled = busy || Boolean(editor);
 
+  useEffect(() => {
+    const openId = openSwipeRef.current;
+    if (openId && !templates.some((template) => template.id === openId)) {
+      openSwipeRef.current = undefined;
+      setOpenSwipeId(undefined);
+      if (gestureRowRef.current === openId) gestureRowRef.current = undefined;
+    }
+  }, [templates]);
+
+  const closeOpenSwipe = () => {
+    if (openSwipeRef.current)
+      swipeableRefs.current.get(openSwipeRef.current)?.close();
+  };
+
   const openMenu = (templateId: string) => {
     if (listActionsDisabled) return;
-    setQuickOpenId(undefined);
+    closeOpenSwipe();
     setMenuError('');
     setMenuTemplateId(templateId);
   };
@@ -81,7 +105,7 @@ export function WorkoutTemplates({
     const result = await onDuplicate(templateId);
     if (result.ok) {
       setMenuTemplateId(undefined);
-      setQuickOpenId(undefined);
+      closeOpenSwipe();
       setMenuError('');
       successHaptic();
     } else setMenuError(result.error);
@@ -90,7 +114,7 @@ export function WorkoutTemplates({
     if (!onHide) return;
     if (await onHide(templateId)) {
       setMenuTemplateId(undefined);
-      setQuickOpenId(undefined);
+      closeOpenSwipe();
       setMenuError('');
       successHaptic();
     } else setMenuError('Workout could not be hidden. Try again.');
@@ -264,100 +288,119 @@ export function WorkoutTemplates({
             ).length;
             const unavailable = template.exerciseIds.length - available;
             return (
-              <View
+              <Swipeable
                 key={`${template.id}-${index}`}
                 testID={`template-swipe-${template.id}`}
-                style={s.swipeContainer}
-                onTouchStart={(event) => {
-                  swipeStart.current = {
-                    x: event.nativeEvent.pageX,
-                    y: event.nativeEvent.pageY,
-                  };
-                  swipeRecognized.current = false;
+                ref={(methods) => {
+                  if (methods) swipeableRefs.current.set(template.id, methods);
+                  else swipeableRefs.current.delete(template.id);
                 }}
-                onTouchMove={(event) => {
-                  const start = swipeStart.current;
-                  if (!start) return;
-                  const dx = event.nativeEvent.pageX - start.x;
-                  const dy = event.nativeEvent.pageY - start.y;
-                  if (Math.abs(dx) >= 48 && Math.abs(dx) > Math.abs(dy) * 1.5)
-                    swipeRecognized.current = true;
+                containerStyle={s.swipeContainer}
+                childrenContainerStyle={s.movingRow}
+                enabled={!listActionsDisabled}
+                friction={1}
+                rightThreshold={52}
+                overshootLeft={false}
+                overshootFriction={8}
+                onSwipeableOpenStartDrag={() => {
+                  gestureRowRef.current = template.id;
                 }}
-                onTouchEnd={(event) => {
-                  const start = swipeStart.current;
-                  swipeStart.current = null;
-                  if (!start) return;
-                  const dx = event.nativeEvent.pageX - start.x;
-                  const dy = event.nativeEvent.pageY - start.y;
-                  if (Math.abs(dx) < 48 || Math.abs(dx) <= Math.abs(dy) * 1.5)
-                    return;
-                  swipeRecognized.current = true;
-                  if (dx < 0) setQuickOpenId(template.id);
-                  else if (quickOpenId === template.id)
-                    setQuickOpenId(undefined);
-                  setTimeout(() => {
-                    swipeRecognized.current = false;
-                  }, 0);
+                onSwipeableCloseStartDrag={() => {
+                  gestureRowRef.current = template.id;
                 }}
-                onTouchCancel={() => {
-                  swipeStart.current = null;
-                  swipeRecognized.current = false;
+                onSwipeableWillOpen={() => {
+                  if (openSwipeRef.current !== template.id) closeOpenSwipe();
+                  openSwipeRef.current = template.id;
+                  setOpenSwipeId(template.id);
                 }}
+                onSwipeableClose={() => {
+                  if (openSwipeRef.current === template.id) {
+                    openSwipeRef.current = undefined;
+                    setOpenSwipeId(undefined);
+                  }
+                  if (gestureRowRef.current === template.id)
+                    gestureRowRef.current = undefined;
+                }}
+                renderRightActions={() => (
+                  <>
+                    <View
+                      testID={`quick-background-${template.id}`}
+                      pointerEvents="none"
+                      accessible={false}
+                      style={s.quickActionBackground}
+                    />
+                    <View
+                      testID={`quick-actions-${template.id}`}
+                      style={s.quickActions}
+                      accessibilityElementsHidden={openSwipeId !== template.id}
+                      importantForAccessibility={
+                        openSwipeId === template.id
+                          ? 'auto'
+                          : 'no-hide-descendants'
+                      }
+                    >
+                      {builtIn ? (
+                        <>
+                          <TemplateAction
+                            label={`Duplicate ${template.name}`}
+                            icon="copy-outline"
+                            disabled={listActionsDisabled || !onDuplicate}
+                            onPress={() => void duplicate(template.id)}
+                          />
+                          <TemplateAction
+                            label={`Hide ${template.name}`}
+                            icon="eye-off-outline"
+                            disabled={listActionsDisabled || !onHide}
+                            onPress={() => void hide(template.id)}
+                          />
+                        </>
+                      ) : (
+                        <>
+                          <TemplateAction
+                            label={`Edit ${template.name}`}
+                            icon="create-outline"
+                            disabled={listActionsDisabled}
+                            onPress={() => {
+                              closeOpenSwipe();
+                              setEditor({
+                                mode: 'edit',
+                                templateId: template.id,
+                              });
+                            }}
+                          />
+                          <TemplateAction
+                            label={`Delete ${template.name}`}
+                            icon="trash-outline"
+                            danger
+                            disabled={listActionsDisabled}
+                            onPress={() => {
+                              closeOpenSwipe();
+                              setDeleteError('');
+                              setDeleteTargetId(template.id);
+                            }}
+                          />
+                        </>
+                      )}
+                    </View>
+                  </>
+                )}
               >
-                {quickOpenId === template.id ? (
-                  <View style={s.quickActions}>
-                    {builtIn ? (
-                      <>
-                        <TemplateAction
-                          label={`Duplicate ${template.name}`}
-                          icon="copy-outline"
-                          disabled={listActionsDisabled || !onDuplicate}
-                          onPress={() => void duplicate(template.id)}
-                        />
-                        <TemplateAction
-                          label={`Hide ${template.name}`}
-                          icon="eye-off-outline"
-                          disabled={listActionsDisabled || !onHide}
-                          onPress={() => void hide(template.id)}
-                        />
-                      </>
-                    ) : (
-                      <>
-                        <TemplateAction
-                          label={`Edit ${template.name}`}
-                          icon="create-outline"
-                          disabled={listActionsDisabled}
-                          onPress={() => {
-                            setQuickOpenId(undefined);
-                            setEditor({
-                              mode: 'edit',
-                              templateId: template.id,
-                            });
-                          }}
-                        />
-                        <TemplateAction
-                          label={`Delete ${template.name}`}
-                          icon="trash-outline"
-                          danger
-                          disabled={listActionsDisabled}
-                          onPress={() => {
-                            setQuickOpenId(undefined);
-                            setDeleteError('');
-                            setDeleteTargetId(template.id);
-                          }}
-                        />
-                      </>
-                    )}
-                  </View>
-                ) : null}
-                <View style={[s.row, quickOpenId === template.id && s.rowOpen]}>
+                <View style={s.row}>
                   <Pressable
                     accessibilityRole="button"
                     accessibilityLabel={`${hasActiveWorkout ? 'Resume active workout from' : 'Start'} ${template.name}`}
                     accessibilityHint="Long press for more workout actions"
                     disabled={listActionsDisabled || !onStart}
+                    onTouchStart={() => {
+                      if (gestureRowRef.current === template.id)
+                        gestureRowRef.current = undefined;
+                    }}
                     onPress={() => {
-                      if (swipeRecognized.current) return;
+                      if (gestureRowRef.current === template.id) return;
+                      if (openSwipeRef.current) {
+                        closeOpenSwipe();
+                        return;
+                      }
                       onStart?.(template);
                     }}
                     onLongPress={() => openMenu(template.id)}
@@ -377,7 +420,7 @@ export function WorkoutTemplates({
                     onPress={() => openMenu(template.id)}
                   />
                 </View>
-              </View>
+              </Swipeable>
             );
           })
         ) : (
@@ -427,33 +470,49 @@ function TemplateAction({
 const s = StyleSheet.create({
   card: { gap: spacing.xs },
   title: { ...typography.headline, color: colors.textPrimary },
-  swipeContainer: { overflow: 'hidden' },
+  swipeContainer: {
+    overflow: 'hidden',
+    backgroundColor: colors.surface,
+  },
+  movingRow: {
+    borderRadius: radius.md,
+    overflow: 'hidden',
+    backgroundColor: colors.surface,
+  },
   row: {
     minHeight: 64,
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.sm,
     paddingVertical: spacing.xs,
+    paddingRight: spacing.xs,
     borderBottomWidth: 1,
     borderBottomColor: colors.separator,
-    backgroundColor: colors.surface,
   },
-  rowOpen: { transform: [{ translateX: -104 }] },
   copy: { flex: 1, minWidth: 0, paddingVertical: spacing.xs },
   name: { ...typography.headline, color: colors.textPrimary },
   metadata: { ...typography.footnote, color: colors.textSecondary },
-  quickActions: {
+  quickActionBackground: {
     position: 'absolute',
-    right: 0,
     top: 0,
+    right: 0,
     bottom: 0,
+    left: 0,
+    backgroundColor: colors.background,
+    borderRadius: radius.md,
+  },
+  quickActions: {
+    width: quickActionsWidth,
+    height: '100%',
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.xxs,
+    justifyContent: 'flex-end',
+    gap: quickActionGap,
+    paddingHorizontal: quickActionInset,
   },
   action: {
-    width: 44,
-    height: 44,
+    width: quickActionSize,
+    height: quickActionSize,
     borderRadius: radius.md,
     backgroundColor: colors.surfaceSubtle,
     alignItems: 'center',

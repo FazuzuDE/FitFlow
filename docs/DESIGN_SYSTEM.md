@@ -140,6 +140,8 @@ Use one obvious primary action per focused step: Workout Name → Exercise Libra
 
 For manageable workout rows, tap performs the primary Start/Resume action. Swipe left reveals only concise contextual actions; long press opens the complete action menu. An accessible More actions control exposes the same menu without gestures. Do not assign a swipe-right product action for symmetry. Custom rows use Edit (including rename), Duplicate, and confirmed Delete; built-in rows use Duplicate/Customize and Hide, never direct mutation or deletion of the canonical definition. Profile → Workout settings provides Restore for hidden built-ins. Use existing tokens, readable Dynamic Type layouts, compact-screen scrolling, and practical touch targets rather than permanent edit/delete buttons on every row.
 
+For swipe presentation, stack matching full-row foreground and action-background layers with a constant 14 pt radius on all corners. Keep the closed Saved workouts list visually continuous; reveal only the right-side actions as the foreground moves.
+
 ### ExerciseCard
 
 Order:
