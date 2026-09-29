@@ -52,6 +52,8 @@ import {
 import { OnboardingRepository } from '@/lib/onboarding-repository';
 import { resetLocalData } from '@/lib/local-data-reset';
 import { HiddenBuiltInsRepository } from '@/lib/hidden-builtins';
+import { AuthStore } from '@/lib/auth-store';
+import { createSupabaseAuthRepository } from '@/lib/supabase-auth';
 import type { TemplateDraft } from '@/lib/workout-templates';
 import { colors, radius, spacing, typography } from '@/lib/theme';
 
@@ -155,6 +157,23 @@ export default function App() {
     store.subscribe,
     store.getSnapshot,
   );
+  const [authStore] = useState(
+    () =>
+      new AuthStore(
+        createSupabaseAuthRepository({
+          url: process.env.EXPO_PUBLIC_SUPABASE_URL,
+          publishableKey: process.env.EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
+        }),
+      ),
+  );
+  const authSnapshot = useSyncExternalStore(
+    authStore.subscribe,
+    authStore.getSnapshot,
+  );
+  useEffect(() => {
+    void authStore.initialize();
+    return () => authStore.dispose();
+  }, [authStore]);
   const [tab, setTab] = useState('home');
   const [onboardingRepository] = useState(
     () => new OnboardingRepository(AsyncStorage),
@@ -542,6 +561,13 @@ export default function App() {
             }
           >
             <ProfileSettings
+              account={{
+                snapshot: authSnapshot,
+                sendEmailOtp: (email) => authStore.sendEmailOtp(email),
+                verifyEmailOtp: (email, code) =>
+                  authStore.verifyEmailOtp(email, code),
+                signOut: () => authStore.signOut(),
+              }}
               templates={visibleTemplates}
               busy={busy || hiddenBusy}
               version={Constants.expoConfig?.version}

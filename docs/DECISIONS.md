@@ -2,6 +2,14 @@
 
 This chronological log records approved decisions. The owning product, design, roadmap, and engineering documents remain the detailed sources of truth.
 
+## 2026-09-29 - Account/Auth Foundation Stage 1
+
+Status: Approved - pending Git sync
+
+Decision: Email authentication uses a six-digit OTP entered in-app; no Stage 1 magic links. Configure the Supabase email template with `{{ .Token }}`. Persist and refresh the auth session in its own storage, with React Native AppState start/stop auto-refresh and listener cleanup. Keep authentication independent from local workouts and Reset local data. Apple and Google remain unavailable provider seams. Stage 1 does not include workout cloud sync or claim backup.
+
+Related: `PRODUCT.md`, `DESIGN_SYSTEM.md`, `ROADMAP.md`
+
 ## 2026-09-29 — Account & Cloud Sync v1 architecture
 
 Status: Approved — pending Git sync
