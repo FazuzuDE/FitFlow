@@ -15,7 +15,17 @@ Onboarding → Home → Workout → Sets → Rest → Finish → History → Pro
 4. **History** — accurate completed-session list and details.
 5. **Progress** — real saved-data metrics: volume, PRs, progression, estimated 1RM, readable charts.
 6. **Local persistence/offline** — core logging does not depend on network; recover data according to current architecture.
-7. **Account + Sync** — target Supabase/Postgres; refine after inspecting persistence. Do not replace working local storage unnecessarily.
+7. **Account + Sync** — optional Supabase/Postgres backup and multi-device sync, staged behind reliable local storage. Do not replace working local persistence or make workout logging network-dependent.
+
+### Account + Cloud Sync v1 sequence
+
+Implement in separate focused PRs, not one combined feature:
+
+1. **Account/Auth Foundation:** Supabase client seam, auth session state, Account/Profile shell, Apple/Google/Email auth seams, signed-in/out behavior. No workout cloud sync yet.
+2. **Cloud Schema + Sync Foundation:** versioned database migrations, user-owned Row Level Security, normalized entities, stable identity/revisions, device ID, and durable local sync metadata/queue. No broad feature expansion.
+3. **History Backup + First Sync:** completed-workout upload/download, merge-first sign-in, idempotent retry, offline recovery, and physical multi-device validation where possible.
+
+Later, separately approved work may sync custom workouts, preferences/profile, add conflict UX, account deletion and deeper recovery/diagnostics. Active-workout backup is not part of Sync v1 and needs separate approval. This documentation sync does not increase official Core readiness.
 
 ## P1 — Product polish
 
@@ -40,7 +50,7 @@ Device/development builds, error handling, store assets/metadata, privacy/permis
 
 ## Future
 
-- First-workout calibration and adaptive progression: conservative initial work → actual exercise-specific performance and simple perceived difficulty → baseline → explainable, overrideable proposed sets/load informed by actual history. Body measurements alone are not enough for a precise working weight; actual logged values remain truth. This is not part of the Guided Workout Builder.
+- First-workout calibration and adaptive progression: conservative initial work → actual exercise-specific performance and simple perceived difficulty → baseline → explainable, overrideable proposed sets/load informed by actual history. Body measurements alone are not enough for a precise working weight; actual logged values remain truth. This is not part of the Guided Workout Builder. PR #17 Calibration v1 is deferred for UX redesign, remains unmerged, and is not an Account & Sync dependency.
 - Suggested Next Workout and its Recommendation Engine: Workout → Muscle Load → Muscle Map → Training Insight → Suggested Next Workout → Customize → Start Workout → Adapt.
 - Recommendation Engine architecture may be anticipated, but implementation must not delay CRESUM Core. Muscle load is one input rather than ground truth.
 
