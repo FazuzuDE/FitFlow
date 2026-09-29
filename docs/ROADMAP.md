@@ -20,6 +20,7 @@ Onboarding → Home → Workout → Sets → Rest → Finish → History → Pro
 ## P1 — Product polish
 
 - Onboarding Foundation: resumable lightweight personalization or direct first-workout creation through the Guided Workout Builder, separate versioned local state, legacy-user bypass, and later Profile re-entry. Calibration and recommendations remain separate future work.
+- First Workout Calibration v1: optional, exercise-specific feedback during a real workout for externally loaded movements without reliable history; an actual Good set can establish a Starting baseline. Bodyweight and assisted movements have no kilogram baseline in v1. No recommendations or adaptive progression.
 - Home Dashboard using real app data and `docs/DESIGN_SYSTEM.md`.
 - Modular dashboard foundation for existing Home content. Reorder/show-hide,
   supported-size selection, and saved/synced layouts come later as a separate
@@ -40,7 +41,7 @@ Device/development builds, error handling, store assets/metadata, privacy/permis
 
 ## Future
 
-- First-workout calibration and adaptive progression: conservative initial work → actual exercise-specific performance and simple perceived difficulty → baseline → explainable, overrideable proposed sets/load informed by actual history. Body measurements alone are not enough for a precise working weight; actual logged values remain truth. This is not part of the Guided Workout Builder.
+- Adaptive progression after Calibration v1: explainable, overrideable proposed sets/load informed by actual exercise history. A future load model must distinguish external load, bodyweight, added load, and assistance. Body measurements alone are not enough for a precise working weight; actual logged values remain truth. This is not part of the Guided Workout Builder.
 - Suggested Next Workout and its Recommendation Engine: Workout → Muscle Load → Muscle Map → Training Insight → Suggested Next Workout → Customize → Start Workout → Adapt.
 - Recommendation Engine architecture may be anticipated, but implementation must not delay CRESUM Core. Muscle load is one input rather than ground truth.
 

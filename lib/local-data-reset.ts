@@ -1,4 +1,5 @@
 import { HIDDEN_BUILT_INS_KEY } from './hidden-builtins';
+import { CALIBRATION_KEY } from './calibration-repository';
 import { ONBOARDING_KEY } from './onboarding-repository';
 import { LEGACY_KEYS, STATE_KEY } from './workout-repository';
 
@@ -7,6 +8,7 @@ import { LEGACY_KEYS, STATE_KEY } from './workout-repository';
 export const LOCAL_DATA_KEYS = [
   ONBOARDING_KEY,
   HIDDEN_BUILT_INS_KEY,
+  CALIBRATION_KEY,
   ...LEGACY_KEYS,
   STATE_KEY,
 ] as const;

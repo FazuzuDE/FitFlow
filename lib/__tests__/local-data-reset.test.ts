@@ -5,6 +5,7 @@ import { defaultTemplates } from '../workout-catalog';
 const original = new Map([
   ['cresum_onboarding_v1', '{"version":1}'],
   ['cresum_hidden_builtins_v1', '{"version":1,"ids":["upper"]}'],
+  ['cresum_calibration_v1', '{"version":1,"paths":[],"feedback":[]}'],
   ['fitflow_history', '[{"id":"legacy"}]'],
   ['fitflow_active', '{"id":"active"}'],
   ['fitflow_templates', '[{"id":"custom"}]'],
