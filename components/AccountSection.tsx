@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
-import { StyleSheet, Text, TextInput, View } from 'react-native';
+import { useState } from 'react';
+import { StyleSheet, Text, TextInput } from 'react-native';
 import { AppButton } from './AppButton';
 import { GlassCard } from './GlassCard';
 import type { AuthSnapshot } from '@/lib/auth-store';
@@ -12,7 +12,17 @@ export type AccountSectionProps = {
   signOut(): Promise<void>;
 };
 
-export function AccountSection({
+export function AccountSection({ snapshot, ...actions }: AccountSectionProps) {
+  return (
+    <AccountSectionContent
+      key={snapshot.status === 'signed_in' ? 'signed-in' : 'signed-out'}
+      snapshot={snapshot}
+      {...actions}
+    />
+  );
+}
+
+function AccountSectionContent({
   snapshot,
   sendEmailOtp,
   verifyEmailOtp,
@@ -24,14 +34,6 @@ export function AccountSection({
   const [localBusy, setLocalBusy] = useState(false);
   const [message, setMessage] = useState('');
   const [localError, setLocalError] = useState('');
-  useEffect(() => {
-    if (snapshot.status === 'signed_in') {
-      setCode('');
-      setMessage('');
-      setLocalError('');
-    }
-  }, [snapshot.status]);
-
   const busy = localBusy || snapshot.busy !== null;
   const validEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
   async function send(resend: boolean) {
@@ -112,7 +114,7 @@ export function AccountSection({
           <Text style={s.copy}>
             An account is optional. Your workouts stay available offline.
           </Text>
-          {!snapshot.configured ? (
+          {!snapshot.configured && snapshot.status !== 'initializing' ? (
             <Text style={s.copy}>
               Email account setup is not available in this build.
             </Text>

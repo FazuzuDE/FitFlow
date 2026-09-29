@@ -42,6 +42,20 @@ it('keepsUnconfiguredCoreUsable', async () => {
   store.dispose();
 });
 
+it('defersClientCreationUntilMountedInitialization', async () => {
+  const fake = fakeRepository();
+  const factory = jest.fn(() => fake.repository);
+  const abandoned = new AuthStore(factory);
+  abandoned.dispose();
+  expect(factory).not.toHaveBeenCalled();
+  const mounted = new AuthStore(factory);
+  await mounted.initialize();
+  await mounted.initialize();
+  expect(factory).toHaveBeenCalledTimes(1);
+  mounted.dispose();
+  expect(fake.repository.dispose).toHaveBeenCalledTimes(1);
+});
+
 it('restoresIdentityAndRespondsToSessionEvents', async () => {
   const fake = fakeRepository();
   jest.mocked(fake.repository.getIdentity).mockResolvedValue(person);
@@ -126,4 +140,20 @@ it('disposesAuthSubscription', async () => {
   expect(store.getSnapshot().identity).toBeNull();
   expect(fake.unsubscribe).toHaveBeenCalledTimes(1);
   expect(fake.repository.dispose).toHaveBeenCalledTimes(1);
+});
+
+it('reflectsLocalSignOutEventEvenIfServerSignOutFails', async () => {
+  const fake = fakeRepository();
+  jest.mocked(fake.repository.getIdentity).mockResolvedValue(person);
+  jest.mocked(fake.repository.signOut).mockImplementation(async () => {
+    fake.emit(null);
+    throw new Error('server error');
+  });
+  const store = new AuthStore(fake.repository);
+  await store.initialize();
+  await expect(store.signOut()).rejects.toThrow();
+  expect(store.getSnapshot().status).toBe('signed_out');
+  expect(store.getSnapshot().identity).toBeNull();
+  expect(store.getSnapshot().error).toMatch(/sign out/i);
+  store.dispose();
 });

@@ -35,13 +35,11 @@ export function createSupabaseAuthRepository(
       detectSessionInUrl: false,
     },
   });
-  const appStateSubscription =
-    Platform.OS === 'web'
-      ? null
-      : AppState.addEventListener('change', (state) => {
-          if (state === 'active') supabase.auth.startAutoRefresh();
-          else supabase.auth.stopAutoRefresh();
-        });
+  // Attach only after the store mounts and subscribes. React may abandon a
+  // render-created repository in development before effects can dispose it.
+  let appStateSubscription: ReturnType<
+    typeof AppState.addEventListener
+  > | null = null;
   let disposed = false;
   return {
     async getIdentity() {
@@ -50,6 +48,13 @@ export function createSupabaseAuthRepository(
       return identity(data.session?.user);
     },
     onAuthChange(listener) {
+      if (!disposed && Platform.OS !== 'web' && !appStateSubscription) {
+        appStateSubscription = AppState.addEventListener('change', (state) => {
+          if (disposed) return;
+          if (state === 'active') supabase.auth.startAutoRefresh();
+          else supabase.auth.stopAutoRefresh();
+        });
+      }
       const { data } = supabase.auth.onAuthStateChange((_event, session) => {
         if (!disposed) listener(identity(session?.user));
       });
@@ -66,7 +71,9 @@ export function createSupabaseAuthRepository(
         type: 'email',
       });
       if (error) throw error;
-      const verified = identity(data.user ?? data.session?.user);
+      const verified = data.session?.access_token
+        ? identity(data.session.user)
+        : null;
       if (!verified) throw new Error('No verified session');
       return verified;
     },

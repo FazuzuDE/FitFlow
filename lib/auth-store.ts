@@ -22,11 +22,18 @@ export class AuthStore {
   private unsubscribe: (() => void) | null = null;
   private disposed = false;
   private revision = 0;
+  private signedOutDuringRequest = false;
+  private repository: AuthRepository | null;
+  private factoryResolved = false;
 
-  constructor(private readonly repository: AuthRepository | null) {
+  constructor(
+    private readonly source:
+      AuthRepository | null | (() => AuthRepository | null),
+  ) {
+    this.repository = typeof source === 'function' ? null : source;
     this.snapshot = {
-      status: repository ? 'initializing' : 'signed_out',
-      configured: !!repository,
+      status: source ? 'initializing' : 'signed_out',
+      configured: !!this.repository,
       identity: null,
       error: null,
       busy: null,
@@ -49,10 +56,34 @@ export class AuthStore {
   }
 
   async initialize(): Promise<void> {
-    if (!this.repository || this.disposed) return;
+    if (this.disposed) return;
+    if (typeof this.source === 'function' && !this.factoryResolved) {
+      this.factoryResolved = true;
+      try {
+        this.repository = this.source();
+      } catch {
+        this.publish({
+          ...this.snapshot,
+          status: 'error',
+          error:
+            'Account setup is unavailable. Local workouts remain available.',
+        });
+        return;
+      }
+      this.publish({
+        ...this.snapshot,
+        configured: !!this.repository,
+        status: this.repository ? 'initializing' : 'signed_out',
+      });
+    }
+    if (!this.repository) return;
     if (!this.unsubscribe) {
       this.unsubscribe = this.repository.onAuthChange((identity) => {
-        if (this.disposed || this.snapshot.busy === 'sign_out') return;
+        if (this.disposed) return;
+        if (this.snapshot.busy === 'sign_out') {
+          if (!identity) this.signedOutDuringRequest = true;
+          return;
+        }
         this.revision++;
         this.publish({
           ...this.snapshot,
@@ -120,6 +151,7 @@ export class AuthStore {
 
   async signOut(): Promise<void> {
     if (!this.repository || this.snapshot.busy || this.disposed) return;
+    this.signedOutDuringRequest = false;
     this.revision++;
     this.publish({ ...this.snapshot, busy: 'sign_out', error: null });
     try {
@@ -133,8 +165,18 @@ export class AuthStore {
         error: null,
       });
     } catch {
-      const message = safeError('sign_out');
-      this.publish({ ...this.snapshot, busy: null, error: message });
+      const message = this.signedOutDuringRequest
+        ? 'Sign out completed on this device, but could not confirm it on other devices.'
+        : safeError('sign_out');
+      this.publish({
+        ...this.snapshot,
+        status: this.signedOutDuringRequest
+          ? 'signed_out'
+          : this.snapshot.status,
+        identity: this.signedOutDuringRequest ? null : this.snapshot.identity,
+        busy: null,
+        error: message,
+      });
       throw new Error(message);
     }
   }

@@ -159,7 +159,7 @@ export default function App() {
   );
   const [authStore] = useState(
     () =>
-      new AuthStore(
+      new AuthStore(() =>
         createSupabaseAuthRepository({
           url: process.env.EXPO_PUBLIC_SUPABASE_URL,
           publishableKey: process.env.EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY,

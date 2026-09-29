@@ -30,7 +30,13 @@ function mockClient() {
     }),
     signInWithOtp: jest.fn().mockResolvedValue({ data: {}, error: null }),
     verifyOtp: jest.fn().mockResolvedValue({
-      data: { user: { id: 'user-1', email: 'a@example.com' } },
+      data: {
+        user: { id: 'user-1', email: 'a@example.com' },
+        session: {
+          access_token: 'test-access',
+          user: { id: 'user-1', email: 'a@example.com' },
+        },
+      },
       error: null,
     }),
     signOut: jest.fn().mockResolvedValue({ error: null }),
@@ -112,6 +118,9 @@ it('autoRefreshFollowsAppStateAndDisposes', () => {
     .spyOn(AppState, 'addEventListener')
     .mockReturnValue({ remove });
   const repository = createSupabaseAuthRepository(config)!;
+  expect(spy).not.toHaveBeenCalled();
+  const unsubscribe = repository.onAuthChange(jest.fn());
+  const secondUnsubscribe = repository.onAuthChange(jest.fn());
   expect(spy).toHaveBeenCalledTimes(1);
   const onChange = spy.mock.calls[0][1] as (state: string) => void;
   onChange('active');
@@ -121,6 +130,32 @@ it('autoRefreshFollowsAppStateAndDisposes', () => {
   expect(auth.stopAutoRefresh).toHaveBeenCalledTimes(2);
   repository.dispose();
   repository.dispose();
+  unsubscribe();
+  secondUnsubscribe();
   expect(remove).toHaveBeenCalledTimes(1);
+  onChange('active');
+  expect(auth.startAutoRefresh).toHaveBeenCalledTimes(1);
+  spy.mockRestore();
+});
+
+it('doesNotTreatUserOnlyOtpResponseAsSignedIn', async () => {
+  const { auth } = mockClient();
+  auth.verifyOtp.mockResolvedValue({
+    data: { user: { id: 'user-1', email: 'a@example.com' }, session: null },
+    error: null,
+  });
+  const repository = createSupabaseAuthRepository(config)!;
+  await expect(
+    repository.verifyEmailOtp('a@example.com', '123456'),
+  ).rejects.toThrow();
+  repository.dispose();
+});
+
+it('doesNotRegisterAppStateForAbandonedUninitializedClient', () => {
+  mockClient();
+  const spy = jest.spyOn(AppState, 'addEventListener');
+  const repository = createSupabaseAuthRepository(config)!;
+  repository.dispose();
+  expect(spy).not.toHaveBeenCalled();
   spy.mockRestore();
 });
