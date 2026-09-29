@@ -40,6 +40,18 @@ it('shows a truthful Profile and About without fake account or preference contro
         createTemplate={jest.fn()}
         updateTemplate={jest.fn()}
         deleteTemplate={jest.fn()}
+        account={{
+          snapshot: {
+            status: 'signed_out',
+            configured: false,
+            identity: null,
+            error: null,
+            busy: null,
+          },
+          sendEmailOtp: jest.fn(),
+          verifyEmailOtp: jest.fn(),
+          signOut: jest.fn(),
+        }}
       />,
     );
   });
@@ -60,7 +72,9 @@ it('shows a truthful Profile and About without fake account or preference contro
   expect(text).toContain('Version 9.4.7');
   expect(text).not.toContain('FitFlow');
   expect(text).not.toContain('Local MVP');
-  expect(text).not.toContain('Sign in');
+  expect(text).toContain('ACCOUNT & SYNC');
+  expect(text).toContain('An account is optional');
+  expect(text).toContain('Email account setup is not available');
   expect(text).not.toContain('Sync now');
   expect(text).not.toContain('Customize Home');
   expect(view.root.findByType(WorkoutTemplates).props.templates).toEqual(

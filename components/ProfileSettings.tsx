@@ -1,6 +1,7 @@
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { GlassCard } from './GlassCard';
 import { AppButton } from './AppButton';
+import { AccountSection, type AccountSectionProps } from './AccountSection';
 import { WorkoutTemplates } from './WorkoutTemplates';
 import { defaultTemplates } from '@/lib/workout-catalog';
 import type { WorkoutTemplate } from '@/lib/workout-model';
@@ -27,6 +28,7 @@ export type ProfileSettingsProps = {
   hasActiveWorkout?: boolean;
   onPersonalize?: () => void;
   onResetLocalData?: () => void;
+  account?: AccountSectionProps;
 };
 
 export function ProfileSettings({
@@ -45,6 +47,7 @@ export function ProfileSettings({
   hasActiveWorkout = false,
   onPersonalize,
   onResetLocalData,
+  account,
 }: ProfileSettingsProps) {
   return (
     <ScrollView contentContainerStyle={s.content}>
@@ -122,6 +125,13 @@ export function ProfileSettings({
           ) : null}
         </GlassCard>
       </View>
+
+      {account ? (
+        <View style={s.section}>
+          <Text style={s.sectionLabel}>ACCOUNT & SYNC</Text>
+          <AccountSection {...account} />
+        </View>
+      ) : null}
 
       <View style={s.section}>
         <Text style={s.sectionLabel}>DATA</Text>
