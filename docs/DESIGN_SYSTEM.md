@@ -130,6 +130,8 @@ Welcome presents the two approved choices with equal clarity: a primary **Person
 
 Profile → Data includes a destructive **Reset local data** action using the existing `danger` token. Require confirmation that explicitly names local workouts, history, templates, active workout, personalization, and onboarding data and states the deletion is irreversible on this device. Cancel changes nothing. Show an error rather than a success or Welcome state if deletion fails. Do not label this action **Delete Account**.
 
+Future Profile → **Account & Sync** is separate from Data. Signed out, explain optional account backup/cross-device sync and that workouts remain usable offline; offer Apple, Google, and Email entry. Signed in, show identity when appropriate, a plain-language status (Synced, Syncing…, Sync pending, Couldn’t sync, or Offline), Sync Now, and Sign Out. Authentication and sync state are separate: a sync error does not imply sign-out or failed workout logging. Keep routine sync unobtrusive; show a Home-level notice only for meaningful pending/problem states, for example “Sync pending — your data is safe on this device.” Avoid technical queue counts. Future confirmed Delete Account must be distinct from Sign Out and Reset local data; do not alter the current reset UI or behavior in this documentation task.
+
 ## 9. Workout UI
 
 ### Guided Workout Builder

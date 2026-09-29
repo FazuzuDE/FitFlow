@@ -2,6 +2,22 @@
 
 This chronological log records approved decisions. The owning product, design, roadmap, and engineering documents remain the detailed sources of truth.
 
+## 2026-09-29 — Account & Cloud Sync v1 architecture
+
+Status: Approved — pending Git sync
+
+Decision:
+
+- Keep CRESUM account-optional and offline-first. A local workout save succeeds independently of cloud sync; first sign-in merges valid local and cloud data rather than replacing either or asking users to choose a source.
+- Target Supabase/Postgres with normalized user-owned entities, RLS, versioned migrations, stable offline IDs, explicit revisions, deletion tombstones, a durable entity-intent queue, pull/merge-before-push sync, idempotent retry, and entity-specific conflicts. Keep Core/local schema v1 behind a Sync Adapter/Mapper; active workouts remain device-local in Sync v1.
+- Separate auth status from sync status and Sign Out from Reset local data and future Delete Account. Profile communicates simple sync state; temporary failures do not block local History/Progress or sign users out.
+- Deliver Account/Auth Foundation, Cloud Schema + Sync Foundation, then History Backup + First Sync as separate PRs. Defer custom-workout/profile sync, conflict UX, account deletion, and any active-workout backup.
+- Canonical Exercise Library metadata is product data, not per-user sync data; historical snapshots retain their meaning. Deferred, unmerged Calibration PR #17 is not a dependency or completed checkpoint.
+
+Implementation: Documentation-only architecture sync; no Supabase code or Core readiness change.
+
+Related: `PRODUCT.md`, `DESIGN_SYSTEM.md`, `ROADMAP.md`, `INFRASTRUCTURE.md`
+
 ## 2026-09-25 — Guided Workout Builder
 
 Status: Approved — pending Git sync
