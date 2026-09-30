@@ -45,7 +45,7 @@ const resetConfirmation = (view: ReturnType<typeof create>) =>
     .findAllByType(Confirmation)
     .find(
       (node: { props: { title: string } }) =>
-        node.props.title === 'Reset CRESUM?',
+        node.props.title === 'Reset local workout data?',
     );
 
 const seed = async () => {
@@ -116,12 +116,21 @@ beforeEach(async () => {
 it('asks for explicit destructive confirmation and Cancel leaves every key unchanged', async () => {
   const original = await seed();
   const view = await mountProfile();
-  expect(button(view, 'Reset local data')?.props.destructive).toBe(true);
-  act(() => button(view, 'Reset local data')?.props.onPress());
+  expect(button(view, 'Reset local workout data')?.props.destructive).toBe(
+    true,
+  );
+  act(() => button(view, 'Reset local workout data')?.props.onPress());
   const confirmation = resetConfirmation(view);
   expect(confirmation?.props.visible).toBe(true);
+  expect(confirmation?.props.message).toContain('Workouts');
+  expect(confirmation?.props.message).toContain('history');
+  expect(confirmation?.props.message).toContain('templates');
   expect(confirmation?.props.message).toContain('active workout');
   expect(confirmation?.props.message).toContain('personalization');
+  expect(confirmation?.props.message).toContain('onboarding data');
+  expect(confirmation?.props.message).toContain(
+    'Your account sign-in is not affected.',
+  );
   act(() => confirmation?.props.onCancel());
   expect(resetConfirmation(view)?.props.visible).toBe(false);
   for (const [key, value] of Object.entries(original)) {
@@ -134,7 +143,7 @@ it('asks for explicit destructive confirmation and Cancel leaves every key uncha
 it('removes all five keys and returns to Welcome, including after app restart', async () => {
   await seed();
   let view = await mountProfile();
-  act(() => button(view, 'Reset local data')?.props.onPress());
+  act(() => button(view, 'Reset local workout data')?.props.onPress());
   await act(async () => resetConfirmation(view)?.props.onConfirm());
   for (const key of LOCAL_DATA_KEYS)
     expect(await AsyncStorage.getItem(key)).toBeNull();
@@ -165,7 +174,7 @@ it('shows an error and keeps prior in-memory data after partial deletion failure
     },
   );
   try {
-    act(() => button(view, 'Reset local data')?.props.onPress());
+    act(() => button(view, 'Reset local workout data')?.props.onPress());
     await act(async () => resetConfirmation(view)?.props.onConfirm());
     expect(resetConfirmation(view)?.props.visible).toBe(true);
     expect(resetConfirmation(view)?.props.error).toContain(
@@ -211,7 +220,7 @@ it('waits for an in-flight onboarding retry before deleting its key', async () =
     act(() => button(view, 'Retry onboarding')?.props.onPress());
     act(() => button(view, 'Continue to app')?.props.onPress());
     act(() => view.root.findByType(Dock).props.onChange('profile'));
-    act(() => button(view, 'Reset local data')?.props.onPress());
+    act(() => button(view, 'Reset local workout data')?.props.onPress());
     (AsyncStorage.removeItem as jest.Mock).mockClear();
     act(() => resetConfirmation(view)?.props.onConfirm());
     await act(async () => Promise.resolve());
@@ -231,7 +240,7 @@ it('waits for an in-flight onboarding retry before deleting its key', async () =
 it('starts only one reset when confirmation is pressed twice before rerender', async () => {
   await seed();
   const view = await mountProfile();
-  act(() => button(view, 'Reset local data')?.props.onPress());
+  act(() => button(view, 'Reset local workout data')?.props.onPress());
   (AsyncStorage.removeItem as jest.Mock).mockClear();
   await act(async () => {
     const confirm = resetConfirmation(view)?.props.onConfirm;
@@ -279,7 +288,7 @@ it('ignores an old onboarding retry result that arrives after reset', async () =
     act(() => button(view, 'Retry onboarding')?.props.onPress());
     act(() => button(view, 'Continue to app')?.props.onPress());
     act(() => view.root.findByType(Dock).props.onChange('profile'));
-    act(() => button(view, 'Reset local data')?.props.onPress());
+    act(() => button(view, 'Reset local workout data')?.props.onPress());
     await act(async () => resetConfirmation(view)?.props.onConfirm());
     expect(view.root.findByType(Onboarding)).toBeDefined();
     releaseRetry();

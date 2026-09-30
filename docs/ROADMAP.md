@@ -19,6 +19,8 @@ Onboarding → Home → Workout → Sets → Rest → Finish → History → Pro
 
 ### Account + Cloud Sync v1 sequence
 
+Stage 1's approved Email seam is in-app six-digit OTP, with Apple/Google unavailable until provider setup. Account/Auth Foundation does not include workout cloud sync or alter local Core readiness.
+
 Implement in separate focused PRs, not one combined feature:
 
 1. **Account/Auth Foundation:** Supabase client seam, auth session state, Account/Profile shell, Apple/Google/Email auth seams, signed-in/out behavior. No workout cloud sync yet.

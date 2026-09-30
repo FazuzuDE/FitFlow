@@ -40,6 +40,19 @@ it('shows a truthful Profile and About without fake account or preference contro
         createTemplate={jest.fn()}
         updateTemplate={jest.fn()}
         deleteTemplate={jest.fn()}
+        onResetLocalData={jest.fn()}
+        account={{
+          snapshot: {
+            status: 'signed_out',
+            configured: false,
+            identity: null,
+            error: null,
+            busy: null,
+          },
+          sendEmailOtp: jest.fn(),
+          verifyEmailOtp: jest.fn(),
+          signOut: jest.fn(),
+        }}
       />,
     );
   });
@@ -60,7 +73,20 @@ it('shows a truthful Profile and About without fake account or preference contro
   expect(text).toContain('Version 9.4.7');
   expect(text).not.toContain('FitFlow');
   expect(text).not.toContain('Local MVP');
-  expect(text).not.toContain('Sign in');
+  expect(text).toContain('ACCOUNT & SYNC');
+  expect(text).toContain('An account is optional');
+  expect(text).toContain('Email sign-in isn’t available yet.');
+  expect(text).toContain('Coming later');
+  expect(text).toContain('Your account sign-in is not affected.');
+  expect(text).not.toContain('Remove all CRESUM data');
+  expect(
+    view.root
+      .findAllByType(AppButton)
+      .find(
+        (button: { props: { title: string } }) =>
+          button.props.title === 'Reset local workout data',
+      )?.props.destructive,
+  ).toBe(true);
   expect(text).not.toContain('Sync now');
   expect(text).not.toContain('Customize Home');
   expect(view.root.findByType(WorkoutTemplates).props.templates).toEqual(
