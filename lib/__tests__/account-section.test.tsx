@@ -1,6 +1,6 @@
 import { AccountSection } from '../../components/AccountSection';
 import { AppButton } from '../../components/AppButton';
-import type { AuthSnapshot } from '../auth-store';
+import { AuthActionError, type AuthSnapshot } from '../auth-store';
 import { Text, TextInput } from 'react-native';
 
 const { act, create } = jest.requireActual('react-test-renderer');
@@ -37,6 +37,9 @@ it('signedOutAccountIsOptional and providersAreDisabled', async () => {
     );
   });
   expect(textOf(view)).toContain('optional');
+  expect(textOf(view)).toContain('Coming later');
+  expect(textOf(view)).not.toContain('Apple sign-in is not configured yet.');
+  expect(textOf(view)).not.toContain('Google sign-in is not configured yet.');
   expect(button(view, 'Continue with Apple')?.props.disabled).toBe(true);
   expect(button(view, 'Continue with Google')?.props.disabled).toBe(true);
   expect(button(view, 'Send code')?.props.disabled).toBe(true);
@@ -47,6 +50,54 @@ it('signedOutAccountIsOptional and providersAreDisabled', async () => {
   expect(send).toHaveBeenCalledWith('person@example.com');
   expect(textOf(view)).toContain('Enter the six-digit code');
   expect(textOf(view)).not.toContain('Connected');
+  await act(async () => view.unmount());
+});
+
+it('unconfiguredEmailUsesPlainReadinessCopy', async () => {
+  let view!: ReturnType<typeof create>;
+  await act(async () => {
+    view = create(
+      <AccountSection
+        snapshot={{ ...signedOut, configured: false }}
+        sendEmailOtp={jest.fn()}
+        verifyEmailOtp={jest.fn()}
+        signOut={jest.fn()}
+      />,
+    );
+  });
+  expect(textOf(view)).toContain('Email sign-in isn’t available yet.');
+  expect(textOf(view)).not.toContain(
+    'Email account setup is not available in this build.',
+  );
+  expect(button(view, 'Send code')).toBeUndefined();
+  expect(button(view, 'Continue with Apple')?.props.disabled).toBe(true);
+  expect(button(view, 'Continue with Google')?.props.disabled).toBe(true);
+  await act(async () => view.unmount());
+});
+
+it('showsOnlySafeActionErrorsWithoutHidingRateLimits', async () => {
+  const send = jest.fn(async () => {
+    throw new AuthActionError(
+      'Too many requests. Please wait before trying again.',
+    );
+  });
+  let view!: ReturnType<typeof create>;
+  await act(async () => {
+    view = create(
+      <AccountSection
+        snapshot={signedOut}
+        sendEmailOtp={send}
+        verifyEmailOtp={jest.fn()}
+        signOut={jest.fn()}
+      />,
+    );
+  });
+  act(() =>
+    view.root.findByType(TextInput).props.onChangeText('person@example.com'),
+  );
+  await act(async () => button(view, 'Send code')?.props.onPress());
+  expect(textOf(view)).toContain('Too many requests');
+  expect(textOf(view)).not.toContain('Could not send the code');
   await act(async () => view.unmount());
 });
 

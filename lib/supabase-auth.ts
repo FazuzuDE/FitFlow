@@ -86,6 +86,13 @@ export function createSupabaseAuthRepository(
       disposed = true;
       appStateSubscription?.remove();
       supabase.auth.stopAutoRefresh();
+      // Supabase initializes asynchronously and may start refresh after the
+      // synchronous stop above. Its public initialize promise settles after
+      // that startup work, so stop once more if disposal won the race.
+      void supabase.auth.initialize().then(
+        () => supabase.auth.stopAutoRefresh(),
+        () => supabase.auth.stopAutoRefresh(),
+      );
     },
   };
 }

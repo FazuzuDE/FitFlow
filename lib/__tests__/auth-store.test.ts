@@ -126,6 +126,33 @@ it('exposesRecoverableSafeErrorsWithoutFalseSuccess', async () => {
   store.dispose();
 });
 
+it('distinguishesRateLimitsAndNetworkFailuresWithoutLeakingProviderErrors', async () => {
+  const fake = fakeRepository();
+  const store = new AuthStore(fake.repository);
+  await store.initialize();
+  jest.mocked(fake.repository.sendEmailOtp).mockRejectedValue({
+    status: 429,
+    code: 'over_request_rate_limit',
+    message: 'secret=123456',
+  });
+  await expect(store.sendEmailOtp('one@example.com')).rejects.toThrow(
+    /too many requests/i,
+  );
+  expect(store.getSnapshot().error).toMatch(/wait before/i);
+  expect(store.getSnapshot().error).not.toContain('123456');
+  jest.mocked(fake.repository.verifyEmailOtp).mockRejectedValue(
+    Object.assign(new Error('secret=123456'), {
+      name: 'AuthRetryableFetchError',
+    }),
+  );
+  await expect(
+    store.verifyEmailOtp('one@example.com', '123456'),
+  ).rejects.toThrow(/connect/i);
+  expect(store.getSnapshot().status).toBe('signed_out');
+  expect(store.getSnapshot().error).not.toMatch(/invalid|expired|123456/i);
+  store.dispose();
+});
+
 it('disposesAuthSubscription', async () => {
   const fake = fakeRepository();
   const pending = deferred<AuthIdentity | null>();

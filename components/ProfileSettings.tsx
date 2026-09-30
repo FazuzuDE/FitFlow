@@ -140,11 +140,13 @@ export function ProfileSettings({
             Local data
           </Text>
           <Text style={s.sub}>
-            Remove all CRESUM data saved on this device.
+            Removes workouts, history, templates, active workout,
+            personalization, and onboarding data from this device. Your account
+            sign-in is not affected.
           </Text>
           {onResetLocalData ? (
             <AppButton
-              title="Reset local data"
+              title="Reset local workout data"
               destructive
               disabled={busy}
               onPress={onResetLocalData}

@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { StyleSheet, Text, TextInput } from 'react-native';
 import { AppButton } from './AppButton';
 import { GlassCard } from './GlassCard';
-import type { AuthSnapshot } from '@/lib/auth-store';
+import { AuthActionError, type AuthSnapshot } from '@/lib/auth-store';
 import { colors, radius, spacing, typography } from '@/lib/theme';
 
 export type AccountSectionProps = {
@@ -50,9 +50,11 @@ function AccountSectionContent({
           ? 'A new code was sent.'
           : 'Enter the six-digit code from your email.',
       );
-    } catch {
+    } catch (error) {
       setLocalError(
-        'Could not send the code. Check your connection and try again.',
+        error instanceof AuthActionError
+          ? error.message
+          : 'Could not send the code. Try again.',
       );
     } finally {
       setLocalBusy(false);
@@ -65,8 +67,12 @@ function AccountSectionContent({
     try {
       await verifyEmailOtp(email.trim(), code);
       setCode('');
-    } catch {
-      setLocalError('Code invalid or expired. Try again or resend it.');
+    } catch (error) {
+      setLocalError(
+        error instanceof AuthActionError
+          ? error.message
+          : 'Could not verify code. Try again or resend it.',
+      );
     } finally {
       setLocalBusy(false);
     }
@@ -79,8 +85,12 @@ function AccountSectionContent({
       await signOut();
       setPhase('email');
       setCode('');
-    } catch {
-      setLocalError('Could not sign out. Check your connection and try again.');
+    } catch (error) {
+      setLocalError(
+        error instanceof AuthActionError
+          ? error.message
+          : 'Could not sign out. Try again.',
+      );
     } finally {
       setLocalBusy(false);
     }
@@ -115,9 +125,7 @@ function AccountSectionContent({
             An account is optional. Your workouts stay available offline.
           </Text>
           {!snapshot.configured && snapshot.status !== 'initializing' ? (
-            <Text style={s.copy}>
-              Email account setup is not available in this build.
-            </Text>
+            <Text style={s.copy}>Email sign-in isn’t available yet.</Text>
           ) : null}
           {snapshot.configured ? (
             <>
@@ -190,14 +198,13 @@ function AccountSectionContent({
               )}
             </>
           ) : null}
-          <Text style={s.copy}>Apple sign-in is not configured yet.</Text>
+          <Text style={s.copy}>Coming later</Text>
           <AppButton
             title="Continue with Apple"
             secondary
             disabled
             onPress={() => {}}
           />
-          <Text style={s.copy}>Google sign-in is not configured yet.</Text>
           <AppButton
             title="Continue with Google"
             secondary

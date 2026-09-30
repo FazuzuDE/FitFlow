@@ -199,13 +199,13 @@ it('clears hidden preferences on Reset local data and returns to first-run catal
   openProfile(view);
   act(() => row(view, 'More actions for Upper Body')?.props.onPress());
   await act(async () => button(view, 'Hide from My Workouts')?.props.onPress());
-  act(() => button(view, 'Reset local data')?.props.onPress());
+  act(() => button(view, 'Reset local workout data')?.props.onPress());
   await act(async () =>
     view.root
       .findAllByType(Confirmation)
       .find(
         (item: { props: { title: string } }) =>
-          item.props.title === 'Reset CRESUM?',
+          item.props.title === 'Reset local workout data?',
       )
       ?.props.onConfirm(),
   );

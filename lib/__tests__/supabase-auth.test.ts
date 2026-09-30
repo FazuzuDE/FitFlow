@@ -42,6 +42,7 @@ function mockClient() {
     signOut: jest.fn().mockResolvedValue({ error: null }),
     startAutoRefresh: jest.fn(),
     stopAutoRefresh: jest.fn(),
+    initialize: jest.fn().mockResolvedValue({ error: null }),
   };
   client.mockReturnValue({ auth } as unknown as ReturnType<
     typeof createClient
@@ -51,6 +52,25 @@ function mockClient() {
 
 beforeEach(() => {
   jest.clearAllMocks();
+});
+
+it('stopsLateAutoRefreshAfterDisposalDuringClientInitialization', async () => {
+  const { auth } = mockClient();
+  let finishInitialization!: () => void;
+  auth.initialize.mockReturnValue(
+    new Promise((resolve) => {
+      finishInitialization = () => resolve({ error: null });
+    }),
+  );
+  const repository = createSupabaseAuthRepository(config)!;
+  repository.onAuthChange(jest.fn());
+  repository.dispose();
+  expect(auth.stopAutoRefresh).toHaveBeenCalledTimes(1);
+  finishInitialization();
+  await Promise.resolve();
+  await Promise.resolve();
+  expect(auth.initialize).toHaveBeenCalledTimes(1);
+  expect(auth.stopAutoRefresh).toHaveBeenCalledTimes(2);
 });
 
 it('returnsNullWithoutCompletePublicConfig', () => {

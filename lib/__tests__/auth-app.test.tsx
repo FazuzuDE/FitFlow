@@ -57,7 +57,7 @@ it('unconfiguredAuthDoesNotGateHome', async () => {
     view.root.findByType(ProfileSettings).props.account.snapshot.configured,
   ).toBe(false);
   expect(JSON.stringify(view.toJSON())).toContain(
-    'Email account setup is not available',
+    'Email sign-in isn’t available yet.',
   );
   await act(async () => view.unmount());
 });
@@ -140,13 +140,13 @@ it('resetDoesNotSignOutOrRemoveAuthStorage', async () => {
     view = create(<App />);
   });
   act(() => view.root.findByType(Dock).props.onChange('profile'));
-  act(() => button(view, 'Reset local data')?.props.onPress());
+  act(() => button(view, 'Reset local workout data')?.props.onPress());
   await act(async () =>
     view.root
       .findAllByType(Confirmation)
       .find(
         (node: { props: { title: string } }) =>
-          node.props.title === 'Reset CRESUM?',
+          node.props.title === 'Reset local workout data?',
       )
       ?.props.onConfirm(),
   );

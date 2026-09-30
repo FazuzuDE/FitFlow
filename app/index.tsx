@@ -390,9 +390,9 @@ export default function App() {
       <StatusBar style="dark" />
       <Confirmation
         visible={confirmReset}
-        title="Reset CRESUM?"
-        message="All local CRESUM data on this device — workouts, history, templates, active workout, hidden-workout settings, personalization and onboarding data — will be permanently deleted. This cannot be undone."
-        confirmLabel="Reset local data"
+        title="Reset local workout data?"
+        message="Workouts, history, templates, active workout, hidden-workout settings, personalization, and onboarding data on this device will be permanently deleted. Your account sign-in is not affected. This cannot be undone."
+        confirmLabel="Reset local workout data"
         cancelLabel="Keep data"
         destructive
         busy={resetBusy}

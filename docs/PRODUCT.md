@@ -113,7 +113,7 @@ Profile has an **Account & Sync** section. In Stage 1, signed out explains optio
 
 Essential account/app preferences only.
 
-Profile → Data offers **Reset local data**, a confirmed destructive action that removes all local CRESUM workouts, history, templates, active workout, personalization, and onboarding data from this device, then returns to Welcome. Cancel leaves data unchanged. A failed reset must not claim success; attempt recovery of removed local values and retain the current in-memory session. This is separate from a future cloud **Delete Account** action.
+Profile → Data offers **Reset local workout data**, a confirmed destructive action that removes local workouts, history, templates, active workout, personalization, and onboarding data from this device, then returns to Welcome. The confirmation explains that account sign-in is not affected. Cancel leaves data unchanged. A failed reset must not claim success; attempt recovery of removed local values and retain the current in-memory session. This is separate from a future cloud **Delete Account** action.
 
 Profile → Workout settings lists hidden built-in workouts with a Restore action. Reset local data also clears this device's hidden-workout preferences, restoring the standard built-in catalog on first run.
 

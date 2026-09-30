@@ -8,11 +8,27 @@ export type AuthSnapshot = {
   busy: 'send' | 'verify' | 'sign_out' | null;
 };
 
-function safeError(action: 'send' | 'verify' | 'sign_out'): string {
+export class AuthActionError extends Error {}
+
+function safeError(
+  action: 'send' | 'verify' | 'sign_out',
+  cause?: unknown,
+): string {
+  const details =
+    cause && typeof cause === 'object'
+      ? (cause as { status?: unknown; code?: unknown; name?: unknown })
+      : null;
+  if (details?.status === 429 || details?.code === 'over_request_rate_limit')
+    return 'Too many requests. Please wait before trying again.';
+  if (
+    details?.name === 'AuthRetryableFetchError' ||
+    details?.name === 'TypeError' ||
+    (typeof details?.status === 'number' && details.status >= 500)
+  )
+    return 'Could not connect to sign-in service. Check your connection and try again.';
   if (action === 'verify')
     return 'Code invalid or expired. Try again or resend it.';
-  if (action === 'send')
-    return 'Could not send the code. Check your connection and try again.';
+  if (action === 'send') return 'Could not send the code. Try again.';
   return 'Could not sign out. Check your connection and try again.';
 }
 
@@ -122,10 +138,10 @@ export class AuthStore {
     try {
       await this.repository.sendEmailOtp(email);
       this.publish({ ...this.snapshot, busy: null, error: null });
-    } catch {
-      const message = safeError('send');
+    } catch (cause) {
+      const message = safeError('send', cause);
       this.publish({ ...this.snapshot, busy: null, error: message });
-      throw new Error(message);
+      throw new AuthActionError(message);
     }
   }
 
@@ -142,10 +158,10 @@ export class AuthStore {
         busy: null,
         error: null,
       });
-    } catch {
-      const message = safeError('verify');
+    } catch (cause) {
+      const message = safeError('verify', cause);
       this.publish({ ...this.snapshot, busy: null, error: message });
-      throw new Error(message);
+      throw new AuthActionError(message);
     }
   }
 
@@ -177,7 +193,7 @@ export class AuthStore {
         busy: null,
         error: message,
       });
-      throw new Error(message);
+      throw new AuthActionError(message);
     }
   }
 
