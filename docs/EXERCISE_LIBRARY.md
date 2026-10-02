@@ -41,9 +41,11 @@ Filtering is pure and preserves curated catalog order. Search trims input and ma
 
 `imageKey` is a stable extensionless identifier, normally the exercise ID. It is not a path, URL, file name, or encoded asset. `components/ExerciseArtwork.tsx` owns the current placeholder and is the boundary for future local artwork resolution; catalog and Workout Engine contracts must not depend on image files.
 
-## Approved family and variant direction (not implemented)
+## Approved family and variant direction (incremental)
 
-The current flat catalog of 58 exercise records remains the compatibility baseline. A future exercise family groups a stable shared movement identity; an exercise variant identifies one exact mechanically meaningful configuration within that family. The approved conceptual dimensions are:
+The current flat catalog of 58 exercise records remains the compatibility baseline. A family groups a stable shared movement identity; a variant identifies one mechanically meaningful configuration within that family. The additive type foundation and a conservative, partial catalog adapter now exist in `lib/exercise-variant-model.ts` and `lib/exercise-catalog-adapter.ts`. Neither replaces the flat catalog or changes Core, History, or Progress identity behavior. Unmapped records remain available in the flat catalog.
+
+The approved conceptual dimensions are:
 
 `Exercise / Exercise Family → Exercise Variant → Equipment → Attachment → Grip → Phase → Sex/model presentation → Visual mode`
 
