@@ -43,6 +43,7 @@ Device/development builds, error handling, store assets/metadata, privacy/permis
 
 ## Later
 
+- Exercise Library / Asset evolution, in separate focused PRs: approved documentation sync → family/variant model and types → non-destructive adapter for the existing 58-record catalog → a small set of verified high-value variants → asset manifest and biomechanics QA workflow → gradual asset production and catalog expansion. Preserve stable IDs, historical snapshots, and schema v1 throughout; this sequence is planned, not already implemented.
 - Adaptive Weight Input with Recommended, Keypad, and Wheel Picker modes, equipment-aware quick increments, and exact manual override. Timing and the complete increment table remain unscheduled.
 - Muscle Load and the red-intensity Muscle Heat Map, with calculation and rendering kept separate from canonical muscle metadata.
 - Training Insights using Result → Analysis → Suggestion and explainable “Why?” details.

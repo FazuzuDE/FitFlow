@@ -154,6 +154,10 @@ Order:
 4. Set rows
 5. Add-set/exercise actions
 
+### Exercise asset illustration direction
+
+Future exercise artwork uses a clean, premium CRESUM visual language, a transparent background where appropriate, and soft natural grounding/contact shadows rather than a heavy artificial studio floor. Choose the camera view for clear, correct exercise mechanics; keep character, equipment, framing, and style consistent across the library. Detailed START/FINISH and biomechanics acceptance rules live in `EXERCISE_ASSETS.md`. The current ExerciseCard artwork is a placeholder, not a production asset.
+
 ### SetRow
 
 Recommended columns: `SET | PREVIOUS | KG | REPS | ✓`
@@ -175,6 +179,8 @@ Primary series `primary`; comparison uses `secondary` or neutral gray. Subtle gr
 Core metrics: total volume, workout count, PRs, exercise weight progression, estimated 1RM, training frequency. Estimated 1RM must be explicitly labeled as an estimate.
 
 Future Muscle Heat Map views use a standard red intensity convention. They visualize estimated training load or stimulus only—not literal muscle growth, injury, medical recovery, or a biological measurement. Keep canonical muscle data, load calculation, and visual rendering as separate layers.
+
+Future Anatomy / Muscle View uses one anatomical language: gray for the neutral body and non-engaged muscles, red only for activated muscles, with stronger/more saturated red for Primary and a lighter intensity of the same red family for Secondary. Do not use rainbow muscle categories or redundant in-image labels when the app UI supplies context. Highlighting must follow the exact exercise variant, not merely its family. Male and Female models share muscle IDs, mapping, intensity meaning, calculation meaning, and visual logic. Keep variant mapping, load calculation, and rendering separate; neither Anatomy nor Muscle Heat Map is a direct biological measurement.
 
 Future Training Insight presentation follows Result → Analysis → Suggestion. Recommendations and insights provide a “Why?” explanation of their principal signals without implying unsupported precision.
 
