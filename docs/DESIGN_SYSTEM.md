@@ -156,7 +156,18 @@ Order:
 
 ### Exercise asset illustration direction
 
-Future exercise artwork uses a clean, premium CRESUM visual language, a transparent background where appropriate, and soft natural grounding/contact shadows rather than a heavy artificial studio floor. Choose the camera view for clear, correct exercise mechanics; keep character, equipment, framing, and style consistent across the library. Detailed START/FINISH and biomechanics acceptance rules live in `EXERCISE_ASSETS.md`. The current ExerciseCard artwork is a placeholder, not a production asset.
+Future production artwork has two separate modes for the same exact exercise variant:
+
+- **Exercise/Technique View:** communicates equipment, setup, grip, body position, and START/FINISH mechanics.
+- **Anatomy/Muscle View:** communicates exact-variant muscle mapping on a grayscale body, using red only for highlights, stronger red for Primary, and a lower intensity of the same red family for Secondary.
+
+Future exercise artwork uses a clean, premium CRESUM visual language on a clean white background with soft natural grounding/contact shadows rather than a heavy artificial studio floor. Choose the camera view for clear, correct exercise mechanics; keep character, equipment, framing, and style consistent across the library. The current ExerciseCard artwork is a placeholder, not a production asset.
+
+Do not combine START and FINISH into one production panel. A phase pair keeps the same model identity, proportions, clothing, equipment, attachment, grip, camera/view, framing, background, and rendering language. Create and approve a reference phase before deriving its companion, then inspect both together. Biomechanical correctness has priority over aesthetic polish.
+
+The Male Master presentation is consistent across the library: same face, hair, age, athletic build, proportions, fitted black T-shirt, black shorts, black shoes, and premium semi-realistic 3D language. Use a clean white background and soft contact shadows. Avoid heavy cinematic lighting, dirty textures, and noisy surfaces. Female presentation follows the same consistency architecture and movement/muscle semantics; its specific master appearance remains to be approved.
+
+Anatomy/Muscle View keeps the same Primary/Secondary meaning across START and FINISH; pose or framing must not imply that a mapped muscle exists or contributes only in one phase. Do not add redundant labels inside the image when the UI provides context, overpaint broad red areas, or highlight muscles from a related generic exercise instead of the exact variant. The visual mode does not change exercise identity or calculation meaning. Detailed START/FINISH and biomechanics acceptance rules live in `EXERCISE_ASSETS.md`.
 
 ### SetRow
 
@@ -241,7 +252,11 @@ Do not display a metric merely because it is calculable.
 
 ## 14. Motion / haptics
 
-Button press: ~100–160ms. Card/sheet transition: ~180–260ms. Avoid long springy animations during logging. Light haptic for selection, success haptic for completed set/saved workout, warning for destructive confirmation. Respect reduced-motion preferences.
+Motion should make CRESUM feel alive, not animated. Use it to explain an interaction, confirm an action, preserve spatial continuity, or clarify a state transition. Avoid decorative loops, long springy movement, and animation that slows logging. Button-press guidance of roughly 100–160ms and card/sheet guidance of roughly 180–260ms are starting points, not a frozen motion specification.
+
+A swipe-discovery hint may appear only on the first suitable row, remain small and temporary, stop after discovery or a few relevant visits, respect Reduce Motion, and be independently toggleable from the underlying swipe action. Exact distance, timing, visit count, and easing remain experimental rather than product contracts.
+
+Light haptic confirms selection, success haptic confirms a completed set or saved workout, and warning haptic supports destructive confirmation. Motion and haptics never substitute for visible state or accessible labels. Respect reduced-motion preferences throughout.
 
 ## 15. States / accessibility
 

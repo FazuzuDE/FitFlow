@@ -4,7 +4,7 @@ This chronological log records approved decisions. The owning product, design, r
 
 ## 2026-10-02 — Exercise Family / Variant architecture
 
-Status: Approved — pending Git sync
+Status: Approved
 
 Decision: Evolve the existing 58-record flat catalog toward stable exercise families and mechanically meaningful variants. Preserve existing IDs and schema-v1 snapshots; generic old IDs retain unspecified meaning, while new exact variants get new IDs. Do not silently merge different variants in Progress. Implementation is future work.
 
@@ -12,15 +12,18 @@ Related: `PRODUCT.md`, `EXERCISE_LIBRARY.md`, `ROADMAP.md`
 
 ## 2026-10-02 — Exercise Asset production and naming
 
-Status: Approved — pending Git sync
+Status: Approved
 
-Decision: Use separate START/FINISH and male/female assets named by family, variant, phase, and model, without muscle-group names or historical ID renames. Preserve pair and master-reference consistency; keep production status separate from catalog metadata. No production images or manifest are implemented yet.
+Decision:
+
+- Use separate START/FINISH and Male/Female assets with a naming direction based on family, variant, phase, and model, without muscle-group names or historical ID renames. Preserve pair and master-reference consistency; keep production status separate from catalog metadata.
+- Preserve the future chain Exercise Library → Exercise Variant → Biomechanics Specification → Visual Specification → Prompt Builder → Image Generation → Biomechanics/Visual QA → Asset Tracker → Approved Production Asset. This sync defines no implementation schema, generator, Prompt Builder, Visual Specification, tracker, or production asset.
 
 Related: `EXERCISE_ASSETS.md`, `EXERCISE_LIBRARY.md`, `DESIGN_SYSTEM.md`
 
 ## 2026-10-02 — Anatomy / Muscle View semantics
 
-Status: Approved — pending Git sync
+Status: Approved
 
 Decision: Use gray neutral anatomy and one red family with stronger Primary and lighter Secondary intensity, mapped to the exact exercise variant. Male/Female share muscle and calculation semantics. Keep metadata, mapping, load calculation, and rendering separate; do not imply direct biological measurement. Rendering is future work.
 
@@ -28,15 +31,60 @@ Related: `DESIGN_SYSTEM.md`, `EXERCISE_LIBRARY.md`
 
 ## 2026-10-02 — Exercise Asset Biomechanics QA
 
-Status: Approved — pending Git sync
+Status: Approved
 
 Decision: Technical correctness for the exact variant outranks visual beauty. An asset is approved only after the applicable biomechanics and START/FINISH consistency checks; generation alone is a draft. The dedicated asset document owns the acceptance gate and tracker lifecycle. QA integration is future work.
 
 Related: `EXERCISE_ASSETS.md`, `AGENTS.md`
 
+## 2026-10-02 — Modular, replaceable, feature-driven architecture
+
+Status: Approved
+
+Decision:
+
+- Extend modular/replaceable boundaries beyond Home where they improve safety and independent evolution, while keeping domain logic separate from screen placement and avoiding a speculative rewrite.
+- Reuse tokens/components. Feature Flags control experiments and rollout; capabilities/entitlements control availability and remain separate from billing sources.
+
+Related: `PRODUCT.md`, `AGENTS.md`, `ROADMAP.md`
+
+## 2026-10-02 — Motion supports meaning
+
+Status: Approved
+
+Decision:
+
+- Make CRESUM feel alive, not animated: motion explains interaction, confirms action, or clarifies state change without slowing workout logging.
+- A swipe-discovery hint is small, temporary, limited to the first suitable row, stops after discovery or a few visits, respects Reduce Motion, and can be controlled independently. Exact motion values remain experimental.
+
+Related: `DESIGN_SYSTEM.md`
+
+## 2026-10-02 — Muscle Load Concept Architecture v1
+
+Status: Approved
+
+Decision:
+
+- Separate canonical taxonomy, exact variant mapping, factual completed sets, stimulus/contribution, raw and period aggregation, normalization, and rendering. The renderer does not calculate training meaning, and normalized UI values are never summed as raw load.
+- Keep MuscleGroup separate from VisualRegion; Male/Female share analytical IDs and math. Identify mapping/model versions without approving final taxonomy, coefficients, formulas, thresholds, or migrations.
+
+Related: `PROGRESS_ANALYTICS.md`, `DESIGN_SYSTEM.md`, `ROADMAP.md`
+
+## 2026-10-02 — Entitlements, referrals, and recognition systems
+
+Status: Approved
+
+Decision:
+
+- Keep plans/billing separate from capabilities/entitlements; paid and granted access remain distinguishable, and Feature Flags are not entitlements. Core logging, existing History, and own-data export are not subscription hostages.
+- Referral value follows confirmed paid conversion and accounts for refunds; exact economics remain deferred.
+- Keep Achievements/Badges/Challenges separate from commercial Rewards. Gamification supports genuine consistency without attention-heavy pressure; exact catalogs, XP, thresholds, plans, prices, and limits remain deferred.
+
+Related: `PRODUCT.md`, `ROADMAP.md`, `AGENTS.md`
+
 ## 2026-09-29 — Account & Cloud Sync v1 architecture
 
-Status: Approved — pending Git sync
+Status: Approved
 
 Decision:
 
@@ -52,7 +100,7 @@ Related: `PRODUCT.md`, `DESIGN_SYSTEM.md`, `ROADMAP.md`, `INFRASTRUCTURE.md`
 
 ## 2026-09-25 — Guided Workout Builder
 
-Status: Approved — pending Git sync
+Status: Approved
 
 Decision:
 
@@ -66,7 +114,7 @@ Related: `PRODUCT.md`, `DESIGN_SYSTEM.md`, `WORKOUT_TEMPLATES.md`
 
 ## 2026-09-25 — Future first-workout calibration and adaptive progression
 
-Status: Approved — pending Git sync
+Status: Approved
 
 Decision:
 
@@ -80,7 +128,7 @@ Related: `PRODUCT.md`, `ROADMAP.md`
 
 ## 2026-09-25 — Modular dashboard / widget architecture
 
-Status: Approved — pending Git sync
+Status: Approved
 
 Decision:
 
@@ -296,7 +344,7 @@ Related:
 
 ## 2026-09-25 — Onboarding Foundation and persistence boundary
 
-Status: Approved — pending Git sync
+Status: Approved
 
 Decision:
 
@@ -320,7 +368,7 @@ Related:
 
 ## 2026-09-25 — Complete local data reset
 
-Status: Approved — pending Git sync
+Status: Approved
 
 Decision:
 
@@ -341,7 +389,7 @@ Related:
 
 ## 2026-09-25 — Workout list contextual interactions
 
-Status: Approved — pending Git sync
+Status: Approved
 
 Decision:
 

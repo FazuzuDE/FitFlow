@@ -38,4 +38,16 @@ For the selected stable exercise identity, the series derives one point per qual
 
 Each point is explicitly labeled Estimated 1RM and dated by the workout finish time. Zero remains zero. A single point is one estimate, not a trend; no measured-strength, percentage-change, Strength Score, or new PR claim is made.
 
-Date buckets, a training-frequency formula, Muscle Load, Muscle Map, recommendations, and cloud analytics remain outside this foundation.
+Date buckets, a training-frequency formula, recommendations, and cloud analytics remain outside this foundation.
+
+## Muscle Load Concept Architecture v1 (future)
+
+Muscle Load remains a future analytical model, not an implemented Core metric. Its approved responsibility chain is:
+
+`canonical muscle taxonomy → exact exercise-variant mapping → factual completed sets → per-set stimulus → Primary/Secondary contribution → raw aggregation → period aggregation → normalization → renderer`
+
+The Workout Engine stores factual performed work and stable historical identity; it does not store one derived Muscle Load score as the sole truth. Variant mapping and model rules interpret those facts outside the critical logging path. Aggregate raw contributions before presentation normalization; never add together already-normalized UI intensities. The renderer receives prepared values and never calculates stimulus, variant mapping, or training meaning.
+
+`MuscleGroup` and `VisualRegion` are separate concepts because one canonical muscle may map to one or more presentation regions and a visual region is not analytical truth. Male and Female views use the same muscle IDs, variant mapping, calculations, and intensity meaning; only presentation geometry differs. Mapping and calculation/model versions must remain identifiable so later corrections do not silently reinterpret historical output.
+
+This architecture does not approve the final muscle taxonomy, variant contribution values, stimulus formula, normalization thresholds, fatigue/recovery claims, migrations, or implementation shape. Muscle Load and the red-intensity Muscle Map remain estimates derived from logged training, not measurements of growth, injury, or medical recovery.
