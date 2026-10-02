@@ -27,10 +27,10 @@ const variants = [
     name: 'Close Neutral Lat Pulldown',
     equipmentType: 'cable',
     configuration: 'specific',
-    attachmentType: 'v-handle',
-    grip: 'neutral',
-    bodyPosition: 'seated',
-    support: 'seat',
+    attachmentType: { kind: 'attachment', id: 'v-handle' },
+    grip: { kind: 'grip', id: 'neutral' },
+    bodyPosition: { kind: 'body-position', id: 'seated' },
+    support: { kind: 'support', id: 'seat' },
     laterality: 'bilateral',
   },
   {
@@ -123,7 +123,10 @@ describe('exercise family and variant foundation', () => {
   it('rejects malformed qualifiers and overlapping muscle mapping', () => {
     expect(
       isValidExerciseVariantCatalog(families, [
-        { ...variants[1], attachmentType: 'V Handle' },
+        {
+          ...variants[1],
+          attachmentType: { kind: 'attachment', id: 'V Handle' },
+        },
       ]),
     ).toBe(false);
     expect(
@@ -134,5 +137,14 @@ describe('exercise family and variant foundation', () => {
         },
       ]),
     ).toBe(false);
+  });
+
+  it('rejects a support qualifier passed as a grip', () => {
+    const wrongField: ExerciseVariant = {
+      ...variants[1],
+      // @ts-expect-error Support and grip qualifiers have distinct identities.
+      grip: { kind: 'support', id: 'seat' },
+    };
+    expect(isValidExerciseVariantCatalog(families, [wrongField])).toBe(false);
   });
 });

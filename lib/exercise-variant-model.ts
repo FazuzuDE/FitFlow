@@ -28,13 +28,23 @@ type VariantBase = {
   muscles?: VariantMuscles;
 };
 
+type VariantQualifier<Kind extends string> = {
+  kind: Kind;
+  id: string;
+};
+
+export type AttachmentType = VariantQualifier<'attachment'>;
+export type GripType = VariantQualifier<'grip'>;
+export type BodyPositionType = VariantQualifier<'body-position'>;
+export type SupportType = VariantQualifier<'support'>;
+
 export type ExerciseVariant = VariantBase & {
   configuration: 'specific' | 'unspecified';
   machineArchetype?: 'selectorized' | 'plate-loaded';
-  attachmentType?: string;
-  grip?: string;
-  bodyPosition?: string;
-  support?: string;
+  attachmentType?: AttachmentType;
+  grip?: GripType;
+  bodyPosition?: BodyPositionType;
+  support?: SupportType;
   laterality?: 'bilateral' | 'unilateral';
 };
 
@@ -60,6 +70,16 @@ export const exerciseAssetIdentity = (
 
 const stableId = (value: string): boolean =>
   /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(value);
+
+const validQualifier = (value: unknown, kind: string): boolean =>
+  value === undefined ||
+  (typeof value === 'object' &&
+    value !== null &&
+    'kind' in value &&
+    value.kind === kind &&
+    'id' in value &&
+    typeof value.id === 'string' &&
+    stableId(value.id));
 
 const validMuscles = (muscles: VariantMuscles): boolean => {
   const known = new Set<string>(muscleTaxonomy.map(({ id }) => id));
@@ -101,14 +121,10 @@ export const isValidExerciseVariantCatalog = (
             ['selectorized', 'plate-loaded'].includes(
               variant.machineArchetype,
             ))) &&
-        [
-          variant.attachmentType,
-          variant.grip,
-          variant.bodyPosition,
-          variant.support,
-        ]
-          .filter((value): value is string => value !== undefined)
-          .every(stableId) &&
+        validQualifier(variant.attachmentType, 'attachment') &&
+        validQualifier(variant.grip, 'grip') &&
+        validQualifier(variant.bodyPosition, 'body-position') &&
+        validQualifier(variant.support, 'support') &&
         (variant.laterality === undefined ||
           ['bilateral', 'unilateral'].includes(variant.laterality)) &&
         ['specific', 'unspecified'].includes(variant.configuration)
