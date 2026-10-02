@@ -154,18 +154,20 @@ Order:
 4. Set rows
 5. Add-set/exercise actions
 
-### Exercise visual system
+### Exercise asset illustration direction
 
 Future production artwork has two separate modes for the same exact exercise variant:
 
 - **Exercise/Technique View:** communicates equipment, setup, grip, body position, and START/FINISH mechanics.
 - **Anatomy/Muscle View:** communicates exact-variant muscle mapping on a grayscale body, using red only for highlights, stronger red for Primary, and a lower intensity of the same red family for Secondary.
 
-Do not combine START and FINISH into one production panel. A phase pair keeps the same model identity, proportions, clothing, equipment, attachment, grip, camera/view, framing, background, and rendering language. Create and approve a reference phase before deriving its companion, then inspect both together. Biomechanical correctness has priority over aesthetic polish; the acceptance gate is defined in `EXERCISE_LIBRARY.md`.
+Future exercise artwork uses a clean, premium CRESUM visual language on a clean white background with soft natural grounding/contact shadows rather than a heavy artificial studio floor. Choose the camera view for clear, correct exercise mechanics; keep character, equipment, framing, and style consistent across the library. The current ExerciseCard artwork is a placeholder, not a production asset.
+
+Do not combine START and FINISH into one production panel. A phase pair keeps the same model identity, proportions, clothing, equipment, attachment, grip, camera/view, framing, background, and rendering language. Create and approve a reference phase before deriving its companion, then inspect both together. Biomechanical correctness has priority over aesthetic polish.
 
 The Male Master presentation is consistent across the library: same face, hair, age, athletic build, proportions, fitted black T-shirt, black shorts, black shoes, and premium semi-realistic 3D language. Use a clean white background and soft contact shadows. Avoid heavy cinematic lighting, dirty textures, and noisy surfaces. Female presentation follows the same consistency architecture and movement/muscle semantics; its specific master appearance remains to be approved.
 
-Anatomy/Muscle View keeps the same Primary/Secondary meaning across START and FINISH; pose or framing must not imply that a mapped muscle exists or contributes only in one phase. Do not add redundant labels inside the image when the UI provides context, overpaint broad red areas, or highlight muscles from a related generic exercise instead of the exact variant. The visual mode does not change exercise identity or calculation meaning.
+Anatomy/Muscle View keeps the same Primary/Secondary meaning across START and FINISH; pose or framing must not imply that a mapped muscle exists or contributes only in one phase. Do not add redundant labels inside the image when the UI provides context, overpaint broad red areas, or highlight muscles from a related generic exercise instead of the exact variant. The visual mode does not change exercise identity or calculation meaning. Detailed START/FINISH and biomechanics acceptance rules live in `EXERCISE_ASSETS.md`.
 
 ### SetRow
 
@@ -188,6 +190,8 @@ Primary series `primary`; comparison uses `secondary` or neutral gray. Subtle gr
 Core metrics: total volume, workout count, PRs, exercise weight progression, estimated 1RM, training frequency. Estimated 1RM must be explicitly labeled as an estimate.
 
 Future Muscle Heat Map views use a standard red intensity convention. They visualize estimated training load or stimulus only—not literal muscle growth, injury, medical recovery, or a biological measurement. Keep canonical muscle data, load calculation, and visual rendering as separate layers.
+
+Future Anatomy / Muscle View uses one anatomical language: gray for the neutral body and non-engaged muscles, red only for activated muscles, with stronger/more saturated red for Primary and a lighter intensity of the same red family for Secondary. Do not use rainbow muscle categories or redundant in-image labels when the app UI supplies context. Highlighting must follow the exact exercise variant, not merely its family. Male and Female models share muscle IDs, mapping, intensity meaning, calculation meaning, and visual logic. Keep variant mapping, load calculation, and rendering separate; neither Anatomy nor Muscle Heat Map is a direct biological measurement.
 
 Future Training Insight presentation follows Result → Analysis → Suggestion. Recommendations and insights provide a “Why?” explanation of their principal signals without implying unsupported precision.
 

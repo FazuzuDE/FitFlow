@@ -73,9 +73,11 @@ Future working-weight recommendations must primarily use history for the specifi
 
 Find/select exercises and retain data required by workouts/history.
 
-The current flat catalog and stable exercise IDs remain the compatibility baseline. The approved future direction groups shared movements into exercise families and exact, mechanically meaningful variants so equipment, attachment, grip, support, laterality, biomechanics, Primary/Secondary muscles, and artwork refer to the movement actually performed. Existing snapshots retain their meaning; generic historical IDs are not silently narrowed and materially different variants are not silently merged in Progress.
+The current 58-record catalog and its stable exercise IDs remain the compatibility baseline. The approved future model groups exercises into stable families and mechanically meaningful variants, so equipment, attachments, grip, support, laterality, technique, muscle mapping, and artwork can describe the exact movement rather than only a broad name. This is a planned evolution, not a claim that family/variant types or production assets already exist. See `EXERCISE_LIBRARY.md` for identity and compatibility rules and `EXERCISE_ASSETS.md` for production rules.
 
-Future artwork has two distinct user-facing modes for the same exact variant: Exercise/Technique View for setup and movement, and Anatomy/Muscle View for approved Primary/Secondary muscle communication. START and FINISH remain separate, consistent phases. `EXERCISE_LIBRARY.md` owns the identity, compatibility, pipeline, and QA foundation; this documentation sync does not implement assets, Visual Specification, Prompt Builder, generation, or tracking.
+Existing saved workouts and History keep their original meaning. Specific existing IDs may become variants without changing stored identity; overly generic old IDs must not be retroactively assigned a particular grip, machine, attachment, or position. New exact variants receive new stable IDs. Progress must not silently combine materially different variants into one performance series. The current schema-v1 snapshots are not rewritten for catalog refinement.
+
+Future artwork has two distinct user-facing modes for the same exact variant: Exercise/Technique View for setup and movement, and Anatomy/Muscle View for approved Primary/Secondary muscle communication. START and FINISH remain separate, consistent phases. This documentation sync does not implement assets, Visual Specification, Prompt Builder, generation, or tracking.
 
 ### Workout Templates
 

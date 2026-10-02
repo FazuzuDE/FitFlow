@@ -2,29 +2,40 @@
 
 This chronological log records approved decisions. The owning product, design, roadmap, and engineering documents remain the detailed sources of truth.
 
-## 2026-10-02 — Exercise Variant and asset-pipeline foundation
+## 2026-10-02 — Exercise Family / Variant architecture
+
+Status: Approved
+
+Decision: Evolve the existing 58-record flat catalog toward stable exercise families and mechanically meaningful variants. Preserve existing IDs and schema-v1 snapshots; generic old IDs retain unspecified meaning, while new exact variants get new IDs. Do not silently merge different variants in Progress. Implementation is future work.
+
+Related: `PRODUCT.md`, `EXERCISE_LIBRARY.md`, `ROADMAP.md`
+
+## 2026-10-02 — Exercise Asset production and naming
 
 Status: Approved
 
 Decision:
 
-- Preserve the current flat catalog and stable IDs as the compatibility baseline while allowing future exercise families and exact mechanically meaningful variants across equipment, attachment, grip, phase, model presentation, and visual mode.
-- Preserve this future chain: Exercise Library → Exercise Variant → Biomechanics Specification → Visual Specification → Prompt Builder → Image Generation → Biomechanics/Visual QA → Asset Tracker → Approved Production Asset.
-- Keep historical snapshots and generic IDs truthful; do not silently narrow, rewrite, or merge mechanically distinct variants. This sync defines no implementation schema, generator, Prompt Builder, Visual Specification, tracker, or production asset.
+- Use separate START/FINISH and Male/Female assets with a naming direction based on family, variant, phase, and model, without muscle-group names or historical ID renames. Preserve pair and master-reference consistency; keep production status separate from catalog metadata.
+- Preserve the future chain Exercise Library → Exercise Variant → Biomechanics Specification → Visual Specification → Prompt Builder → Image Generation → Biomechanics/Visual QA → Asset Tracker → Approved Production Asset. This sync defines no implementation schema, generator, Prompt Builder, Visual Specification, tracker, or production asset.
 
-Related: `EXERCISE_LIBRARY.md`, `PRODUCT.md`, `ROADMAP.md`
+Related: `EXERCISE_ASSETS.md`, `EXERCISE_LIBRARY.md`, `DESIGN_SYSTEM.md`
 
-## 2026-10-02 — Exercise visual consistency and QA
+## 2026-10-02 — Anatomy / Muscle View semantics
 
 Status: Approved
 
-Decision:
+Decision: Use gray neutral anatomy and one red family with stronger Primary and lighter Secondary intensity, mapped to the exact exercise variant. Male/Female share muscle and calculation semantics. Keep metadata, mapping, load calculation, and rendering separate; do not imply direct biological measurement. Rendering is future work.
 
-- Keep separate START/FINISH files and separate Exercise/Technique and Anatomy/Muscle modes for the same exact variant. Use the approved Male Master consistency direction; apply the same identity architecture and semantics to Female presentation without inventing an unapproved Female Master.
-- Anatomy uses grayscale plus one red family: Primary stronger, Secondary lower intensity. Exact-variant mapping, correct grip/equipment/body mechanics, phase continuity, and visual consistency are mandatory.
-- Biomechanical correctness outranks beauty; generated imagery remains draft until Biomechanics/Visual QA passes.
+Related: `DESIGN_SYSTEM.md`, `EXERCISE_LIBRARY.md`
 
-Related: `EXERCISE_LIBRARY.md`, `DESIGN_SYSTEM.md`
+## 2026-10-02 — Exercise Asset Biomechanics QA
+
+Status: Approved
+
+Decision: Technical correctness for the exact variant outranks visual beauty. An asset is approved only after the applicable biomechanics and START/FINISH consistency checks; generation alone is a draft. The dedicated asset document owns the acceptance gate and tracker lifecycle. QA integration is future work.
+
+Related: `EXERCISE_ASSETS.md`, `AGENTS.md`
 
 ## 2026-10-02 — Modular, replaceable, feature-driven architecture
 

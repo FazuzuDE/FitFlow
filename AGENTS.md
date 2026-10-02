@@ -58,6 +58,12 @@ Follow `docs/DESIGN_SYSTEM.md`.
 
 Do not accidentally lose active workouts or logged sets, duplicate completed workouts, corrupt history, silently reset weight/reps, or make Finish Workout persist invalid/partial data unintentionally.
 
+## Exercise Library and assets
+
+- Before changing exercise metadata or artwork, read `docs/EXERCISE_LIBRARY.md` and `docs/EXERCISE_ASSETS.md`.
+- Preserve stable exercise IDs and historical meaning; do not casually rename or reinterpret saved IDs.
+- Exercise assets are not approved until they pass the biomechanics QA in `docs/EXERCISE_ASSETS.md`.
+
 ## Validation
 
 Before completion:
