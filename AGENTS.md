@@ -47,6 +47,13 @@ Follow `docs/DESIGN_SYSTEM.md`.
 - Do not break workout persistence, stored data, or active workout recovery.
 - Preserve offline-first behavior where supported.
 
+## Architecture boundaries
+
+- Treat the app as modular, replaceable, and feature-driven without introducing speculative abstractions or a broad rewrite.
+- Keep domain logic independent from screen placement and experimental presentation. Reuse design tokens and shared components.
+- Feature flags control experiments and rollout; capabilities/entitlements control availability. Billing plans, promotions, rewards, and administrative grants are entitlement sources, not UI conditionals scattered through features.
+- Before changing exercise identity, metadata, muscle mapping, or artwork, read `docs/EXERCISE_LIBRARY.md`. Preserve stable IDs and historical meaning; production exercise assets require exact-variant biomechanics and visual QA.
+
 ## Workout invariants
 
 Do not accidentally lose active workouts or logged sets, duplicate completed workouts, corrupt history, silently reset weight/reps, or make Finish Workout persist invalid/partial data unintentionally.

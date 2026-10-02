@@ -2,9 +2,78 @@
 
 This chronological log records approved decisions. The owning product, design, roadmap, and engineering documents remain the detailed sources of truth.
 
+## 2026-10-02 — Exercise Variant and asset-pipeline foundation
+
+Status: Approved
+
+Decision:
+
+- Preserve the current flat catalog and stable IDs as the compatibility baseline while allowing future exercise families and exact mechanically meaningful variants across equipment, attachment, grip, phase, model presentation, and visual mode.
+- Preserve this future chain: Exercise Library → Exercise Variant → Biomechanics Specification → Visual Specification → Prompt Builder → Image Generation → Biomechanics/Visual QA → Asset Tracker → Approved Production Asset.
+- Keep historical snapshots and generic IDs truthful; do not silently narrow, rewrite, or merge mechanically distinct variants. This sync defines no implementation schema, generator, Prompt Builder, Visual Specification, tracker, or production asset.
+
+Related: `EXERCISE_LIBRARY.md`, `PRODUCT.md`, `ROADMAP.md`
+
+## 2026-10-02 — Exercise visual consistency and QA
+
+Status: Approved
+
+Decision:
+
+- Keep separate START/FINISH files and separate Exercise/Technique and Anatomy/Muscle modes for the same exact variant. Use the approved Male Master consistency direction; apply the same identity architecture and semantics to Female presentation without inventing an unapproved Female Master.
+- Anatomy uses grayscale plus one red family: Primary stronger, Secondary lower intensity. Exact-variant mapping, correct grip/equipment/body mechanics, phase continuity, and visual consistency are mandatory.
+- Biomechanical correctness outranks beauty; generated imagery remains draft until Biomechanics/Visual QA passes.
+
+Related: `EXERCISE_LIBRARY.md`, `DESIGN_SYSTEM.md`
+
+## 2026-10-02 — Modular, replaceable, feature-driven architecture
+
+Status: Approved
+
+Decision:
+
+- Extend modular/replaceable boundaries beyond Home where they improve safety and independent evolution, while keeping domain logic separate from screen placement and avoiding a speculative rewrite.
+- Reuse tokens/components. Feature Flags control experiments and rollout; capabilities/entitlements control availability and remain separate from billing sources.
+
+Related: `PRODUCT.md`, `AGENTS.md`, `ROADMAP.md`
+
+## 2026-10-02 — Motion supports meaning
+
+Status: Approved
+
+Decision:
+
+- Make CRESUM feel alive, not animated: motion explains interaction, confirms action, or clarifies state change without slowing workout logging.
+- A swipe-discovery hint is small, temporary, limited to the first suitable row, stops after discovery or a few visits, respects Reduce Motion, and can be controlled independently. Exact motion values remain experimental.
+
+Related: `DESIGN_SYSTEM.md`
+
+## 2026-10-02 — Muscle Load Concept Architecture v1
+
+Status: Approved
+
+Decision:
+
+- Separate canonical taxonomy, exact variant mapping, factual completed sets, stimulus/contribution, raw and period aggregation, normalization, and rendering. The renderer does not calculate training meaning, and normalized UI values are never summed as raw load.
+- Keep MuscleGroup separate from VisualRegion; Male/Female share analytical IDs and math. Identify mapping/model versions without approving final taxonomy, coefficients, formulas, thresholds, or migrations.
+
+Related: `PROGRESS_ANALYTICS.md`, `DESIGN_SYSTEM.md`, `ROADMAP.md`
+
+## 2026-10-02 — Entitlements, referrals, and recognition systems
+
+Status: Approved
+
+Decision:
+
+- Keep plans/billing separate from capabilities/entitlements; paid and granted access remain distinguishable, and Feature Flags are not entitlements. Core logging, existing History, and own-data export are not subscription hostages.
+- Referral value follows confirmed paid conversion and accounts for refunds; exact economics remain deferred.
+- Keep Achievements/Badges/Challenges separate from commercial Rewards. Gamification supports genuine consistency without attention-heavy pressure; exact catalogs, XP, thresholds, plans, prices, and limits remain deferred.
+
+Related: `PRODUCT.md`, `ROADMAP.md`, `AGENTS.md`
+
 ## 2026-09-29 — Account & Cloud Sync v1 architecture
 
-Status: Approved — pending Git sync
+Status: Approved
 
 Decision:
 
@@ -20,7 +89,7 @@ Related: `PRODUCT.md`, `DESIGN_SYSTEM.md`, `ROADMAP.md`, `INFRASTRUCTURE.md`
 
 ## 2026-09-25 — Guided Workout Builder
 
-Status: Approved — pending Git sync
+Status: Approved
 
 Decision:
 
@@ -34,7 +103,7 @@ Related: `PRODUCT.md`, `DESIGN_SYSTEM.md`, `WORKOUT_TEMPLATES.md`
 
 ## 2026-09-25 — Future first-workout calibration and adaptive progression
 
-Status: Approved — pending Git sync
+Status: Approved
 
 Decision:
 
@@ -48,7 +117,7 @@ Related: `PRODUCT.md`, `ROADMAP.md`
 
 ## 2026-09-25 — Modular dashboard / widget architecture
 
-Status: Approved — pending Git sync
+Status: Approved
 
 Decision:
 
@@ -264,7 +333,7 @@ Related:
 
 ## 2026-09-25 — Onboarding Foundation and persistence boundary
 
-Status: Approved — pending Git sync
+Status: Approved
 
 Decision:
 
@@ -288,7 +357,7 @@ Related:
 
 ## 2026-09-25 — Complete local data reset
 
-Status: Approved — pending Git sync
+Status: Approved
 
 Decision:
 
@@ -309,7 +378,7 @@ Related:
 
 ## 2026-09-25 — Workout list contextual interactions
 
-Status: Approved — pending Git sync
+Status: Approved
 
 Decision:
 

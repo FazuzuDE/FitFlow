@@ -30,6 +30,12 @@ Recreational gym-goers and strength-training users who track sets, reps, weight,
 - One obvious primary action per context.
 - Premium visuals must not reduce usability.
 
+## Architecture direction
+
+CRESUM is modular, replaceable, and feature-driven across the app, not only on Home. Product areas should be independently evolvable where that improves safety and delivery, while stable domain rules stay separate from screen placement and experimental presentation. This is a boundary for future work, not permission for a broad rewrite or premature abstraction.
+
+Feature flags control experiments, staged rollout, and operational enablement. Capabilities/entitlements control whether a user may access a product capability. They are different concerns and must not be used interchangeably.
+
 ## Navigation
 
 Home · Workout · Progress · Profile
@@ -66,6 +72,10 @@ Future working-weight recommendations must primarily use history for the specifi
 ### Exercise Library
 
 Find/select exercises and retain data required by workouts/history.
+
+The current flat catalog and stable exercise IDs remain the compatibility baseline. The approved future direction groups shared movements into exercise families and exact, mechanically meaningful variants so equipment, attachment, grip, support, laterality, biomechanics, Primary/Secondary muscles, and artwork refer to the movement actually performed. Existing snapshots retain their meaning; generic historical IDs are not silently narrowed and materially different variants are not silently merged in Progress.
+
+Future artwork has two distinct user-facing modes for the same exact variant: Exercise/Technique View for setup and movement, and Anatomy/Muscle View for approved Primary/Secondary muscle communication. START and FINISH remain separate, consistent phases. `EXERCISE_LIBRARY.md` owns the identity, compatibility, pipeline, and QA foundation; this documentation sync does not implement assets, Visual Specification, Prompt Builder, generation, or tracking.
 
 ### Workout Templates
 
@@ -116,6 +126,16 @@ Essential account/app preferences only.
 Profile → Data offers **Reset local data**, a confirmed destructive action that removes all local CRESUM workouts, history, templates, active workout, personalization, and onboarding data from this device, then returns to Welcome. Cancel leaves data unchanged. A failed reset must not claim success; attempt recovery of removed local values and retain the current in-memory session. This is separate from a future cloud **Delete Account** action.
 
 Profile → Workout settings lists hidden built-in workouts with a Restore action. Reset local data also clears this device's hidden-workout preferences, restoring the standard built-in catalog on first run.
+
+### Future access, monetization, and rewards
+
+Plans and billing are commercial concerns; capabilities/entitlements are the app's access contract. Subscriptions, promotions, referral rewards, and administrative grants may produce entitlements, but paid and granted access must remain distinguishable. Do not introduce a primitive global `user.isPro` rule or treat a Feature Flag as proof of entitlement.
+
+Future paid value should be additive. Core workout logging, access to existing History, and export of the user's own data must not be held hostage to a subscription. Exact Free/paid bundles, prices, limits, trials, Lifetime offers, and founding cohorts remain unapproved.
+
+A referral reward is earned only after a confirmed paid conversion, not registration, and must account for refunds or reversals. Referrer and referred user are separate participants. Exact eligibility windows, amounts, duration, and limits remain future decisions.
+
+Achievements, Badges, and Challenges recognize training behavior; commercial Rewards grant or affect value. Keep those concepts separate even if a future experience connects them. Legacy badges may remain compatible. Gamification should reinforce genuine consistency and useful milestones without attention-heavy pressure, fabricated progress, or replacing factual History. The catalog, XP model, thresholds, streak rules, and rewards are deferred.
 
 ## Not Core now
 
