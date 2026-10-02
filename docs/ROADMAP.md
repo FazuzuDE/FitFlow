@@ -43,9 +43,11 @@ Device/development builds, error handling, store assets/metadata, privacy/permis
 
 ## Later
 
-- Exercise Library / Asset evolution, in separate focused PRs: approved documentation sync → family/variant model and types → non-destructive adapter for the existing 58-record catalog → a small set of verified high-value variants → asset manifest and biomechanics QA workflow → gradual asset production and catalog expansion. Preserve stable IDs, historical snapshots, and schema v1 throughout; this sequence is planned, not already implemented.
+- Exercise Library / Asset evolution, in separate focused PRs: approved documentation sync → family/variant model and types → non-destructive adapter for the existing 58-record catalog → a small set of verified high-value variants → reviewed Biomechanics Specification → separately designed Visual Specification → Prompt Builder → Image Generation → Biomechanics/Visual QA → Asset Tracker → Approved Production Asset → gradual catalog expansion. Preserve stable IDs, historical snapshots, and schema v1 throughout. This documentation sync creates only the architectural foundation; it does not implement any stage, data model, generator, prompt tooling, tracker, or production image.
 - Adaptive Weight Input with Recommended, Keypad, and Wheel Picker modes, equipment-aware quick increments, and exact manual override. Timing and the complete increment table remain unscheduled.
-- Muscle Load and the red-intensity Muscle Heat Map, with calculation and rendering kept separate from canonical muscle metadata.
+- Muscle Load and the red-intensity Muscle Heat Map, following the documented taxonomy → variant mapping → factual sets → stimulus/contribution → raw and period aggregation → normalization → renderer separation. Final taxonomy, coefficients, formulas, and thresholds require separate approval.
+- App-wide modular/replaceable feature boundaries and a capability/entitlement foundation should be introduced through focused needs, not a broad rewrite. Keep Feature Flags separate from access rights before adding commercial gating.
+- Future monetization, referrals, Achievements/Badges/Challenges, and commercial Rewards require separate product design. Establish entitlement semantics before plans/paywalls; keep recognition systems separate from commercial rewards.
 - Training Insights using Result → Analysis → Suggestion and explainable “Why?” details.
 - Apple Health/Health Connect, watches, AI Coach, social, nutrition, advanced gamification, and Oracle marketing/analytics/auxiliary services.
 
