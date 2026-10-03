@@ -1,32 +1,31 @@
 import type { ExerciseAssetSpecificationBundle } from './types';
+import { getCatalogVariant } from '../exercise-catalog-adapter';
+import { immutableSnapshot } from './integrity';
 
 const ref = (id: string, revision = '1') => ({ id, revision });
 
-export const approvedExerciseAssetSpecifications = {
+const canonicalVariant = getCatalogVariant(
+  'lat-pulldown-close-neutral-v-handle',
+);
+if (!canonicalVariant)
+  throw new Error('Canonical first-slice variant is required.');
+
+export const approvedExerciseAssetSpecifications = immutableSnapshot({
+  productionProfile: {
+    ...ref('cresum-first-slice-male-technique'),
+    approvalStatus: 'approved',
+    scope: 'first-slice-production-only',
+    variantId: canonicalVariant.id,
+    machineRef: ref('cresum-seated-high-pulley-lat-pulldown-machine'),
+    attachmentRef: ref('cresum-close-neutral-v-handle'),
+    modelProfileRef: ref('cresum-male-master'),
+  },
   variantRef: {
-    ...ref('lat-pulldown-close-neutral-v-handle'),
+    ...ref(canonicalVariant.id, '2'),
     approvalStatus: 'approved',
   },
-  variant: {
-    id: 'lat-pulldown-close-neutral-v-handle',
-    familyId: 'lat-pulldown',
-    name: 'Lat Pulldown — Close Neutral V-Handle',
-    equipmentType: 'cable',
-    configuration: 'specific',
-    movementPattern: 'vertical-pull',
-    muscles: {
-      primary: ['lats'],
-      secondary: ['biceps', 'upper-back'],
-    },
-    attachmentType: {
-      kind: 'attachment',
-      id: 'cresum-close-neutral-v-handle',
-    },
-    grip: { kind: 'grip', id: 'neutral' },
-    bodyPosition: { kind: 'body-position', id: 'seated' },
-    support: { kind: 'support', id: 'seat-and-thigh-restraint' },
-    laterality: 'bilateral',
-  },
+  // A value copy of the adapter record, never a second catalog definition.
+  variant: structuredClone(canonicalVariant),
   machine: {
     ...ref('cresum-seated-high-pulley-lat-pulldown-machine'),
     approvalStatus: 'approved',
@@ -72,13 +71,23 @@ export const approvedExerciseAssetSpecifications = {
     ],
   },
   biomechanics: {
-    ...ref('biomechanics-lat-pulldown-close-neutral-v-handle'),
+    ...ref('biomechanics-lat-pulldown-close-neutral-v-handle', '2'),
+    source: ref('cresum-lat-pulldown-biomechanics'),
+    constraints: {
+      endpoint: 'upper-chest-upper-sternum',
+      chestContact: 'optional',
+      elbowPath: 'close-no-material-posterior-travel',
+      torsoMotion: 'controlled-no-excessive-recline',
+      scapularMotion: 'natural-coordinated',
+      attachmentOrientation: 'unchanged-between-phases',
+    },
     approvalStatus: 'approved',
     variantId: 'lat-pulldown-close-neutral-v-handle',
     machineRef: ref('cresum-seated-high-pulley-lat-pulldown-machine'),
     attachmentRef: ref('cresum-close-neutral-v-handle'),
     equipment: {
-      machineArchetype: 'CRESUM Seated High-Pulley Lat Pulldown Machine v1',
+      machineArchetype:
+        'seated front-of-body high-pulley cable station; concrete geometry belongs to the production profile',
       pulleyPosition: 'high and centered above the exercise station',
       cablePath:
         'taut and continuous in front of the head and torso to the central eyelet',
@@ -125,11 +134,11 @@ export const approvedExerciseAssetSpecifications = {
       trajectory: [
         'controlled shoulder adduction and extension appropriate to the narrow neutral path',
         'elbows flex and descend toward the sides without wide flare',
-        'handle travels in front of the face toward the upper-chest and sternal region',
+        'handle travels in front of the face toward the upper-chest and upper-sternum region',
         'wrists remain neutral and torso inclination remains fixed',
       ],
       finish: [
-        'handle is in front of the body near the upper-chest and sternal region; contact is optional',
+        'handle is in front of the body near the upper-chest and upper-sternum region; contact is optional',
         'stop before elbows travel materially behind the torso',
         'elbows finish beside the torso at or slightly anterior to the torso plane',
         'shoulders remain controlled without shrug or anterior collapse',
@@ -162,7 +171,7 @@ export const approvedExerciseAssetSpecifications = {
     },
   },
   visual: {
-    ...ref('visual-lat-pulldown-close-neutral-v-handle-male-technique'),
+    ...ref('visual-lat-pulldown-close-neutral-v-handle-male-technique', '2'),
     approvalStatus: 'approved',
     variantId: 'lat-pulldown-close-neutral-v-handle',
     modelProfileRef: ref('cresum-male-master'),
@@ -197,6 +206,7 @@ export const approvedExerciseAssetSpecifications = {
       'clothing and colors',
       'machine, attachment, cable origin, seat, restraint, and selected settings',
       'grip and torso inclination',
+      'V-handle orientation remains identical between START and FINISH',
       'camera, framing, lighting, background, and rendering language',
       'all specification versions',
     ],
@@ -244,4 +254,4 @@ export const approvedExerciseAssetSpecifications = {
     primary: ['lats'],
     secondary: ['biceps', 'upper-back'],
   },
-} as const satisfies ExerciseAssetSpecificationBundle;
+} as const satisfies ExerciseAssetSpecificationBundle);

@@ -63,6 +63,15 @@ export type ModelProfile = ApprovedRevisionedEntity & {
 };
 
 export type BiomechanicsSpecification = ApprovedRevisionedEntity & {
+  source: RevisionedReference;
+  constraints: {
+    endpoint: 'upper-chest-upper-sternum';
+    chestContact: 'optional';
+    elbowPath: 'close-no-material-posterior-travel';
+    torsoMotion: 'controlled-no-excessive-recline';
+    scapularMotion: 'natural-coordinated';
+    attachmentOrientation: 'unchanged-between-phases';
+  };
   variantId: string;
   machineRef: RevisionedReference;
   attachmentRef: RevisionedReference;
@@ -132,6 +141,13 @@ export type MuscleMappingSpecification = ApprovedRevisionedEntity & {
 };
 
 export type ExerciseAssetSpecificationBundle = {
+  productionProfile: ApprovedRevisionedEntity & {
+    scope: 'first-slice-production-only';
+    variantId: string;
+    machineRef: RevisionedReference;
+    attachmentRef: RevisionedReference;
+    modelProfileRef: RevisionedReference;
+  };
   variantRef: ApprovedRevisionedEntity;
   variant: ExerciseVariant;
   machine: MachineSpecification;
@@ -143,6 +159,8 @@ export type ExerciseAssetSpecificationBundle = {
 };
 
 export type SpecificationProvenance = {
+  productionProfile: RevisionedReference;
+  biomechanicsSource: RevisionedReference;
   variant: RevisionedReference;
   biomechanics: RevisionedReference;
   visual: RevisionedReference;
@@ -276,20 +294,25 @@ export type AssetTrackerRecord = {
   recordRevision: string;
   identity: ExerciseAssetIdentity & { visualMode: ExerciseVisualMode };
   status: AssetProductionStatus;
-  promptPackage: {
-    hash: string;
-    format: RevisionedReference;
-    builder: RevisionedReference;
-  };
+  promptPackage: PromptPackage;
   provenance: SpecificationProvenance;
   approvedStartReference?: ApprovedAssetReference;
   generationHistory: readonly GenerationRecord[];
+  usedRevisions: readonly string[];
   revisionReasons: readonly string[];
-  qaReview?: AssetQaReview;
+  approvalSnapshot?: {
+    reference: ApprovedAssetReference;
+    review: AssetQaReview;
+    promptPackage: AssetTrackerRecord['promptPackage'];
+  };
 };
 
 export type AssetTrackerTransition =
-  | { type: 'record-generation'; generation: GenerationRecord }
+  | {
+      type: 'record-generation';
+      generation: GenerationRecord;
+      recordRevision?: string;
+    }
   | { type: 'request-revision'; reason: string }
   | {
       type: 'submit-qa';

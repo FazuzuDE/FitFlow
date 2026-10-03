@@ -1,4 +1,10 @@
-import { createHash } from 'node:crypto';
+import {
+  canonicalPromptRepresentation,
+  PROMPT_SECTION_ORDER,
+  renderPromptSections,
+  hashCanonicalPromptRepresentation,
+  normalizeCanonicalText,
+} from './canonical';
 import type { AssetPhase } from '../exercise-variant-model';
 import {
   isProvenanceStale,
@@ -17,46 +23,13 @@ import type {
   ValidationIssue,
 } from './types';
 import { validateExerciseAssetSpecificationBundle } from './validation';
+import { validApprovedReference } from './integrity';
 
-export const CANONICAL_PROMPT_ENCODING = 'utf-8' as const;
-
-export const PROMPT_SECTION_ORDER = [
-  'identity-lock',
-  'exercise-variant',
-  'equipment',
-  'attachment',
-  'grip',
-  'body-setup',
-  'phase-pose',
-  'camera-framing',
-  'rendering-style',
-  'pair-consistency',
-  'external-references',
-  'negative-constraints',
-] as const satisfies readonly PromptSectionId[];
-
-const sectionTitles: Record<PromptSectionId, string> = {
-  'identity-lock': 'IDENTITY LOCK',
-  'exercise-variant': 'EXACT EXERCISE VARIANT',
-  equipment: 'EQUIPMENT',
-  attachment: 'ATTACHMENT',
-  grip: 'GRIP AND HAND CONTACT',
-  'body-setup': 'BODY SETUP',
-  'phase-pose': 'PHASE POSE',
-  'camera-framing': 'CAMERA AND FRAMING',
-  'rendering-style': 'RENDERING STYLE',
-  'pair-consistency': 'START AND FINISH CONSISTENCY',
-  'external-references': 'REQUIRED EXTERNAL REFERENCES',
-  'negative-constraints': 'REJECT',
-};
-
-const normalizeCanonicalText = (value: string): string =>
-  value.replace(/\r\n?/g, '\n').replace(/\n+$/g, '');
-
-export const hashCanonicalPromptRepresentation = (value: string): string =>
-  createHash('sha256')
-    .update(normalizeCanonicalText(value), CANONICAL_PROMPT_ENCODING)
-    .digest('hex');
+export {
+  CANONICAL_PROMPT_ENCODING,
+  PROMPT_SECTION_ORDER,
+  hashCanonicalPromptRepresentation,
+} from './canonical';
 
 const validationIssue = (
   code: string,
@@ -119,6 +92,7 @@ const buildSections = (
       'Do not add grip-superiority or regional-lat activation claims.',
     ],
     equipment: [
+      `Concrete equipment belongs only to production profile ${bundle.productionProfile.id}@${bundle.productionProfile.revision}; it is not canonical catalog identity.`,
       bundle.machine.name,
       geometry.frame,
       geometry.pulley,
@@ -157,6 +131,7 @@ const buildSections = (
     ],
     'phase-pose': [
       `Phase: ${request.phase.toUpperCase()}.`,
+      `Structured biomechanics: endpoint ${bundle.biomechanics.constraints.endpoint}; chest contact ${bundle.biomechanics.constraints.chestContact}; elbow path ${bundle.biomechanics.constraints.elbowPath}; torso ${bundle.biomechanics.constraints.torsoMotion}; scapulae ${bundle.biomechanics.constraints.scapularMotion}; attachment orientation ${bundle.biomechanics.constraints.attachmentOrientation}.`,
       ...phaseInstructions(request.phase, bundle),
       ...bundle.biomechanics.movement.trajectory,
       `Valid ${request.phase.toUpperCase()} ROM: ${bundle.biomechanics.movement.validRom[request.phase]}.`,
@@ -194,60 +169,23 @@ const buildSections = (
   }));
 };
 
-const renderPrompt = (sections: readonly PromptSection[]): string =>
-  sections
-    .map(
-      ({ id, instructions }) =>
-        `${sectionTitles[id]}\n${instructions.map((value) => `- ${value}`).join('\n')}`,
-    )
-    .join('\n\n');
-
-const canonicalRepresentation = (
-  request: PromptBuildRequest,
-  promptPackage: Omit<PromptPackage, 'canonicalRepresentation' | 'hash'>,
-): string => {
-  // Canonical format v1 is deliberately local to this subsystem: fixed
-  // preamble order below, then PROMPT_SECTION_ORDER, then each specification
-  // instruction in its declared order. Every string is LF-normalized before
-  // UTF-8 SHA-256 hashing; timestamps, paths, and runtime values are absent.
-  const { provenance } = promptPackage;
-  const lines = [
-    'CRESUM_EXERCISE_PROMPT_PACKAGE',
-    `package-format=${promptPackage.format.id}@${promptPackage.format.revision}`,
-    `prompt-builder=${promptPackage.builder.id}@${promptPackage.builder.revision}`,
-    `family=${promptPackage.identity.familyId}`,
-    `variant=${promptPackage.identity.variantId}`,
-    `phase=${promptPackage.identity.phase}`,
-    `model=${promptPackage.identity.model}`,
-    `visual-mode=${promptPackage.identity.visualMode}`,
-    `spec.variant=${provenance.variant.id}@${provenance.variant.revision}`,
-    `spec.biomechanics=${provenance.biomechanics.id}@${provenance.biomechanics.revision}`,
-    `spec.visual=${provenance.visual.id}@${provenance.visual.revision}`,
-    `spec.machine=${provenance.machine.id}@${provenance.machine.revision}`,
-    `spec.attachment=${provenance.attachment.id}@${provenance.attachment.revision}`,
-    `spec.model-profile=${provenance.modelProfile.id}@${provenance.modelProfile.revision}`,
-    `spec.muscle-mapping=${provenance.muscleMapping.id}@${provenance.muscleMapping.revision}`,
-    `required-reference=${promptPackage.requiredExternalReferences[0].logicalId}|resolved=false`,
-    request.approvedStartReference
-      ? `approved-start=${request.approvedStartReference.assetId}@${request.approvedStartReference.assetRevision}|${request.approvedStartReference.contentHash}`
-      : 'approved-start=none',
-  ];
-  for (const section of promptPackage.sections) {
-    lines.push(`section=${section.id}`);
-    for (const instruction of section.instructions) {
-      lines.push(
-        `instruction=${JSON.stringify(normalizeCanonicalText(instruction))}`,
-      );
-    }
-  }
-  return normalizeCanonicalText(lines.join('\n'));
-};
-
 export const buildExercisePromptPackage = (
   request: PromptBuildRequest,
   bundle: ExerciseAssetSpecificationBundle,
 ): PromptBuildResult => {
   const issues: ValidationIssue[] = [];
+  if (
+    request.phase === 'start' &&
+    request.approvedStartReference !== undefined
+  ) {
+    issues.push(
+      validationIssue(
+        'start-dependency-forbidden',
+        'request.approvedStartReference',
+        'An approved START dependency is valid only for FINISH.',
+      ),
+    );
+  }
   const specificationValidation =
     validateExerciseAssetSpecificationBundle(bundle);
   if (!specificationValidation.ok) {
@@ -311,15 +249,12 @@ export const buildExercisePromptPackage = (
         ),
       );
     } else if (
-      start.status !== 'approved' ||
+      !validApprovedReference(start) ||
       start.identity.familyId !== bundle.variant.familyId ||
       start.identity.variantId !== request.variantId ||
       start.identity.phase !== 'start' ||
       start.identity.model !== request.model ||
       start.identity.visualMode !== request.visualMode ||
-      !start.assetId ||
-      !start.assetRevision ||
-      !start.contentHash ||
       !expectedProvenance ||
       isProvenanceStale(start.provenance, expectedProvenance)
     ) {
@@ -339,8 +274,8 @@ export const buildExercisePromptPackage = (
 
   const sections = buildSections(request, bundle, modelProfile);
   const basePackage: Omit<PromptPackage, 'canonicalRepresentation' | 'hash'> = {
-    format: PROMPT_PACKAGE_FORMAT_REFERENCE,
-    builder: PROMPT_BUILDER_REFERENCE,
+    format: { ...PROMPT_PACKAGE_FORMAT_REFERENCE },
+    builder: { ...PROMPT_BUILDER_REFERENCE },
     identity: {
       familyId: bundle.variant.familyId,
       variantId: bundle.variant.id,
@@ -358,13 +293,19 @@ export const buildExercisePromptPackage = (
       },
     ],
     ...(request.approvedStartReference
-      ? { approvedStartReference: request.approvedStartReference }
+      ? {
+          approvedStartReference: structuredClone(
+            request.approvedStartReference,
+          ),
+        }
       : {}),
     sections,
-    negativeConstraints: negativeConstraints(bundle),
-    renderedPrompt: renderPrompt(sections),
+    negativeConstraints: negativeConstraints(bundle).map(
+      normalizeCanonicalText,
+    ),
+    renderedPrompt: renderPromptSections(sections),
   };
-  const canonical = canonicalRepresentation(request, basePackage);
+  const canonical = canonicalPromptRepresentation(basePackage);
   return {
     ok: true,
     package: {

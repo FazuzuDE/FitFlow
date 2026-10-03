@@ -6,6 +6,7 @@ import {
   approvedAssetReferenceFromTracker,
   isProvenanceStale,
   requiredQaChecksFor,
+  QA_CHECKLIST_REFERENCE,
   transitionAssetTrackerRecord,
 } from '../exercise-assets';
 import { approvedExerciseAssetSpecifications } from '../exercise-assets/specifications';
@@ -88,7 +89,7 @@ const completePassingReview = (record: AssetTrackerRecord): AssetQaReview => {
   if (!candidate) throw new Error('Generated candidate fixture is required.');
   return {
     reviewId: `${record.identity.phase}-review-1`,
-    qaChecklistRevision: '1',
+    qaChecklistRevision: QA_CHECKLIST_REFERENCE.revision,
     trackerId: record.trackerId,
     recordRevision: record.recordRevision,
     promptPackageHash: record.promptPackage.hash,
@@ -175,7 +176,7 @@ describe('exercise asset structured QA', () => {
     const promptPackage = buildStartPackage();
     const record = generatedDraft(promptPackage, 'qa-revision');
     const review = completePassingReview(record);
-    review.qaChecklistRevision = '2';
+    review.qaChecklistRevision = 'unsupported';
 
     expect(
       evaluateAssetApproval({
@@ -260,6 +261,7 @@ describe('exercise asset tracker and provenance', () => {
 
     const revisedDraft = transitionAssetTrackerRecord(needsRevision.record, {
       type: 'record-generation',
+      recordRevision: '2',
       generation: {
         providerId: 'test-provider',
         modelId: 'test-model',
@@ -288,11 +290,16 @@ describe('exercise asset tracker and provenance', () => {
     );
     if (!approved.ok) throw new Error(approved.reason);
 
-    expect(approvedAssetReferenceFromTracker(approved.record)).toEqual({
+    expect(
+      approvedAssetReferenceFromTracker(
+        approved.record,
+        promptPackage.provenance,
+      ),
+    ).toEqual({
       ok: true,
       reference: {
         assetId: 'asset-track-start-1',
-        assetRevision: '1',
+        assetRevision: '2',
         contentHash: 'draft-2-content-sha256',
         status: 'approved',
         identity: promptPackage.identity,
@@ -365,6 +372,7 @@ describe('exercise asset tracker and provenance', () => {
     if (!needsRevision.ok) throw new Error(needsRevision.reason);
     const secondDraft = transitionAssetTrackerRecord(needsRevision.record, {
       type: 'record-generation',
+      recordRevision: '2',
       generation: {
         providerId: 'test-provider',
         modelId: 'test-model',
@@ -392,7 +400,7 @@ describe('exercise asset tracker and provenance', () => {
     const promptPackage = buildStartPackage();
     const current = promptPackage.provenance;
     const stale = structuredClone(current);
-    stale.biomechanics.revision = '2';
+    stale.biomechanics.revision += '-changed';
 
     expect(isProvenanceStale(current, current)).toBe(false);
     expect(isProvenanceStale(current, stale)).toBe(true);
@@ -403,11 +411,7 @@ describe('exercise asset tracker and provenance', () => {
       promptPackage,
     });
     expect(record.provenance).toEqual(current);
-    expect(record.promptPackage).toEqual({
-      hash: promptPackage.hash,
-      format: promptPackage.format,
-      builder: promptPackage.builder,
-    });
+    expect(record.promptPackage).toEqual(promptPackage);
   });
 
   it('blocks tracker approval when recorded provenance is stale', () => {
@@ -428,7 +432,7 @@ describe('exercise asset tracker and provenance', () => {
     });
     if (!draft.ok) throw new Error(draft.reason);
     const current = structuredClone(promptPackage.provenance);
-    current.visual.revision = '2';
+    current.visual.revision += '-changed';
 
     const result = transitionAssetTrackerRecord(draft.record, {
       type: 'submit-qa',

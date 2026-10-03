@@ -1,4 +1,10 @@
 import { isProvenanceStale } from './provenance';
+import {
+  isRecord,
+  nonBlank,
+  validGeneration,
+  validTrackerRecord,
+} from './integrity';
 import type {
   ApprovalGateResult,
   AssetQaReview,
@@ -10,7 +16,7 @@ import type { AssetPhase } from '../exercise-variant-model';
 
 export const QA_CHECKLIST_REFERENCE = {
   id: 'cresum-exercise-asset-qa-checklist',
-  revision: '1',
+  revision: '2',
 } as const;
 
 export const EXERCISE_ASSET_QA_CHECKS = [
@@ -36,7 +42,7 @@ export const EXERCISE_ASSET_QA_CHECKS = [
     severity: 'critical',
     appliesTo: ['finish'],
     requirement:
-      'FINISH places the handle near the upper-chest or sternal region; contact is optional and the handle is not pulled lower.',
+      'FINISH places the handle near the upper-chest or upper-sternum region; contact is optional and the handle is not pulled lower.',
   },
   {
     id: 'biomechanics.finish-elbow-path',
@@ -84,7 +90,7 @@ export const EXERCISE_ASSET_QA_CHECKS = [
     severity: 'critical',
     appliesTo: ['both'],
     requirement:
-      'The generic machine has a plausible stable frame, centered high pulley, selectorized resistance, centered seat, adjustable symmetric thigh restraint, and adequate movement clearance.',
+      'The selected first-slice production machine has a plausible stable frame, centered high pulley, selectorized resistance, centered seat, adjustable symmetric thigh restraint, and adequate movement clearance; this choice is not canonical catalog identity.',
   },
   {
     id: 'equipment.attachment-geometry',
@@ -140,7 +146,7 @@ export const EXERCISE_ASSET_QA_CHECKS = [
     severity: 'critical',
     appliesTo: ['pair'],
     requirement:
-      'FINISH preserves START machine, attachment, settings, grip, torso inclination, camera, framing, lighting, background, and rendering language.',
+      'FINISH preserves START machine, attachment and V-handle orientation, settings, grip, torso inclination, camera, framing, lighting, background, and rendering language.',
   },
   {
     id: 'pair.only-approved-phase-changes',
@@ -178,10 +184,22 @@ export const evaluateAssetApproval = ({
   currentProvenance,
 }: {
   record: AssetTrackerRecord;
-  review: AssetQaReview;
+  review: unknown;
   currentProvenance: SpecificationProvenance;
 }): ApprovalGateResult => {
   const reasons: string[] = [];
+  if (
+    !validTrackerRecord(record) ||
+    record.status !== 'generated-draft' ||
+    !validReview(review)
+  ) {
+    return {
+      approved: false,
+      reasons: [
+        'Malformed QA review or tracker record; a generated draft and complete supported QA input are required.',
+      ],
+    };
+  }
   const generatedCandidate = record.generationHistory.at(-1);
   if (review.qaChecklistRevision !== QA_CHECKLIST_REFERENCE.revision) {
     reasons.push(
@@ -216,6 +234,8 @@ export const evaluateAssetApproval = ({
 
   const resultsById = new Map<string, AssetQaReview['results']>();
   for (const result of review.results) {
+    if (!EXERCISE_ASSET_QA_CHECKS.some((check) => check.id === result.checkId))
+      reasons.push(`Unknown QA check: ${result.checkId}.`);
     const existing = resultsById.get(result.checkId) ?? [];
     resultsById.set(result.checkId, [...existing, result]);
   }
@@ -239,4 +259,30 @@ export const evaluateAssetApproval = ({
   }
 
   return { approved: reasons.length === 0, reasons };
+};
+
+const validReview = (value: unknown): value is AssetQaReview => {
+  if (
+    !isRecord(value) ||
+    ![
+      'reviewId',
+      'qaChecklistRevision',
+      'trackerId',
+      'recordRevision',
+      'promptPackageHash',
+    ].every((key) => nonBlank(value[key])) ||
+    !validGeneration(value.candidate) ||
+    (value.phase !== 'start' && value.phase !== 'finish') ||
+    !Array.isArray(value.results)
+  )
+    return false;
+  return value.results.every(
+    (result) =>
+      isRecord(result) &&
+      nonBlank(result.checkId) &&
+      (result.outcome === 'pass' ||
+        result.outcome === 'fail' ||
+        result.outcome === 'not-reviewed') &&
+      (result.notes === undefined || typeof result.notes === 'string'),
+  );
 };

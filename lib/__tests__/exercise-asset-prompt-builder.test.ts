@@ -339,7 +339,7 @@ describe('exercise asset prompt builder', () => {
       'fixture-approved-start',
     );
     expect(first.package.renderedPrompt).toContain(
-      'handle is in front of the body near the upper-chest and sternal region; contact is optional',
+      'handle is in front of the body near the upper-chest and upper-sternum region; contact is optional',
     );
     expect(first.package.renderedPrompt).toContain(
       'stop before elbows travel materially behind the torso',

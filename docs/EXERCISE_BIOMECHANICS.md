@@ -83,6 +83,12 @@ The current product mapping for **each** specified variant is Primary: `lats`; S
 
 ## Scope and QA handoff
 
+### First-slice production profile boundary
+
+The approved **CRESUM first-slice production profile** selects one consistent implementation for `lat-pulldown-close-neutral-v-handle` / Male / Technique View / START + FINISH. Its chosen generic high-pulley machine geometry (including selectorized resistance), CRESUM V-handle functional geometry, wrapped-thumb convention and modest fixed rearward torso presentation are production choices within the constraints above. They are not universal technique requirements, an approved commercial machine, or additional canonical catalog qualifiers. The profile preserves the upper-chest / upper-sternum endpoint, optional chest contact, natural scapular movement and identical V-handle orientation across the pair without prescribing exact dimensions or joint angles.
+
+The profile and its structured inputs are maintained in `lib/exercise-assets/specifications.ts`; production workflow and limitations belong to [EXERCISE_ASSETS.md](EXERCISE_ASSETS.md). Broader biomechanics and catalog identity remain owned by this document and the existing Library/adapter respectively.
+
 These variant-specific rejection criteria **supplement, not replace**, the general biomechanics and pair-consistency gate in [EXERCISE_ASSETS.md](EXERCISE_ASSETS.md). A future image is only a generated draft until the applicable exact-variant mechanics, pair consistency, and general visual QA are reviewed. This document does not define an asset manifest, machine model, prompt builder, generator, Anatomy/Muscle View renderer, or technique UI. A future visual specification must resolve production choices left open here and keep them consistent within each image pair without presenting those choices as new historical catalog facts.
 
 Supporting exercise-technique references: [ACE Seated Lat Pulldown](https://www.acefitness.org/resources/everyone/exercise-library/158/seated-lat-pulldown/), [NSCA Basics of Strength and Conditioning Manual](https://www.nsca.com/contentassets/48a12160221541acbdc048498d77192d/basics_of_strength_and_conditioning_manual.pdf). These support conservative front-of-body, stabilized, controlled mechanics; they do not specify CRESUM's exact attachment inventory, visual style, or product muscle ranking.

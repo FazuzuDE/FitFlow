@@ -1,5 +1,6 @@
 import { muscleTaxonomy } from '../exercise-taxonomy';
 import { isValidExerciseVariantCatalog } from '../exercise-variant-model';
+import { getCatalogVariant } from '../exercise-catalog-adapter';
 import type {
   ExerciseAssetSpecificationBundle,
   ValidationIssue,
@@ -33,6 +34,19 @@ const valueAt = (root: unknown, path: readonly string[]): unknown =>
   );
 
 const requiredStringPaths = [
+  'productionProfile.id',
+  'productionProfile.revision',
+  'productionProfile.approvalStatus',
+  'productionProfile.scope',
+  'productionProfile.variantId',
+  'productionProfile.machineRef.id',
+  'productionProfile.machineRef.revision',
+  'productionProfile.attachmentRef.id',
+  'productionProfile.attachmentRef.revision',
+  'productionProfile.modelProfileRef.id',
+  'productionProfile.modelProfileRef.revision',
+  'biomechanics.source.id',
+  'biomechanics.source.revision',
   'variantRef.id',
   'variantRef.revision',
   'variantRef.approvalStatus',
@@ -43,9 +57,7 @@ const requiredStringPaths = [
   'variant.configuration',
   'variant.attachmentType.id',
   'variant.grip.id',
-  'variant.bodyPosition.id',
-  'variant.support.id',
-  'variant.laterality',
+  'variant.gripWidth',
   'machine.id',
   'machine.revision',
   'machine.approvalStatus',
@@ -147,6 +159,46 @@ const sameRef = (
   left: { id: string; revision: string },
   right: { id: string; revision: string },
 ): boolean => left.id === right.id && left.revision === right.revision;
+
+const canonicalVariantMatches = (
+  variant: ExerciseAssetSpecificationBundle['variant'],
+): boolean => {
+  const canonical = getCatalogVariant(variant.id);
+  if (!canonical) return false;
+  const fields = [
+    'id',
+    'familyId',
+    'name',
+    'configuration',
+    'equipmentType',
+    'movementPattern',
+    'gripWidth',
+    'machineArchetype',
+    'laterality',
+  ] as const;
+  const qualifiers = [
+    'attachmentType',
+    'grip',
+    'bodyPosition',
+    'support',
+  ] as const;
+  return (
+    fields.every((key) => variant[key] === canonical[key]) &&
+    qualifiers.every(
+      (key) =>
+        variant[key]?.id === canonical[key]?.id &&
+        variant[key]?.kind === canonical[key]?.kind,
+    ) &&
+    sameItems(
+      variant.muscles?.primary ?? [],
+      canonical.muscles?.primary ?? [],
+    ) &&
+    sameItems(
+      variant.muscles?.secondary ?? [],
+      canonical.muscles?.secondary ?? [],
+    )
+  );
+};
 
 export const validateExerciseAssetSpecificationBundle = (
   value: unknown,
@@ -303,17 +355,21 @@ export const validateExerciseAssetSpecificationBundle = (
       ),
     );
   }
+  const constraints = bundle.biomechanics.constraints;
   if (
-    hasItems(bundle.biomechanics?.movement?.finish) &&
-    !bundle.biomechanics.movement.finish.some((value) =>
-      value.includes('upper-chest and sternal region'),
-    )
+    !constraints ||
+    constraints.endpoint !== 'upper-chest-upper-sternum' ||
+    constraints.chestContact !== 'optional' ||
+    constraints.elbowPath !== 'close-no-material-posterior-travel' ||
+    constraints.torsoMotion !== 'controlled-no-excessive-recline' ||
+    constraints.scapularMotion !== 'natural-coordinated' ||
+    constraints.attachmentOrientation !== 'unchanged-between-phases'
   ) {
     issues.push(
       issue(
         'conflicting-biomechanics',
-        'biomechanics.movement.finish',
-        'FINISH must preserve the approved upper-chest and sternal endpoint.',
+        'biomechanics.constraints',
+        'Structured constraints must preserve canonical close-neutral biomechanics.',
       ),
     );
   }
@@ -347,11 +403,16 @@ export const validateExerciseAssetSpecificationBundle = (
     bundle.variantRef?.id !== 'lat-pulldown-close-neutral-v-handle' ||
     bundle.variant?.familyId !== 'lat-pulldown' ||
     bundle.variant?.equipmentType !== 'cable' ||
-    bundle.variant?.attachmentType?.id !== 'cresum-close-neutral-v-handle' ||
-    bundle.variant?.grip?.id !== 'neutral' ||
-    bundle.variant?.bodyPosition?.id !== 'seated' ||
-    bundle.variant?.support?.id !== 'seat-and-thigh-restraint' ||
-    bundle.variant?.laterality !== 'bilateral' ||
+    !canonicalVariantMatches(bundle.variant) ||
+    bundle.productionProfile.scope !== 'first-slice-production-only' ||
+    bundle.productionProfile.variantId !== bundle.variant.id ||
+    !sameRef(bundle.productionProfile.machineRef, bundle.machine) ||
+    !sameRef(bundle.productionProfile.attachmentRef, bundle.attachment) ||
+    !sameRef(
+      bundle.productionProfile.modelProfileRef,
+      bundle.visual.modelProfileRef,
+    ) ||
+    bundle.biomechanics.source.id !== 'cresum-lat-pulldown-biomechanics' ||
     bundle.machine?.id !== 'cresum-seated-high-pulley-lat-pulldown-machine' ||
     bundle.machine?.canonicalVisualReference !== null ||
     bundle.machine?.visualReferenceStatus !==
@@ -472,6 +533,7 @@ export const validateExerciseAssetSpecificationBundle = (
   }
 
   for (const [path, entity] of [
+    ['productionProfile', bundle.productionProfile],
     ['variantRef', bundle.variantRef],
     ['machine', bundle.machine],
     ['attachment', bundle.attachment],

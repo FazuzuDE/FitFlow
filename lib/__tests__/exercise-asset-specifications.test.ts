@@ -2,6 +2,7 @@ import { approvedExerciseAssetSpecifications } from '../exercise-assets/specific
 import type { ExerciseAssetSpecificationBundle } from '../exercise-assets/types';
 import { validateExerciseAssetSpecificationBundle } from '../exercise-assets/validation';
 import { exerciseLibrary, findExercise } from '../exercise-library';
+import { getCatalogVariant } from '../exercise-catalog-adapter';
 
 const cloneSpecifications = (): ExerciseAssetSpecificationBundle =>
   structuredClone(
@@ -21,10 +22,10 @@ describe('exercise asset specifications', () => {
       configuration: 'specific',
       attachmentType: {
         kind: 'attachment',
-        id: 'cresum-close-neutral-v-handle',
+        id: 'v-handle',
       },
       grip: { kind: 'grip', id: 'neutral' },
-      laterality: 'bilateral',
+      gripWidth: 'close',
     });
   });
 
@@ -181,7 +182,7 @@ describe('exercise asset specifications', () => {
   });
 
   it('leaves the existing generic Exercise Library contract unchanged', () => {
-    expect(exerciseLibrary).toHaveLength(58);
+    expect(exerciseLibrary).toHaveLength(61);
     expect(findExercise('lat-pulldown')).toEqual({
       id: 'lat-pulldown',
       name: 'Lat Pulldown',
@@ -191,6 +192,23 @@ describe('exercise asset specifications', () => {
       movementPattern: 'vertical-pull',
       imageKey: 'lat-pulldown',
     });
-    expect(findExercise('lat-pulldown-close-neutral-v-handle')).toBeUndefined();
+    const exactIds = [
+      'lat-pulldown-wide-pronated-bar',
+      'lat-pulldown-close-neutral-v-handle',
+      'lat-pulldown-reverse-grip',
+    ];
+    for (const id of exactIds) expect(findExercise(id)?.id).toBe(id);
+    expect(
+      exerciseLibrary.filter(({ id }) => !exactIds.includes(id)),
+    ).toHaveLength(58);
+    expect(getCatalogVariant('lat-pulldown')).toMatchObject({
+      configuration: 'unspecified',
+    });
+    expect(getCatalogVariant('lat-pulldown')?.grip).toBeUndefined();
+    expect(getCatalogVariant('lat-pulldown')?.attachmentType).toBeUndefined();
+    expect(approvedExerciseAssetSpecifications.variant).toEqual(
+      getCatalogVariant('lat-pulldown-close-neutral-v-handle'),
+    );
+    expect(new Set(exerciseLibrary.map(({ id }) => id)).size).toBe(61);
   });
 });
