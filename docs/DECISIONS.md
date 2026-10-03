@@ -2,6 +2,14 @@
 
 This chronological log records approved decisions. The owning product, design, roadmap, and engineering documents remain the detailed sources of truth.
 
+## 2026-10-03 — First exact Lat Pulldown variant pack
+
+Status: Approved — pending Git sync
+
+Decision: Add three separately identified Lat Pulldown configurations (wide pronated bar, close neutral V-handle, reverse/supinated grip) to the flat library and existing family adapter. Keep the original `lat-pulldown` unspecified and its legacy alias unchanged. Encode only justified grip, width, and attachment details; preserve separate Progress identities, schema v1, and historical snapshots. Exact biomechanics and production assets remain later stages.
+
+Related: `EXERCISE_LIBRARY.md`, `EXERCISE_ASSETS.md`
+
 ## 2026-10-02 — Exercise Family / Variant architecture
 
 Status: Approved

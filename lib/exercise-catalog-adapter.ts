@@ -14,7 +14,7 @@ type CatalogMapping = {
   familyId: string;
   configuration: ExerciseVariant['configuration'];
   equipmentType: EquipmentId;
-};
+} & Pick<ExerciseVariant, 'attachmentType' | 'grip' | 'gripWidth'>;
 
 export const catalogFamilies = [
   { id: 'bench-press', name: 'Bench Press' },
@@ -184,6 +184,28 @@ const mapping = {
     configuration: 'unspecified',
     equipmentType: 'cable',
   },
+  'lat-pulldown-wide-pronated-bar': {
+    familyId: 'lat-pulldown',
+    configuration: 'specific',
+    equipmentType: 'cable',
+    attachmentType: { kind: 'attachment', id: 'wide-bar' },
+    grip: { kind: 'grip', id: 'pronated' },
+    gripWidth: 'wide',
+  },
+  'lat-pulldown-close-neutral-v-handle': {
+    familyId: 'lat-pulldown',
+    configuration: 'specific',
+    equipmentType: 'cable',
+    attachmentType: { kind: 'attachment', id: 'v-handle' },
+    grip: { kind: 'grip', id: 'neutral' },
+    gripWidth: 'close',
+  },
+  'lat-pulldown-reverse-grip': {
+    familyId: 'lat-pulldown',
+    configuration: 'specific',
+    equipmentType: 'cable',
+    grip: { kind: 'grip', id: 'supinated' },
+  },
 } as const satisfies Partial<Record<ExerciseId, CatalogMapping>>;
 
 const hasMapping = (id: string): id is keyof typeof mapping =>
@@ -192,7 +214,12 @@ const hasMapping = (id: string): id is keyof typeof mapping =>
 export const catalogVariants: readonly ExerciseVariant[] =
   exerciseLibrary.flatMap((source) => {
     if (!hasMapping(source.id)) return [];
-    const { familyId, configuration, equipmentType } = mapping[source.id];
+    const {
+      familyId,
+      configuration,
+      equipmentType,
+      ...qualifiers
+    }: CatalogMapping = mapping[source.id];
     if (!source.equipment.includes(equipmentType)) {
       throw new Error(`Invalid primary equipment for ${source.id}`);
     }
@@ -203,6 +230,7 @@ export const catalogVariants: readonly ExerciseVariant[] =
         name: source.name,
         equipmentType,
         configuration,
+        ...qualifiers,
         movementPattern: source.movementPattern,
         // Existing flat-catalog labels remain the source, not reviewed
         // exact-variant biomechanics or a new muscle calculation.
