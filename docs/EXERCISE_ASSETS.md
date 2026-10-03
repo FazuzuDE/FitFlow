@@ -1,6 +1,6 @@
 # CRESUM Exercise Assets — approved production rules
 
-This document owns future exercise-asset production and acceptance rules. The current app uses an artwork placeholder; no production exercise-image manifest, renderer, automated biomechanics QA, or asset-tracker integration is implemented. Canonical exercise identity and variant boundaries belong to `EXERCISE_LIBRARY.md`; visual language belongs to `DESIGN_SYSTEM.md`. Asset production status is not Exercise Library metadata.
+This document owns future exercise-asset production and acceptance rules. The current app uses an artwork placeholder; no production exercise-image manifest, renderer, automated biomechanics QA, or asset-tracker integration is implemented. Canonical exercise identity and variant boundaries belong to `EXERCISE_LIBRARY.md`; the first three exact Lat Pulldown mechanics specifications belong to `EXERCISE_BIOMECHANICS.md`; visual language belongs to `DESIGN_SYSTEM.md`. Asset production status is not Exercise Library metadata.
 
 ## Pipeline boundary
 
