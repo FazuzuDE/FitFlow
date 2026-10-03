@@ -43,6 +43,7 @@ export type ExerciseVariant = VariantBase & {
   machineArchetype?: 'selectorized' | 'plate-loaded';
   attachmentType?: AttachmentType;
   grip?: GripType;
+  gripWidth?: 'wide' | 'close';
   bodyPosition?: BodyPositionType;
   support?: SupportType;
   laterality?: 'bilateral' | 'unilateral';
@@ -123,6 +124,8 @@ export const isValidExerciseVariantCatalog = (
             ))) &&
         validQualifier(variant.attachmentType, 'attachment') &&
         validQualifier(variant.grip, 'grip') &&
+        (variant.gripWidth === undefined ||
+          ['wide', 'close'].includes(variant.gripWidth)) &&
         validQualifier(variant.bodyPosition, 'body-position') &&
         validQualifier(variant.support, 'support') &&
         (variant.laterality === undefined ||

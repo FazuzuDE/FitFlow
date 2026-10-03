@@ -43,7 +43,9 @@ Filtering is pure and preserves curated catalog order. Search trims input and ma
 
 ## Approved family and variant direction (incremental)
 
-The current flat catalog of 58 exercise records remains the compatibility baseline. A family groups a stable shared movement identity; a variant identifies one mechanically meaningful configuration within that family. The additive type foundation and a conservative, partial catalog adapter now exist in `lib/exercise-variant-model.ts` and `lib/exercise-catalog-adapter.ts`. Neither replaces the flat catalog or changes Core, History, or Progress identity behavior. Unmapped records remain available in the flat catalog.
+The original 58 exercise records remain the compatibility baseline. The flat catalog now contains 61 records, including three additive Lat Pulldown variants. A family groups a stable shared movement identity; a variant identifies one mechanically meaningful configuration within that family. The additive type foundation and a conservative, partial catalog adapter exist in `lib/exercise-variant-model.ts` and `lib/exercise-catalog-adapter.ts`. Neither replaces the flat catalog or changes Core, History, or Progress identity behavior. Unmapped records remain available in the flat catalog.
+
+The first exact-variant pack adds `lat-pulldown-wide-pronated-bar`, `lat-pulldown-close-neutral-v-handle`, and `lat-pulldown-reverse-grip` to the `lat-pulldown` family. The original `lat-pulldown` and legacy `pulldown` alias retain unspecified attachment and grip semantics. Each new ID has its own Progress identity. All three currently use the conservative catalog mapping of lats as Primary and biceps/upper-back as Secondary; this is not a measured muscle ranking. The reverse-grip variant does not assert an attachment or grip width. The three exact variants' mechanics and future image rejection criteria are specified in `EXERCISE_BIOMECHANICS.md`; production START/FINISH assets and their QA remain future work.
 
 The approved conceptual dimensions are:
 
