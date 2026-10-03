@@ -2,6 +2,14 @@
 
 This chronological log records approved decisions. The owning product, design, roadmap, and engineering documents remain the detailed sources of truth.
 
+## 2026-10-03 — First-slice Exercise Asset production profile boundary
+
+Status: Approved — pending Git sync
+
+Decision: Keep the existing Library/adapter authoritative for canonical variant identity and `EXERCISE_BIOMECHANICS.md` authoritative for general movement constraints. The first Male Technique View production profile may select consistent equipment geometry, wrapped thumbs and modest fixed torso presentation within those constraints, without backfilling catalog qualifiers or asserting universal biomechanics. The foundation produces deterministic packages and QA-bound immutable approval evidence; it does not generate images or authenticate human reviewers. Revised assets require a new draft/revision and full QA.
+
+Related: `EXERCISE_BIOMECHANICS.md`, `EXERCISE_ASSETS.md`, `lib/exercise-assets/specifications.ts`
+
 ## 2026-10-03 — Lat Pulldown Biomechanics Specification v1
 
 Status: Approved — pending Git sync

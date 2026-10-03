@@ -8,7 +8,7 @@ Future production preserves this responsibility chain:
 
 `Exercise Library → Exercise Variant → Biomechanics Specification → Visual Specification → Prompt Builder → Image Generation → Biomechanics/Visual QA → Asset Tracker → Approved Production Asset`
 
-The exact variant and reviewed biomechanics establish movement truth before visual or prompt work begins. Generation produces drafts only; QA gates technical and visual correctness; the tracker remains separate from canonical exercise metadata. This document does not define the Visual Specification, Prompt Builder, generator, tracker data model, providers, automation, or integration. Those require a separate approved design and implementation stage.
+The exact variant and reviewed biomechanics establish movement truth before visual or prompt work begins. Generation produces drafts only; QA gates technical and visual correctness; the tracker remains separate from canonical exercise metadata. The first-slice production foundation lives in `lib/exercise-assets`; generation providers, automation, a production manifest and application integration remain separate future stages.
 
 ## Identity and file naming
 
@@ -53,4 +53,12 @@ If any materially relevant point is wrong, return the asset for revision and ful
 
 ## Separate asset tracker
 
-Track each planned family/variant/model and its START/FINISH pair separately from canonical Exercise Library records. The lifecycle is `planned → generated draft → approved → needs revision`; after correction, a revised draft must pass QA again before approval. Generation alone is never approval. Record the identity, model, phase-file references, status, and QA/revision notes when asset production starts. No production entries or integration are created in this documentation PR.
+### First approved production profile and foundation
+
+`cresum-first-slice-male-technique` is limited to Close Neutral V-Handle Lat Pulldown / Male / Technique View / START + FINISH. See the production-profile boundary in `EXERCISE_BIOMECHANICS.md`; structured profile data live in `lib/exercise-assets/specifications.ts`. Canonical variant facts are consumed from the existing catalog adapter. Profile-specific equipment, thumb and torso conventions do not redefine that identity or narrow the general biomechanics for other productions.
+
+The provider-neutral foundation builds deterministic UTF-8/LF prompt packages and tracks profile, canonical biomechanics source, specification, builder and format revisions. `cresum-lat-pulldown-biomechanics@1` identifies this document's biomechanics source, `EXERCISE_BIOMECHANICS.md` v1; changes to upstream approved inputs require revision updates. START rejects a START dependency; FINISH requires a compatible approved START with current provenance. Model-master binaries remain unresolved external references; Female and Anatomy production are unavailable. Functional equipment specifications do not become canonical visual references until Equipment Geometry QA passes. No generation API, generated images, UI integration or final canvas/export contract is supplied.
+
+QA accepts only supported structured outcomes and binds review to candidate content, tracker revision and prompt hash. Approval captures a frozen value snapshot. Exporting an approved reference rechecks that evidence against current provenance; a status label alone is insufficient. This validates integrity, not a human reviewer's identity or a cryptographic signature. After `needs revision`, a new explicit asset revision, generated draft and complete QA are required. Invalid tracker identity or revision values are rejected.
+
+Track each planned family/variant/model and its START/FINISH pair separately from canonical Exercise Library records. The lifecycle is `planned → generated draft → approved → needs revision`; after correction, a revised draft must pass QA again before approval. Generation alone is never approval. Record the identity, model, phase-file references, status, and QA/revision notes when asset production starts. The foundation creates no real production entries or application integration.
