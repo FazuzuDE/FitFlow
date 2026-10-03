@@ -37,7 +37,7 @@ const snapshot = (libraryId: string): WorkoutSession => ({
 
 describe('non-destructive exercise catalog adapter', () => {
   it('keeps the existing catalog as the source of display and movement metadata', () => {
-    expect(exerciseLibrary).toHaveLength(58);
+    expect(exerciseLibrary).toHaveLength(61);
     expect(catalogVariants.map(({ id }) => id)).toEqual([
       'barbell-bench-press',
       'incline-dumbbell-press',
@@ -45,6 +45,9 @@ describe('non-destructive exercise catalog adapter', () => {
       'cable-chest-fly',
       'pec-deck-fly',
       'lat-pulldown',
+      'lat-pulldown-wide-pronated-bar',
+      'lat-pulldown-close-neutral-v-handle',
+      'lat-pulldown-reverse-grip',
       'pull-up',
       'assisted-pull-up',
       'dumbbell-shoulder-press',
@@ -142,7 +145,7 @@ describe('non-destructive exercise catalog adapter', () => {
         exerciseLibrary.some((item) => item.id === id),
       ),
     ).toBe(true);
-    expect(catalogVariants.length + unmappedExerciseIds.length).toBe(58);
+    expect(catalogVariants.length + unmappedExerciseIds.length).toBe(61);
     expect(getFamilyForExercise('barbell-bench-press')).toBe(
       getCatalogFamily('bench-press'),
     );

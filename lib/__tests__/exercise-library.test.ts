@@ -13,7 +13,18 @@ import {
 
 describe('canonical exercise metadata', () => {
   it('preserves the 58 existing stable exercise IDs in curated order', () => {
-    expect(exerciseLibrary.map(({ id }) => id)).toEqual([
+    expect(
+      exerciseLibrary
+        .filter(
+          ({ id }) =>
+            ![
+              'lat-pulldown-wide-pronated-bar',
+              'lat-pulldown-close-neutral-v-handle',
+              'lat-pulldown-reverse-grip',
+            ].includes(id),
+        )
+        .map(({ id }) => id),
+    ).toEqual([
       'barbell-bench-press',
       'incline-dumbbell-press',
       'dumbbell-bench-press',
@@ -77,7 +88,7 @@ describe('canonical exercise metadata', () => {
 
   it('contains a curated catalog with unique stable ids', () => {
     expect(exerciseLibrary.length).toBeGreaterThanOrEqual(45);
-    expect(exerciseLibrary.length).toBeLessThanOrEqual(60);
+    expect(exerciseLibrary.length).toBeLessThanOrEqual(63);
     expect(new Set(exerciseLibrary.map((item) => item.id)).size).toBe(
       exerciseLibrary.length,
     );
