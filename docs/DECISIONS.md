@@ -2,6 +2,14 @@
 
 This chronological log records approved decisions. The owning product, design, roadmap, and engineering documents remain the detailed sources of truth.
 
+## 2026-10-05 — CRESUM Male Outfit Presets v1
+
+Status: Approved
+
+Decision: CRESUM Male Master identity is independent from clothing. Two approved Male outfit presets exist: `cresum-male-outfit-blue-gray-v1` revision `1` is active for the first-slice Male Technique profile; `cresum-male-outfit-black-v1` revision `1` is a stored alternative with the historical unspecified sock convention (`null`). Outfit selection is explicit, participates in provenance/hash/staleness and remains locked across START/FINISH. The approved reference image stays external; no binary asset or biomechanics/Core change is included.
+
+Related: `EXERCISE_ASSETS.md`, `DESIGN_SYSTEM.md`, `lib/exercise-assets/specifications.ts`
+
 ## 2026-10-03 — First-slice Exercise Asset production profile boundary
 
 Status: Approved — pending Git sync

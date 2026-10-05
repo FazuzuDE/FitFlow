@@ -16,7 +16,7 @@ import type { AssetPhase } from '../exercise-variant-model';
 
 export const QA_CHECKLIST_REFERENCE = {
   id: 'cresum-exercise-asset-qa-checklist',
-  revision: '2',
+  revision: '3',
 } as const;
 
 export const EXERCISE_ASSET_QA_CHECKS = [
@@ -109,6 +109,14 @@ export const EXERCISE_ASSET_QA_CHECKS = [
       'The cable is taut, physically connected from the centered high pulley to the attachment eyelet, and does not intersect the body or frame.',
   },
   {
+    id: 'visual.selected-outfit',
+    category: 'visual',
+    severity: 'critical',
+    appliesTo: ['both'],
+    requirement:
+      'The asset uses the selected approved Male outfit profile top, shorts, socks when specified, and footwear, including the specified colors, visibility and no-branding rules; Male Master identity is independent from clothing.',
+  },
+  {
     id: 'visual.no-anatomy-overlay',
     category: 'visual',
     severity: 'critical',
@@ -138,7 +146,7 @@ export const EXERCISE_ASSET_QA_CHECKS = [
     severity: 'critical',
     appliesTo: ['pair'],
     requirement:
-      'FINISH preserves the approved START model identity, proportions, fitted black T-shirt, black shorts, and black athletic shoes.',
+      'FINISH preserves the approved START model identity and proportions independently of clothing, plus the same outfit profile ID and revision, top, shorts, socks, and footwear; only natural pose-caused clothing folds may change.',
   },
   {
     id: 'pair.machine-camera-rendering-lock',

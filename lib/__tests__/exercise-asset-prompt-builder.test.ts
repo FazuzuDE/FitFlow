@@ -99,9 +99,16 @@ describe('exercise asset prompt builder', () => {
     expect(result.package.renderedPrompt).toContain(
       'neutral flexion-extension and radial-ulnar alignment',
     );
-    expect(result.package.renderedPrompt).toContain('fitted black T-shirt');
-    expect(result.package.renderedPrompt).toContain('black shorts');
-    expect(result.package.renderedPrompt).toContain('black athletic shoes');
+    expect(result.package.renderedPrompt).toContain(
+      'fitted muted blue / blue-gray T-shirt',
+    );
+    expect(result.package.renderedPrompt).toContain(
+      'dark gray athletic shorts',
+    );
+    expect(result.package.renderedPrompt).toContain('white athletic socks');
+    expect(result.package.renderedPrompt).toContain(
+      'light gray athletic shoes',
+    );
     expect(result.package.renderedPrompt).toContain(
       'arms elevated overhead in a narrow symmetric path',
     );

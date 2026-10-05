@@ -15,6 +15,7 @@ import {
 import type {
   ExerciseAssetSpecificationBundle,
   ModelProfile,
+  MaleOutfitProfile,
   PromptBuildRequest,
   PromptBuildResult,
   PromptPackage,
@@ -24,6 +25,7 @@ import type {
 } from './types';
 import { validateExerciseAssetSpecificationBundle } from './validation';
 import { validApprovedReference } from './integrity';
+import { selectedMaleOutfit } from './outfits';
 
 export {
   CANONICAL_PROMPT_ENCODING,
@@ -69,6 +71,7 @@ const buildSections = (
   request: PromptBuildRequest,
   bundle: ExerciseAssetSpecificationBundle,
   modelProfile: ModelProfile,
+  outfit: MaleOutfitProfile,
 ): readonly PromptSection[] => {
   const geometry = bundle.machine.functionalGeometry;
   const grip = bundle.biomechanics.grip;
@@ -79,9 +82,7 @@ const buildSections = (
     'identity-lock': [
       `Use the approved ${modelProfile.name} supplied as an external reference at generation time.`,
       `Do not invent or alter ${modelProfile.identityLocks.join(', ')}.`,
-      modelProfile.clothing.top,
-      modelProfile.clothing.bottoms,
-      modelProfile.clothing.footwear,
+      'The Male Master reference grounds character identity only; use the selected outfit profile for clothing.',
     ],
     'exercise-variant': [
       bundle.variant.name,
@@ -142,7 +143,11 @@ const buildSections = (
     'camera-framing': [...bundle.visual.camera, ...bundle.visual.framing],
     'rendering-style': [
       ...bundle.visual.rendering,
-      ...bundle.visual.clothingLock,
+      `Use approved outfit profile ${outfit.id}@${outfit.revision}.`,
+      outfit.top,
+      outfit.bottoms,
+      ...(outfit.socks === null ? [] : [outfit.socks]),
+      outfit.footwear,
       'The final canvas and export contract remains unresolved and must not be invented here.',
     ],
     'pair-consistency': [
@@ -154,6 +159,7 @@ const buildSections = (
             'START must be approved before a production FINISH package is built.',
           ]),
       ...bundle.visual.pairLocks,
+      `Keep outfit profile ${outfit.id}@${outfit.revision} identical in START and FINISH: same top, shorts, socks, and footwear; only natural pose-caused clothing folds may change.`,
       `Only these phase changes are allowed: ${bundle.visual.allowedPhaseChanges.join('; ')}.`,
     ],
     'external-references': [
@@ -225,6 +231,20 @@ export const buildExercisePromptPackage = (
   }
 
   const modelProfile = modelProfileFor(request, bundle);
+  const outfit = selectedMaleOutfit(bundle);
+  if (
+    !outfit ||
+    outfit.approvalStatus !== 'approved' ||
+    outfit.model !== request.model
+  ) {
+    issues.push(
+      validationIssue(
+        'invalid-outfit-profile',
+        'productionProfile.outfitProfileRef',
+        'The selected approved outfit must match the requested model.',
+      ),
+    );
+  }
   if (!modelProfile) {
     issues.push(
       validationIssue(
@@ -235,9 +255,10 @@ export const buildExercisePromptPackage = (
     );
   }
 
-  const expectedProvenance = modelProfile
-    ? specificationProvenance(bundle, modelProfile)
-    : undefined;
+  const expectedProvenance =
+    modelProfile && outfit && outfit.model === request.model
+      ? specificationProvenance(bundle, modelProfile)
+      : undefined;
   if (request.phase === 'finish') {
     const start = request.approvedStartReference;
     if (!start) {
@@ -268,11 +289,11 @@ export const buildExercisePromptPackage = (
     }
   }
 
-  if (issues.length > 0 || !modelProfile || !expectedProvenance) {
+  if (issues.length > 0 || !modelProfile || !outfit || !expectedProvenance) {
     return { ok: false, issues };
   }
 
-  const sections = buildSections(request, bundle, modelProfile);
+  const sections = buildSections(request, bundle, modelProfile, outfit);
   const basePackage: Omit<PromptPackage, 'canonicalRepresentation' | 'hash'> = {
     format: { ...PROMPT_PACKAGE_FORMAT_REFERENCE },
     builder: { ...PROMPT_BUILDER_REFERENCE },

@@ -12,13 +12,14 @@ if (!canonicalVariant)
 
 export const approvedExerciseAssetSpecifications = immutableSnapshot({
   productionProfile: {
-    ...ref('cresum-first-slice-male-technique'),
+    ...ref('cresum-first-slice-male-technique', '2'),
     approvalStatus: 'approved',
     scope: 'first-slice-production-only',
     variantId: canonicalVariant.id,
     machineRef: ref('cresum-seated-high-pulley-lat-pulldown-machine'),
     attachmentRef: ref('cresum-close-neutral-v-handle'),
-    modelProfileRef: ref('cresum-male-master'),
+    modelProfileRef: ref('cresum-male-master', '2'),
+    outfitProfileRef: ref('cresum-male-outfit-blue-gray-v1'),
   },
   variantRef: {
     ...ref(canonicalVariant.id, '2'),
@@ -171,10 +172,10 @@ export const approvedExerciseAssetSpecifications = immutableSnapshot({
     },
   },
   visual: {
-    ...ref('visual-lat-pulldown-close-neutral-v-handle-male-technique', '2'),
+    ...ref('visual-lat-pulldown-close-neutral-v-handle-male-technique', '3'),
     approvalStatus: 'approved',
     variantId: 'lat-pulldown-close-neutral-v-handle',
-    modelProfileRef: ref('cresum-male-master'),
+    modelProfileRef: ref('cresum-male-master', '2'),
     visualMode: 'technique',
     rendering: [
       'premium semi-realistic 3D instructional rendering',
@@ -195,15 +196,10 @@ export const approvedExerciseAssetSpecifications = immutableSnapshot({
       'hands, wrists, and elbow paths readable',
       'no crop through functional anatomy or equipment',
     ],
-    clothingLock: [
-      'fitted black T-shirt',
-      'black shorts',
-      'black athletic shoes',
-      'same clothing, colors, and model identity in START and FINISH',
-    ],
     pairLocks: [
       'model identity, face, hair, age, build, and proportions',
       'clothing and colors',
+      'same clothing, colors, and model identity in START and FINISH',
       'machine, attachment, cable origin, seat, restraint, and selected settings',
       'grip and torso inclination',
       'V-handle orientation remains identical between START and FINISH',
@@ -222,7 +218,7 @@ export const approvedExerciseAssetSpecifications = immutableSnapshot({
   },
   modelProfiles: [
     {
-      ...ref('cresum-male-master'),
+      ...ref('cresum-male-master', '2'),
       approvalStatus: 'approved',
       model: 'male',
       name: 'CRESUM Male Master Reference',
@@ -234,16 +230,35 @@ export const approvedExerciseAssetSpecifications = immutableSnapshot({
       },
       identityLocks: [
         'face',
-        'hair',
-        'age type',
-        'athletic build',
-        'body proportions',
+        'short brown hair',
+        'clean-shaven appearance',
+        'young-adult age type',
+        'athletic / fit build',
+        'realistic body proportions',
+        'overall character identity',
       ],
-      clothing: {
-        top: 'fitted black T-shirt',
-        bottoms: 'black shorts',
-        footwear: 'black athletic shoes',
-      },
+    },
+  ],
+  outfitProfiles: [
+    {
+      ...ref('cresum-male-outfit-blue-gray-v1'),
+      approvalStatus: 'approved',
+      model: 'male',
+      top: 'fitted muted blue / blue-gray T-shirt; clean, unbranded, no logo',
+      bottoms: 'dark gray athletic shorts; clean, unbranded, no logo',
+      socks:
+        'white athletic socks; clearly visible, normal training length, no branding',
+      footwear:
+        'light gray athletic shoes; clean modern training shoes, no branding',
+    },
+    {
+      ...ref('cresum-male-outfit-black-v1'),
+      approvalStatus: 'approved',
+      model: 'male',
+      top: 'fitted black T-shirt; unbranded',
+      bottoms: 'black athletic shorts; unbranded',
+      socks: null,
+      footwear: 'black athletic shoes; unbranded',
     },
   ],
   muscleMapping: {

@@ -130,18 +130,30 @@ describe('exercise asset specifications', () => {
     }
   });
 
-  it('uses the approved black CRESUM Male Master clothing contract', () => {
+  it('keeps approved outfits separate from the CRESUM Male Master identity', () => {
     expect(approvedExerciseAssetSpecifications.modelProfiles).toEqual([
       expect.objectContaining({
         id: 'cresum-male-master',
         model: 'male',
-        clothing: {
-          top: 'fitted black T-shirt',
-          bottoms: 'black shorts',
-          footwear: 'black athletic shoes',
-        },
+        identitySource: 'external-master-reference',
       }),
     ]);
+    expect(
+      approvedExerciseAssetSpecifications.modelProfiles[0],
+    ).not.toHaveProperty('clothing');
+    expect(approvedExerciseAssetSpecifications.outfitProfiles).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: 'cresum-male-outfit-black-v1',
+          approvalStatus: 'approved',
+          socks: null,
+        }),
+        expect.objectContaining({
+          id: 'cresum-male-outfit-blue-gray-v1',
+          approvalStatus: 'approved',
+        }),
+      ]),
+    );
   });
 
   it('rejects an unapproved model profile', () => {
