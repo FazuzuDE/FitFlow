@@ -49,7 +49,7 @@ export const hashCanonicalPromptRepresentation = (value: string): string =>
     .update(normalizeCanonicalText(value), CANONICAL_PROMPT_ENCODING)
     .digest('hex');
 
-// Format v2: fixed field ordering, normalized LF, UTF-8; no runtime metadata.
+// Format v3: fixed field ordering, normalized LF, UTF-8; no runtime metadata.
 // Shared by the builder and tracker so canonical evidence has one definition.
 export const canonicalMetadataLines = (
   value: Pick<PromptPackage, 'format' | 'builder' | 'identity' | 'provenance'>,
@@ -72,6 +72,7 @@ export const canonicalMetadataLines = (
     `spec.machine=${p.machine.id}@${p.machine.revision}`,
     `spec.attachment=${p.attachment.id}@${p.attachment.revision}`,
     `spec.model-profile=${p.modelProfile.id}@${p.modelProfile.revision}`,
+    `spec.outfit-profile=${p.outfitProfile.id}@${p.outfitProfile.revision}`,
     `spec.muscle-mapping=${p.muscleMapping.id}@${p.muscleMapping.revision}`,
   ];
 };

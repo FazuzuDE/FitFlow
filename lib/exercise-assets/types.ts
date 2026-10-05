@@ -55,11 +55,15 @@ export type ModelProfile = ApprovedRevisionedEntity & {
     asset: null;
   };
   identityLocks: readonly string[];
-  clothing: {
-    top: string;
-    bottoms: string;
-    footwear: string;
-  };
+};
+
+export type MaleOutfitProfile = ApprovedRevisionedEntity & {
+  model: 'male';
+  top: string;
+  bottoms: string;
+  // Null preserves the historical black preset's unspecified sock convention.
+  socks: string | null;
+  footwear: string;
 };
 
 export type BiomechanicsSpecification = ApprovedRevisionedEntity & {
@@ -127,7 +131,6 @@ export type VisualSpecification = ApprovedRevisionedEntity & {
   rendering: readonly string[];
   camera: readonly string[];
   framing: readonly string[];
-  clothingLock: readonly string[];
   pairLocks: readonly string[];
   allowedPhaseChanges: readonly string[];
   canvasContract: 'unresolved';
@@ -147,6 +150,7 @@ export type ExerciseAssetSpecificationBundle = {
     machineRef: RevisionedReference;
     attachmentRef: RevisionedReference;
     modelProfileRef: RevisionedReference;
+    outfitProfileRef: RevisionedReference;
   };
   variantRef: ApprovedRevisionedEntity;
   variant: ExerciseVariant;
@@ -155,6 +159,7 @@ export type ExerciseAssetSpecificationBundle = {
   biomechanics: BiomechanicsSpecification;
   visual: VisualSpecification;
   modelProfiles: readonly ModelProfile[];
+  outfitProfiles: readonly MaleOutfitProfile[];
   muscleMapping: MuscleMappingSpecification;
 };
 
@@ -167,6 +172,7 @@ export type SpecificationProvenance = {
   machine: RevisionedReference;
   attachment: RevisionedReference;
   modelProfile: RevisionedReference;
+  outfitProfile: RevisionedReference;
   muscleMapping: RevisionedReference;
   promptBuilder: RevisionedReference;
   promptPackageFormat: RevisionedReference;

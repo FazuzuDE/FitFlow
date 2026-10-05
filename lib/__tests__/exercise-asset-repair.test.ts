@@ -447,7 +447,7 @@ describe('exercise asset repair contracts', () => {
               'required-reference=fabricated-master',
             )
           : p.canonicalRepresentation.replace(
-              'instruction="fitted black T-shirt"',
+              'instruction="fitted muted blue / blue-gray T-shirt; clean, unbranded, no logo"',
               'instruction="red shirt"',
             );
       p.hash = hashCanonicalPromptRepresentation(p.canonicalRepresentation);

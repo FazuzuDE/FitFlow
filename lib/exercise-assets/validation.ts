@@ -1,6 +1,7 @@
 import { muscleTaxonomy } from '../exercise-taxonomy';
 import { isValidExerciseVariantCatalog } from '../exercise-variant-model';
 import { getCatalogVariant } from '../exercise-catalog-adapter';
+import { validateMaleOutfits } from './outfits';
 import type {
   ExerciseAssetSpecificationBundle,
   ValidationIssue,
@@ -45,6 +46,8 @@ const requiredStringPaths = [
   'productionProfile.attachmentRef.revision',
   'productionProfile.modelProfileRef.id',
   'productionProfile.modelProfileRef.revision',
+  'productionProfile.outfitProfileRef.id',
+  'productionProfile.outfitProfileRef.revision',
   'biomechanics.source.id',
   'biomechanics.source.revision',
   'variantRef.id',
@@ -141,7 +144,6 @@ const requiredStringArrayPaths = [
   'visual.rendering',
   'visual.camera',
   'visual.framing',
-  'visual.clothingLock',
   'visual.pairLocks',
   'visual.allowedPhaseChanges',
   'muscleMapping.primary',
@@ -281,9 +283,6 @@ export const validateExerciseAssetSpecificationBundle = (
         'name',
         'identitySource',
         'externalReference.logicalId',
-        'clothing.top',
-        'clothing.bottoms',
-        'clothing.footwear',
       ]) {
         if (!nonEmptyString(valueAt(profile, path.split('.')))) {
           issues.push(
@@ -306,6 +305,12 @@ export const validateExerciseAssetSpecificationBundle = (
       }
     }
   }
+  issues.push(
+    ...validateMaleOutfits(
+      valueAt(value, ['outfitProfiles']),
+      valueAt(value, ['productionProfile', 'outfitProfileRef']),
+    ),
+  );
   if (issues.length > 0) {
     return { ok: false, issues };
   }
