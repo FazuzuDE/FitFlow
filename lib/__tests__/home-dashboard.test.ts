@@ -70,7 +70,69 @@ it('defines stable module identity and order with explicit supported sizes', () 
   ).toEqual([
     ['primary', 'medium', ['medium']],
     ['summary', 'medium', ['medium']],
+    ['week', 'medium', ['medium']],
     ['latest', 'medium', ['medium']],
     ['templates', 'medium', ['medium']],
   ]);
+});
+
+it('scopes Home summary to 28 local calendar days, excluding unfinished and future workouts', () => {
+  const now = new Date(2026, 9, 9, 16).getTime();
+  const start = new Date(2026, 8, 11, 16).getTime();
+  const unfinished = {
+    ...saved('unfinished', now, '60'),
+    finishedAt: undefined,
+  };
+  const result = projectHomeDashboard(
+    [
+      saved('boundary', start, '1.25'),
+      saved('old', start - 1, '100'),
+      saved('today', now, '60'),
+      saved('future', now + 1000, '100'),
+      unfinished,
+    ],
+    null,
+    defaultTemplates,
+    now,
+  );
+  expect(result.fourWeeks.completedCount).toBe(2);
+  expect(result.fourWeeks.totalVolume).toBe(306.25);
+  expect(result.latestWorkout?.session.id).toBe('today');
+});
+
+it('projects Monday through Sunday, counting multiple workouts without marking a future day completed', () => {
+  const now = new Date(2026, 9, 9, 16).getTime();
+  const result = projectHomeDashboard(
+    [
+      saved('monday', new Date(2026, 9, 5, 12).getTime(), '60'),
+      saved('monday2', new Date(2026, 9, 5, 18).getTime(), '60'),
+      saved('wednesday', new Date(2026, 9, 7, 12).getTime(), '60'),
+      saved('saturday', new Date(2026, 9, 10, 12).getTime(), '60'),
+    ],
+    null,
+    defaultTemplates,
+    now,
+  );
+  expect(result.week.completedCount).toBe(3);
+  expect(result.week.days.map((day) => day.dayOfMonth)).toEqual([
+    5, 6, 7, 8, 9, 10, 11,
+  ]);
+  expect(result.week.days.map((day) => day.completedCount)).toEqual([
+    2, 0, 1, 0, 0, 0, 0,
+  ]);
+  expect(
+    result.week.days.filter((day) => day.isToday).map((day) => day.dayOfMonth),
+  ).toEqual([9]);
+});
+
+it('shows factual planned set counts without inventing a duration', () => {
+  const result = projectHomeDashboard([], null, [
+    {
+      id: 'custom',
+      name: 'Custom',
+      exerciseIds: ['barbell-bench-press', 'missing'],
+      plannedExercises: [{ exerciseId: 'barbell-bench-press', sets: 5 }],
+    },
+  ]);
+  expect(result.primaryTemplate?.plannedSetCount).toBe(5);
 });
