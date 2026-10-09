@@ -3,7 +3,6 @@ import {
   FlatList,
   Modal,
   Pressable,
-  ScrollView,
   StyleSheet,
   Text,
   View,
@@ -56,14 +55,12 @@ export function TrainingVolume({ totalVolume, workoutVolumes, period }: Props) {
             Recent workouts · {recent.length} of {workoutVolumes.length} in{' '}
             {period}
           </Text>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
+          <View
             accessibilityLabel={
               'Recent workout volumes in kilograms: ' +
               recent.map(pointLabel).join('; ')
             }
-            contentContainerStyle={s.chart}
+            style={s.chart}
           >
             {recent.map((point, index) => (
               <View
@@ -95,7 +92,7 @@ export function TrainingVolume({ totalVolume, workoutVolumes, period }: Props) {
                 <Text style={s.date}>{shortDate(point.finishedAt)}</Text>
               </View>
             ))}
-          </ScrollView>
+          </View>
           <Pressable
             accessibilityRole="button"
             accessibilityLabel={`View all ${workoutVolumes.length} workout volumes in ${period}`}
@@ -175,11 +172,19 @@ const s = StyleSheet.create({
     marginTop: spacing.sm,
   },
   chart: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
     alignItems: 'flex-end',
     gap: spacing.xs,
     paddingVertical: spacing.sm,
   },
-  column: { minWidth: 52, alignItems: 'center', gap: spacing.xxs },
+  column: {
+    minWidth: 44,
+    maxWidth: 60,
+    flex: 1,
+    alignItems: 'center',
+    gap: spacing.xs,
+  },
   barSlot: { height: 60, justifyContent: 'flex-end' },
   bar: { width: 24, borderRadius: radius.sm },
   date: {

@@ -93,8 +93,7 @@ function TrainingSummaryWidget({
     <GlassCard style={s.summary}>
       <Text style={s.cardLabel}>TOTAL VOLUME</Text>
       <Text style={s.metric}>
-        {Math.round(totalVolume).toLocaleString()}{' '}
-        <Text style={s.unit}>kg</Text>
+        {totalVolume.toLocaleString()} <Text style={s.unit}>kg</Text>
       </Text>
       <Text style={s.sub}>
         {completedCount} completed workout{completedCount === 1 ? '' : 's'}
@@ -113,9 +112,7 @@ function LatestWorkoutWidget({
     <GlassCard style={s.recent}>
       <Text style={s.cardLabel}>LAST WORKOUT</Text>
       <Text style={s.recentName}>{latest.session.name}</Text>
-      <Text style={s.sub}>
-        {Math.round(latest.volume).toLocaleString()} kg volume
-      </Text>
+      <Text style={s.sub}>{latest.volume.toLocaleString()} kg volume</Text>
     </GlassCard>
   ) : (
     <Text style={s.empty}>
@@ -150,11 +147,7 @@ function WorkoutTemplatesWidget({
                 <Text style={s.templateName}>{template.name}</Text>
                 <Text style={s.sub}>{count}</Text>
                 {preview ? (
-                  <Text
-                    style={s.sub}
-                    numberOfLines={2}
-                    accessibilityLabel={preview}
-                  >
+                  <Text style={s.sub} accessibilityLabel={preview}>
                     {preview}
                   </Text>
                 ) : null}

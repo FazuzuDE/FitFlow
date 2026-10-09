@@ -313,4 +313,21 @@ A UI task is complete when it follows this system, introduces no arbitrary dupli
 
 The approved baseline is the light CRESUM concept: airy white/light-gray surfaces, Apple-like hierarchy, `#0A84FF` primary actions, rounded premium cards, restrained glass, with **Home, Active Workout and Progress** as the first key visual references.
 
+### Core demo alignment
+
+The source-aligned Core demo is the visual reference for the existing native
+application. Main scroll content in Home, Workout, Progress, and Profile uses a
+centered width of at most 600 pt, with the existing 16 pt screen inset. Exercise selectors and
+Progress period chips wrap onto additional lines instead of requiring horizontal
+scrolling. Recent workout volume columns also wrap, retaining chronological
+order, readable dates, and accessible value labels. Home template previews are
+content-driven rather than truncated to two lines; volume summaries retain
+fractional kilograms instead of rounding to whole kilograms.
+
+Adopt the demo's presentation through existing native components and tokens.
+Existing functionality absent from the demo remains available, including
+onboarding, workout management gestures, library filters, detailed analytics,
+confirmations, persistence, and recovery. Do not replace factual app data with
+demo fixtures or introduce a separate browser client for this alignment.
+
 This document is the source of truth for CRESUM Core UI until explicitly revised.

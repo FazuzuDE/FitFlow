@@ -82,12 +82,7 @@ function Stats({ history }: { history: Session[] }) {
       <Text style={s.eyebrow}>YOUR PROGRESS</Text>
       <Text style={s.title}>Progress</Text>
       <Text style={s.sub}>Volume and estimated strength records</Text>
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={s.periods}
-        accessibilityLabel="Progress period"
-      >
+      <View style={s.periods} accessibilityLabel="Progress period">
         {PROGRESS_PERIODS.map((option) => (
           <Pressable
             key={option.id}
@@ -108,7 +103,7 @@ function Stats({ history }: { history: Session[] }) {
             </Text>
           </Pressable>
         ))}
-      </ScrollView>
+      </View>
       <TrainingVolume
         totalVolume={analytics.totalVolume}
         workoutVolumes={analytics.workoutVolumes}
@@ -125,7 +120,7 @@ function Stats({ history }: { history: Session[] }) {
         ) : (
           records.slice(0, 6).map((r, i) => (
             <View key={r.identityKey} style={s.history}>
-              <View>
+              <View style={s.recordCopy}>
                 <Text style={s.h3}>{r.name}</Text>
                 <Text style={s.sub}>
                   {r.weight} kg × {r.reps}
@@ -582,7 +577,13 @@ const s = StyleSheet.create({
   root: { flex: 1, backgroundColor: colors.background },
   profileVisible: { flex: 1 },
   profileHidden: { display: 'none' },
-  content: { padding: spacing.md, gap: spacing.lg },
+  content: {
+    padding: spacing.md,
+    gap: spacing.lg,
+    width: '100%',
+    maxWidth: 600,
+    alignSelf: 'center',
+  },
   notice: { padding: spacing.md, gap: spacing.xs },
   empty: {
     flex: 1,
@@ -593,7 +594,7 @@ const s = StyleSheet.create({
   eyebrow: { ...typography.caption, color: colors.textSecondary },
   title: { ...typography.largeTitle, color: colors.textPrimary },
   sub: { ...typography.footnote, color: colors.textSecondary },
-  periods: { gap: spacing.xs, paddingRight: spacing.md },
+  periods: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs },
   periodChip: {
     minWidth: 44,
     minHeight: 44,
@@ -608,6 +609,7 @@ const s = StyleSheet.create({
   periodSelectedText: { color: colors.surface },
   h3: { ...typography.headline, color: colors.textPrimary },
   pr: { ...typography.caption, color: colors.textSecondary },
+  recordCopy: { flex: 1, minWidth: 120 },
   history: {
     flexDirection: 'row',
     flexWrap: 'wrap',

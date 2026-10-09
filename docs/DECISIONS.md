@@ -440,3 +440,21 @@ Related:
 - `PRODUCT.md`
 - `DESIGN_SYSTEM.md`
 - `WORKOUT_TEMPLATES.md`
+
+## 2026-10-09 — Align the existing native app with the Core demo
+
+Status: Approved — pending Git integration
+
+Decision:
+
+- Adopt the latest source-aligned Core demo as the presentation reference for the existing React Native/Expo application. Keep the working app in the existing repository and architecture.
+- Use wrapping exercise/period selectors and recent-volume columns, bounded centered screen content, full Home template previews, and fractional Home volume summaries. Reuse the current theme and native components.
+- Preserve existing features absent from the demo for later integration. Keep actual workout/history data, offline persistence, active-workout recovery, onboarding, library and workout management, and detailed analytics intact. No separate web client or storage migration is part of this change.
+
+Rationale:
+
+- Make the approved demo presentation part of the working app without removing capabilities or replacing real data with simulated state.
+
+Related:
+
+- `DESIGN_SYSTEM.md`
