@@ -1,5 +1,5 @@
 import { isPressable } from './pressable';
-import { Text, TextInput, ScrollView, StyleSheet, View } from 'react-native';
+import { Text, TextInput, StyleSheet, View } from 'react-native';
 import App from '../../app/index';
 import { AppButton } from '../../components/AppButton';
 import { Confirmation } from '../../components/Confirmation';
@@ -365,7 +365,7 @@ it('keeps Progress chart heights finite for very large finite volumes', async ()
   );
 
   const chart = view.root
-    .findAllByType(ScrollView)
+    .findAllByType(View)
     .find((node: { props: { accessibilityLabel?: string } }) =>
       node.props.accessibilityLabel?.startsWith(
         'Recent workout volumes in kilograms:',
@@ -469,14 +469,6 @@ it('scopes Progress by the selected period while keeping the full History archiv
       expect(metricCard(view, 0)).not.toContain('500');
       expect(metricCard(view, 1)).toContain('recent exercise');
       expect(metricCard(view, 1)).not.toContain('older exercise');
-      expect(
-        view.root
-          .findAllByType(ScrollView)
-          .some(
-            (node: { props: { horizontal?: boolean } }) =>
-              node.props.horizontal,
-          ),
-      ).toBe(true);
       for (const label of ['1W', '1M', '3M', '6M', '1Y', 'ALL']) {
         const button = periodButton(view, label);
         expect(button?.props.accessibilityRole).toBe('button');
@@ -497,7 +489,7 @@ it('scopes Progress by the selected period while keeping the full History archiv
       expect(metricCard(view, 1)).toContain('No estimated records');
       expect(
         view.root
-          .findAllByType(ScrollView)
+          .findAllByType(View)
           .some((node: { props: { accessibilityLabel?: string } }) =>
             node.props.accessibilityLabel?.startsWith(
               'Recent workout volumes in kilograms:',

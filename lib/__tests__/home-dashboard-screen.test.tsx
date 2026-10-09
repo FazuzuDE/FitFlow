@@ -145,6 +145,28 @@ it('shows factual totals and the latest saved workout even when History is out o
   act(() => view.unmount());
 });
 
+it('preserves fractional volume in both the total and latest workout summary', async () => {
+  await AsyncStorage.clear();
+  await AsyncStorage.setItem(
+    STATE_KEY,
+    JSON.stringify({
+      schemaVersion: 1,
+      activeWorkout: null,
+      history: [
+        completed('older', 'Older workout', 1_700_000_000_000, '2.5', '3'),
+        completed('latest', 'Latest workout', 1_700_000_100_000, '1.25', '1'),
+      ],
+      templates: defaultTemplates,
+    }),
+  );
+  const view = await renderApp();
+  const text = visibleText(view);
+
+  expect(text).toContain(`${(8.75).toLocaleString()} kg`);
+  expect(text).toContain(`${(1.25).toLocaleString()} kg volume`);
+  act(() => view.unmount());
+});
+
 it('uses a truthful singular summary after the first completed workout', async () => {
   await AsyncStorage.clear();
   await AsyncStorage.setItem(

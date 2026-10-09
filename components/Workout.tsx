@@ -144,7 +144,7 @@ export function Workout({
           {duration(now - session.startedAt)} elapsed · {completed}/{total} sets
           · {volume(session).toLocaleString()} kg
         </Text>
-        <ScrollView horizontal contentContainerStyle={s.tabs}>
+        <View style={s.tabs}>
           {session.exercises.map((item, i) => (
             <Pressable
               key={item.id}
@@ -164,7 +164,7 @@ export function Workout({
               </Text>
             </Pressable>
           ))}
-        </ScrollView>
+        </View>
         {exercise && (
           <GlassCard>
             <Text style={s.heading}>{exercise.name}</Text>
@@ -330,7 +330,13 @@ export function Workout({
 }
 const s = StyleSheet.create({
   flex: { flex: 1 },
-  content: { padding: spacing.md, gap: spacing.lg },
+  content: {
+    padding: spacing.md,
+    gap: spacing.lg,
+    width: '100%',
+    maxWidth: 600,
+    alignSelf: 'center',
+  },
   title: { ...typography.largeTitle, color: colors.textPrimary },
   heading: { ...typography.title2, color: colors.textPrimary },
   body: { ...typography.body, color: colors.textPrimary },
@@ -341,8 +347,9 @@ const s = StyleSheet.create({
     justifyContent: 'center',
     gap: spacing.md,
   },
-  tabs: { gap: spacing.xs },
+  tabs: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs },
   tab: {
+    maxWidth: '100%',
     padding: spacing.sm,
     minHeight: 44,
     borderRadius: radius.pill,
