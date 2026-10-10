@@ -10,6 +10,8 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { GlassCard } from './GlassCard';
+import { Ionicons } from '@expo/vector-icons';
+import type { VolumeComparison } from '@/lib/progress-volume-comparison';
 import type { WorkoutVolume } from '@/lib/progress-analytics';
 import type { ProgressPeriodId } from '@/lib/progress-periods';
 import {
@@ -25,12 +27,12 @@ type Props = {
   totalVolume: number;
   workoutVolumes: readonly WorkoutVolume[];
   period: ProgressPeriodId;
+  comparison?: VolumeComparison;
 };
 
-const shortDate = (timestamp: number) =>
+const shortMonth = (timestamp: number) =>
   new Date(timestamp).toLocaleDateString(undefined, {
     month: 'short',
-    day: 'numeric',
   });
 const fullDate = (timestamp: number) => new Date(timestamp).toLocaleString();
 const volumeNumber = (volume: number) =>
@@ -41,7 +43,12 @@ const volumeLabel = (volume: number) => `${volumeNumber(volume)} kg`;
 const pointLabel = (point: WorkoutVolume) =>
   `${point.workoutName}, ${fullDate(point.finishedAt)}, ${volumeLabel(point.volume)}`;
 
-export function TrainingVolume({ totalVolume, workoutVolumes, period }: Props) {
+export function TrainingVolume({
+  totalVolume,
+  workoutVolumes,
+  period,
+  comparison,
+}: Props) {
   const [allOpen, setAllOpen] = useState(false);
   const { width, fontScale } = useWindowDimensions();
   const [measuredWidth, setMeasuredWidth] = useState<number>();
@@ -85,7 +92,7 @@ export function TrainingVolume({ totalVolume, workoutVolumes, period }: Props) {
     ...recent.map((point) =>
       Math.ceil(
         (volumeNumber(point.volume).length *
-          progressTypography.chart.fontSize *
+          progressTypography.chartValue.fontSize *
           0.6 *
           textScale) /
           columnWidth,
@@ -95,7 +102,7 @@ export function TrainingVolume({ totalVolume, workoutVolumes, period }: Props) {
   const largest = Math.max(0, ...recent.map((point) => point.volume));
   const labelRoom = Math.max(
     0,
-    valueLines * progressTypography.chart.lineHeight * textScale +
+    valueLines * progressTypography.chartValue.lineHeight * textScale +
       spacing.xxs -
       plotHeight * (1 - largest / scale.upper),
   );
@@ -104,13 +111,62 @@ export function TrainingVolume({ totalVolume, workoutVolumes, period }: Props) {
     (_, index) =>
       recent.slice(index * columnsPerRow, (index + 1) * columnsPerRow),
   );
+  const changeColor =
+    comparison?.kind === 'increase'
+      ? colors.volumeIncrease
+      : comparison?.kind === 'decrease'
+        ? colors.volumeDecrease
+        : colors.textSecondary;
+  const changeAmount =
+    comparison && comparison.kind !== 'unavailable'
+      ? volumeNumber(Number(Math.abs(comparison.delta).toPrecision(12)))
+      : undefined;
+  const changeText =
+    !comparison || comparison.kind === 'unavailable'
+      ? 'No comparison data'
+      : comparison.kind === 'unchanged'
+        ? 'No change'
+        : `${comparison.delta > 0 ? '+' : '−'}${changeAmount} kg`;
+  const changeLabel =
+    !comparison || comparison.kind === 'unavailable'
+      ? 'No comparison data for training volume'
+      : comparison.kind === 'unchanged'
+        ? 'Training volume unchanged vs previous period'
+        : `Training volume ${comparison.kind === 'increase' ? 'increased' : 'decreased'} by ${changeAmount} kg vs previous period`;
 
   return (
     <GlassCard style={s.card}>
       <Text style={s.cardLabel}>TRAINING VOLUME</Text>
-      <Text style={s.big}>
-        {volumeNumber(totalVolume)} <Text style={s.unit}>kg</Text>
-      </Text>
+      <View style={s.totalRow}>
+        <Text style={[s.big, { flexBasis: spacing.xxxl * 4 * textScale }]}>
+          {volumeNumber(totalVolume)} <Text style={s.unit}>kg</Text>
+        </Text>
+        {comparison ? (
+          <View
+            accessible
+            accessibilityLabel={changeLabel}
+            style={s.comparison}
+          >
+            <View style={s.changeRow}>
+              {(comparison.kind === 'increase' ||
+                comparison.kind === 'decrease') && (
+                <Ionicons
+                  name={
+                    comparison.kind === 'increase' ? 'arrow-up' : 'arrow-down'
+                  }
+                  size={16 * textScale}
+                  color={changeColor}
+                  accessible={false}
+                />
+              )}
+              <Text style={[s.change, { color: changeColor }]}>
+                {changeText}
+              </Text>
+            </View>
+            <Text style={s.subtitle}>vs previous period</Text>
+          </View>
+        ) : null}
+      </View>
       <Text style={s.subtitle}>
         {workoutVolumes.length} completed workouts in {period}
       </Text>
@@ -225,9 +281,17 @@ export function TrainingVolume({ totalVolume, workoutVolumes, period }: Props) {
                               ]}
                             />
                           </View>
-                          <Text style={s.date}>
-                            {shortDate(point.finishedAt)}
-                          </Text>
+                          <View style={s.date}>
+                            <Text style={s.day}>
+                              {new Date(point.finishedAt).toLocaleDateString(
+                                undefined,
+                                { day: 'numeric' },
+                              )}
+                            </Text>
+                            <Text style={s.month}>
+                              {shortMonth(point.finishedAt)}
+                            </Text>
+                          </View>
                         </View>
                       ))}
                     </View>
@@ -297,6 +361,29 @@ const s = StyleSheet.create({
     ...progressTypography.statistic,
     color: colors.textEmphasis,
     fontVariant: ['tabular-nums'],
+    flexGrow: 1,
+    flexShrink: 1,
+    maxWidth: '100%',
+  },
+  totalRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: spacing.sm,
+  },
+  comparison: { alignItems: 'flex-end', marginLeft: 'auto', maxWidth: '100%' },
+  changeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xxs,
+    maxWidth: '100%',
+  },
+  change: {
+    ...progressTypography.comparison,
+    fontVariant: ['tabular-nums'],
+    flexShrink: 1,
+    textAlign: 'right',
   },
   unit: { ...progressTypography.unit, color: colors.textSecondary },
   subtitle: { ...typography.footnote, color: colors.textSecondary },
@@ -319,8 +406,10 @@ const s = StyleSheet.create({
     fontWeight: '600',
   },
   pointValue: {
-    ...progressTypography.chart,
-    color: colors.textSecondary,
+    ...progressTypography.chartValue,
+    color: colors.textPrimary,
+    backgroundColor: colors.surface,
+    zIndex: 1,
     textAlign: 'center',
     fontVariant: ['tabular-nums'],
     alignSelf: 'stretch',
@@ -365,7 +454,14 @@ const s = StyleSheet.create({
     borderTopLeftRadius: radius.sm,
     borderTopRightRadius: radius.sm,
   },
-  date: {
+  date: { alignItems: 'center' },
+  day: {
+    ...progressTypography.chartDay,
+    fontVariant: ['tabular-nums'],
+    color: colors.textPrimary,
+    textAlign: 'center',
+  },
+  month: {
     ...progressTypography.chart,
     fontVariant: ['tabular-nums'],
     color: colors.textSecondary,

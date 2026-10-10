@@ -39,6 +39,7 @@ import {
   projectPeriodAnalytics,
 } from '@/lib/progress-periods';
 import { completedSetCount, workoutIsComplete } from '@/lib/workout-engine';
+import { projectVolumeComparison } from '@/lib/progress-volume-comparison';
 import {
   WorkoutSession as Session,
   WorkoutTemplate as Template,
@@ -85,6 +86,10 @@ function Stats({ history }: { history: Session[] }) {
     [history, period, now],
   );
   const records = analytics.estimatedOneRepMaxRecords;
+  const comparison = useMemo(
+    () => projectVolumeComparison(history, period, now),
+    [history, period, now],
+  );
   return (
     <ScrollView contentContainerStyle={[s.content, s.progressContent]}>
       <View style={s.progressHeader}>
@@ -131,6 +136,7 @@ function Stats({ history }: { history: Session[] }) {
         totalVolume={analytics.totalVolume}
         workoutVolumes={analytics.workoutVolumes}
         period={period}
+        comparison={comparison}
       />
       <GlassCard style={s.progressCard}>
         <Text style={s.progressCardTitle} accessibilityRole="header">
@@ -160,10 +166,10 @@ function Stats({ history }: { history: Session[] }) {
                 </Text>
               </View>
               <View style={s.recordValue}>
+                {i === 0 && <Text style={s.pr}>TOP PR</Text>}
                 <Text style={s.value2}>
                   {r.estimatedOneRepMax.toFixed(1)} kg
                 </Text>
-                {i === 0 && <Text style={s.pr}>TOP PR</Text>}
               </View>
             </View>
           ))
@@ -704,7 +710,15 @@ const s = StyleSheet.create({
   },
   recordCopy: { flex: 1, minWidth: 120 },
   recordName: { ...progressTypography.recordName, color: colors.textPrimary },
-  recordValue: { alignItems: 'flex-end', flexShrink: 1, gap: spacing.xxs },
+  recordValue: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    marginLeft: 'auto',
+    flexShrink: 1,
+    gap: spacing.xs,
+  },
   history: {
     flexDirection: 'row',
     flexWrap: 'wrap',

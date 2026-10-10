@@ -2,6 +2,24 @@
 
 This chronological log records approved decisions. The owning product, design, roadmap, and engineering documents remain the detailed sources of truth.
 
+## 2026-10-10 — Progress comparison and readable chart details
+
+Status: Approved — pending Git integration
+
+- Show factual signed kg volume change against the immediately preceding
+  rolling calendar window. Use directional green/red indicators, neutral
+  equality/no-data states and no indicator for ALL; avoid strength claims.
+- Keep comparison windows adjacent without double-counting the shared
+  boundary. Compare completed-set volumes, with usable-record detection and
+  an explicit unavailable state rather than a fabricated zero baseline.
+- Move TOP PR before the value, align value trailing edges, use consistently
+  stacked day/month dates, and dark semibold bar values with white backing
+  against regular gray axis ticks. Explicitly retain dark exercise names.
+- Preserve existing analytics, periods, History, workout state and schema.
+  Browser fixtures stay separate; native layout still needs phone review.
+
+Related: `PRODUCT.md`, `DESIGN_SYSTEM.md`, `ROADMAP.md`.
+
 ## 2026-10-10 — Progress typography detail pass
 
 Status: Approved — pending Git integration

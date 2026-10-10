@@ -36,6 +36,9 @@ CRESUM must feel fast, calm, precise and premium. Workout logging always has pri
 
 No neon palette. Gradients are not the default treatment.
 
+Volume comparison text uses `volumeIncrease: #1B7F37` and
+`volumeDecrease: #C62828`, keeping small signed values readable on white.
+
 ## 3. Spacing — 8pt grid
 
 ```ts
@@ -356,7 +359,9 @@ roles below. These refine the selected reference without resizing other screens.
 | Card explanation / source sets | 13 / 18            | 400               | textSecondary                   |
 | Period                         | 13 / 18            | 400; selected 600 | textSecondary; selected primary |
 | Uppercase volume label         | 11 / 16            | 600               | textSecondary                   |
-| Chart values / ticks / dates   | 11 / 16            | 400               | textSecondary                   |
+| Chart ticks / short months     | 11 / 16            | 400               | textSecondary                   |
+| Chart values                   | 12 / 16            | 600               | textPrimary                     |
+| Chart day                      | 13 / 18            | 500               | textPrimary                     |
 | CRESUM wordmark                | 13 / 18            | 700               | textEmphasis                    |
 | Tagline                        | 11 / 16            | 400               | textSecondary                   |
 
@@ -369,6 +374,30 @@ Units and dates use regular weight. The chart's “Recent workouts” heading
 remains 13 / 18 semibold textPrimary. Blue identifies actions, selection and
 the existing active estimated-value emphasis; it does not color metadata.
 All type still follows native font scaling and wrapping.
+
+### Progress comparison and chart readability — 2026-10-10
+
+Place the recorded-volume difference to the right of the large total, using a
+small up arrow plus a signed kg amount for an increase, a down arrow for a
+decrease, and neutral “No change” for equality. Use `volumeIncrease` /
+`volumeDecrease` text tokens (readable green/red on white) and textSecondary
+for neutral/unavailable states. Add the quiet “vs previous period” context.
+When unavailable, show “No comparison data”; for ALL omit the indicator.
+Keep signed numbers and directional accessibility copy so color is not the
+only signal. Allow the summary to wrap below the total on small screens or
+large text. This is a volume comparison, not a strength score.
+
+Put TOP PR before the estimated value in the same right-aligned group; preserve
+the common trailing edge of all values. Wrap the group if accessibility text
+requires it. Record names remain explicitly textPrimary.
+
+Every chart date uses two lines: 13 / 18 medium-weight textPrimary day above
+11 / 16 regular textSecondary short month, centered under its bar. Values
+above bars use the `chartValue` role (12 / 16 semibold textPrimary) with an
+opaque surface backing so grid lines cannot pass through their glyphs. Keep
+axis ticks 11 / 16 regular textSecondary; do not bold the scale or place values
+inside bars. Reserve label room using the value font, including wrapped large
+values. Keep actual numeric values and bar proportions unchanged.
 
 Keep the trained-exercise selector, clearly estimated per-workout values and
 their source weight/reps distinct from actual logged sets. Present logged sets

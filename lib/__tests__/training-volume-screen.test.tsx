@@ -109,6 +109,28 @@ beforeEach(() => {
 });
 afterEach(() => jest.restoreAllMocks());
 
+it('shows source-derived volume change, updates the comparison with periods and omits it for ALL', async () => {
+  const view = await renderProgress([
+    session('previous', at(-10), '200'),
+    session('current', at(21), '500'),
+  ]);
+  try {
+    expect(
+      view.root.findByProps({
+        accessibilityLabel:
+          'Training volume increased by 300 kg vs previous period',
+      }),
+    ).toBeDefined();
+    press(view, 'Progress period 1W');
+    expect(text(view)).toContain('No comparison data');
+    press(view, 'Progress period ALL');
+    expect(text(view)).not.toContain('No comparison data');
+    expect(view.root.findByType(WorkoutHistory).props.history).toHaveLength(2);
+  } finally {
+    act(() => view.unmount());
+  }
+});
+
 it('shows factual values beside dated bars, including fractional and zero volumes', async () => {
   const view = await renderProgress([
     session('fraction', at(21), '100.25'),
@@ -236,13 +258,10 @@ it('shows sparse same-day workouts as separate dated points and preserves full H
   expect(labels[1]).toContain('150 kg');
   expect(labels[0]).toContain(new Date(at(22, 9)).toLocaleString());
   expect(labels[1]).toContain(new Date(at(22, 19)).toLocaleString());
-  const shortDate = new Date(at(22)).toLocaleDateString(undefined, {
-    month: 'short',
-    day: 'numeric',
-  });
-  expect(text(view).filter((item: string) => item === shortDate)).toHaveLength(
-    2,
-  );
+  for (const part of [{ day: 'numeric' }, { month: 'short' }] as const) {
+    const label = new Date(at(22)).toLocaleDateString(undefined, part);
+    expect(text(view).filter((item: string) => item === label)).toHaveLength(2);
+  }
   expect(view.root.findByType(WorkoutHistory).props.history).toEqual(history);
   press(view, 'View all 2 workout volumes in 1M');
   const all = view.root.findByType(FlatList).props.data;

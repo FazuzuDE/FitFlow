@@ -119,6 +119,23 @@ List and inspect completed workouts accurately.
 
 ### Progress
 
+Training Volume compares the selected rolling window with the immediately
+preceding window of the same calendar period. Let `start` be the existing
+selected-period start and `previousStart` the same calendar subtraction from
+`start`: current is `[start, now]`, previous is `[previousStart, start)`.
+Boundary workouts belong to current only. The signed kilogram difference uses
+the existing completed-set volume calculation, not workout counts, planned
+sets or estimated strength. No percentage is introduced. Positive, negative
+and zero changes mean higher, lower and unchanged recorded volume, not a claim
+of strength improvement or decline. If the previous window has no usable
+completed-set records (or a populated current window has none), show no data
+for comparison. An empty current window can show a decline against recorded
+previous volume. A recorded zero-volume baseline remains comparable. `ALL`
+has no previous-window indicator. The complete History remains unfiltered.
+Treat machine-precision roundoff between equivalent decimal volumes as equality;
+do not use a fixed minimum kg change. Difference text uses up to 12 significant
+digits for readability without changing recorded weights or existing totals.
+
 Prioritize total volume, workout frequency, PRs, weight/repetition progression, estimated 1RM (clearly labeled estimate), and muscle distribution when supported.
 
 The selected Progress presentation foregrounds training volume, existing

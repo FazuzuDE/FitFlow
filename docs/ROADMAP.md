@@ -29,6 +29,9 @@ Later, separately approved work may sync custom workouts, preferences/profile, a
 
 ## P1 — Product polish
 
+- Approved Progress detail pass: previous-window volume comparison, inline
+  TOP PR, consistent day/month dates and distinct chart value/scale labels.
+
 - Onboarding Foundation: resumable lightweight personalization or direct first-workout creation through the Guided Workout Builder, separate versioned local state, legacy-user bypass, and later Profile re-entry. Calibration and recommendations remain separate future work.
 - Home Dashboard using real app data and `docs/DESIGN_SYSTEM.md`.
 - Selected Home reference alignment: greeting/hero, paired four-week stats,

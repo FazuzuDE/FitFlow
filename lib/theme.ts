@@ -14,6 +14,8 @@ export const colors = {
   success: '#34C759',
   warning: '#FF9F0A',
   danger: '#FF3B30',
+  volumeIncrease: '#1B7F37',
+  volumeDecrease: '#C62828',
 } as const;
 export const spacing = {
   xxs: 4,
@@ -59,6 +61,9 @@ export const progressTypography = {
   selectedPeriod: { ...typography.footnote, fontWeight: '600' },
   label: { ...typography.caption, fontSize: 11, fontWeight: '600' },
   chart: { ...typography.caption, fontSize: 11, fontWeight: '400' },
+  chartValue: { ...typography.caption, fontWeight: '600' },
+  chartDay: { ...typography.footnote, fontWeight: '500' },
+  comparison: { ...typography.subheadline, fontWeight: '600' },
   brand: { ...typography.footnote, fontWeight: '700' },
   tagline: { ...typography.caption, fontSize: 11, fontWeight: '400' },
   selector: typography.callout,
