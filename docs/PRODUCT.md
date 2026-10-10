@@ -75,6 +75,22 @@ part of the current Core implementation.
 
 Start/resume; exercises; sets; weight; reps; previous context; completion; rest timer; editing where supported; exercise progression; Finish; persistence.
 
+The active screen shows the current exercise rather than the whole program by
+default. **All exercises** reveals the ordered program for selection; choosing
+an exercise collapses it without changing entered or completed sets or the rest
+deadline. Automatic progression and new sessions also use the focused view.
+This is transient UI state; keep the existing Workout Engine, finish validation,
+confirmation, offline persistence and recovery unchanged.
+
+The expanded program supports hold-and-drag exercise reordering. Dropping
+persists the new order in the current active workout through existing local
+storage; it does not edit the source template or previous History. Preserve the
+current exercise by snapshot ID (including duplicate library exercises), all
+set values/completions and the rest deadline. Subsequent progression follows
+the new order. A cancelled drag changes nothing; saving disables reordering.
+Move up/Move down accessibility actions provide the same operation without a
+drag. Expansion and drag feedback remain transient presentation state.
+
 Weight entry should evolve into an adaptive system with Recommended, Keypad, and Wheel Picker modes while always preserving exact manual control. Quick weight adjustments should support equipment-aware increments rather than one universal increment; exact manual entry always overrides them. A complete increment table is not defined yet.
 
 Future working-weight recommendations must primarily use history for the specific exercise. With insufficient exercise-specific history, CRESUM should show an honest unavailable/insufficient-history state instead of fabricating a confident load. Recommendations remain customizable and overrideable.

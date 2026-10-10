@@ -2,6 +2,42 @@
 
 This chronological log records approved decisions. The owning product, design, roadmap, and engineering documents remain the detailed sources of truth.
 
+## 2026-10-10 — Reorder exercises in the active Workout program
+
+Status: Approved — pending Git integration
+
+- Expanded program rows support hold → light haptic and restrained jiggle →
+  vertical drag → release to save the position. Stop motion after drop/cancel
+  and keep the list open after reorder; regular tap still selects/collapses.
+- Persist only the active session's order, retaining the current exercise by
+  snapshot ID, set values/completions and rest deadline. Do not edit the source
+  template, previous History, or schema v1. Progression uses the reordered list.
+- Respect Reduce Motion, provide accessible Move up/Move down, and cancel
+  interrupted or saving-disabled gestures. Native vibration/gesture/edge-scroll
+  acceptance requires phone review; the chat demonstration uses test data.
+
+Related: `PRODUCT.md`, `DESIGN_SYSTEM.md`, `ROADMAP.md`.
+
+## 2026-10-10 — Selected Workout reference and focused program navigation
+
+Status: Approved — pending Git integration
+
+- Adopt the approved light Workout preview through the existing native screen:
+  CRESUM header, elapsed badge, factual summary, spacious exercise card and
+  tinted rest card. Keep English Core copy and existing catalog names.
+- The user approved the preview with one correction: hide the planned exercise
+  list by default. Show the current exercise and **All exercises** to expand
+  the full ordered program. **Collapse** closes it; selecting an exercise,
+  automatic progression and a new session return to the focused view.
+- Expansion is local presentation state only. Preserve entered/completed sets,
+  rest deadlines, add/remove-set confirmation, Exercise Library, Next exercise,
+  finish/save confirmation, offline persistence and recovery. No fixture data,
+  schema migration, new recommendation or pause feature is included.
+- Synchronize the approved rules and implementation in a focused PR to
+  `develop`; physical-device visual review remains separate from chat approval.
+
+Related: `DESIGN_SYSTEM.md`, `PRODUCT.md`, `ROADMAP.md`.
+
 ## 2026-10-09 — Selected Home screenshot alignment
 
 Status: Approved — pending Git integration

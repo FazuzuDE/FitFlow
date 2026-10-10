@@ -20,7 +20,7 @@ CRESUM must feel fast, calm, precise and premium. Workout logging always has pri
 | Token         | Value                 | Use                            |
 | ------------- | --------------------- | ------------------------------ |
 | primary       | `#0A84FF`             | CTA, selected nav, active data |
-| primaryTint   | `#EAF5FF`             | Subtle Home badges             |
+| primaryTint   | `#EAF5FF`             | Subtle badges and rest surface |
 | secondary     | `#5E5CE6`             | Secondary analytics            |
 | background    | `#F7F7F9`             | App background                 |
 | surface       | `#FFFFFF`             | Cards/sheets                   |
@@ -149,11 +149,33 @@ For swipe presentation, stack matching full-row foreground and action-background
 
 Order:
 
-1. Exercise name
-2. Optional illustration
-3. Previous performance/context
-4. Set rows
-5. Add-set/exercise actions
+1. Current exercise position/muscle and **All exercises** control
+2. Exercise name
+3. Optional illustration
+4. Previous performance/context
+5. Set rows
+6. Add-set/exercise actions
+
+The active workout focuses on one exercise. Do not show all planned exercise
+chips by default. **All exercises** expands the ordered program inside the
+exercise card; **Collapse** hides it. Each row remains selectable, exposes the
+current selection accessibly, and retains the completed-exercise check. Selecting
+a row collapses the program. Automatic exercise progression and a new session
+also return to the focused view. Expansion is temporary presentation state, not
+part of the persisted workout. Disable program controls while saving.
+
+In the expanded program, holding a row activates vertical drag with one light
+haptic and a small temporary jiggle. Other rows make room as the held row moves;
+release commits its position and stops motion, leaving the program open. A
+normal tap still selects and collapses. Respect Reduce Motion by omitting the
+jiggle and animated settling while retaining reordering. Expose Move up/Move
+down accessibility actions; do not add permanent editing buttons to every row.
+Use measured row heights for wrapping names and Dynamic Type. Cancel an
+unfinished drag on interruption, backgrounding, layout changes or saving.
+
+Reordering changes the active workout only, preserving the selected exercise's
+snapshot ID, entered/completed sets and rest deadline. Templates and existing
+History are unchanged. Scroll long programs near viewport edges during a drag.
 
 ### Exercise asset illustration direction
 
@@ -172,13 +194,17 @@ Anatomy/Muscle View keeps the same Primary/Secondary meaning across START and FI
 
 ### SetRow
 
-Recommended columns: `SET | PREVIOUS | KG | REPS | ✓`
+Current Core columns: `SET | KG | REPS | DONE`; previous performance is shown
+above the rows. A separate per-row previous column remains future work.
 
 Completion must be easy to hit during training. Completed state uses `success` without reducing readability.
 
 ### RestTimer
 
-Functional, not decorative: prominent remaining time, pause/skip where useful, `+15s/-15s`, completion haptic, recoverable while navigating inside the active workout.
+Use a `primaryTint` surface with a prominent remaining time and wrapping,
+paired `−15s/+15s` and Restart/Skip rest controls. After expiry use Rest complete
+and Continue. Preserve the existing deadline-based recovery and completion
+haptic. Pause is not implemented in Core and must not be implied by the UI.
 
 ### Finish Workout
 
@@ -267,6 +293,20 @@ Safe Area
 
 Current exercise and next action must always be obvious. Do not hide weight/reps behind multiple modals. Preserve session state across rerenders/backgrounding. Haptic after logging a set.
 
+### Selected Workout reference alignment
+
+Use the same spaced CRESUM identity/tagline as Home, with a large workout title,
+compact tinted elapsed-time badge, and factual completed-set/volume summary.
+Keep the current exercise in a spacious white card with `radius.xxl` and
+`spacing.lg` padding. Program navigation is collapsed by default as specified
+above. Numeric fields and completion controls remain at least 44 pt; completed
+fields use the success border and a filled success check with readable text.
+Reuse native tokens and shared controls. Header, program rows and action groups
+may wrap for compact screens and larger text. Keep Add set, confirmed Remove
+set, Exercise Library, Next exercise, Finish confirmation and saving/error
+states. Do not introduce fixture data, illustrations, a pause function or new
+workout rules as part of this presentation alignment.
+
 ## 13. Progress blueprint
 
 Top filters: `Overview · Strength · Volume · Muscles`.
@@ -344,9 +384,10 @@ The approved baseline is the light CRESUM concept: airy white/light-gray surface
 
 The source-aligned Core demo is the visual reference for the existing native
 application. Main scroll content in Home, Workout, Progress, and Profile uses a
-centered width of at most 600 pt, with the existing 16 pt screen inset. Exercise selectors and
-Progress period chips wrap onto additional lines instead of requiring horizontal
-scrolling. Recent workout volume columns also wrap, retaining chronological
+centered width of at most 600 pt, with the existing 16 pt screen inset. The active
+workout now uses the focused, expandable program described in section 9 instead
+of permanently visible exercise chips. Progress period chips wrap onto additional
+lines instead of requiring horizontal scrolling. Recent workout volume columns also wrap, retaining chronological
 order, readable dates, and accessible value labels. Home template previews are
 content-driven rather than truncated to two lines; volume summaries retain
 fractional kilograms instead of rounding to whole kilograms.
