@@ -6,6 +6,7 @@ import { Confirmation } from '../../components/Confirmation';
 import { Dock } from '../../components/Dock';
 import { GlassCard } from '../../components/GlassCard';
 import { Workout } from '../../components/Workout';
+import { TrainingVolume } from '../../components/TrainingVolume';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { completeOnboardingForTest } from './onboarding-fixture';
 import { STATE_KEY } from '../workout-repository';
@@ -367,9 +368,7 @@ it('keeps Progress chart heights finite for very large finite volumes', async ()
   const chart = view.root
     .findAllByType(View)
     .find((node: { props: { accessibilityLabel?: string } }) =>
-      node.props.accessibilityLabel?.startsWith(
-        'Recent workout volumes in kilograms:',
-      ),
+      node.props.accessibilityLabel?.startsWith('Workout volume curve'),
     );
   const heights = chart!
     .findAllByType(View)
@@ -384,7 +383,8 @@ it('keeps Progress chart heights finite for very large finite volumes', async ()
 
   expect(heights.length).toBeGreaterThan(0);
   expect(heights.every((height: number) => Number.isFinite(height))).toBe(true);
-  expect(Math.max(...heights)).toBeLessThanOrEqual(60);
+  // The native test preset has 2x text. Plot and label room scale with it.
+  expect(Math.max(...heights)).toBeLessThanOrEqual(240);
 
   await act(async () => view.unmount());
 });
@@ -466,7 +466,14 @@ it('scopes Progress by the selected period while keeping the full History archiv
         true,
       );
       expect(metricCard(view, 0)).toContain('250');
-      expect(metricCard(view, 0)).not.toContain('500');
+      expect(view.root.findByType(TrainingVolume).props.totalVolume).toBe(250);
+      expect(
+        view.root
+          .findByType(TrainingVolume)
+          .props.workoutVolumes.map(
+            (workout: { workoutId: string }) => workout.workoutId,
+          ),
+      ).toEqual(['recent']);
       expect(metricCard(view, 1)).toContain('recent exercise');
       expect(metricCard(view, 1)).not.toContain('older exercise');
       for (const label of ['1W', '1M', '3M', '6M', '1Y', 'ALL']) {
@@ -494,9 +501,7 @@ it('scopes Progress by the selected period while keeping the full History archiv
         view.root
           .findAllByType(View)
           .some((node: { props: { accessibilityLabel?: string } }) =>
-            node.props.accessibilityLabel?.startsWith(
-              'Recent workout volumes in kilograms:',
-            ),
+            node.props.accessibilityLabel?.startsWith('Workout volume curve'),
           ),
       ).toBe(false);
       expect(

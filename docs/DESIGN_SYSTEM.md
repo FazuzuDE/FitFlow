@@ -17,23 +17,27 @@ CRESUM must feel fast, calm, precise and premium. Workout logging always has pri
 
 ## 2. Colors
 
-| Token         | Value                 | Use                            |
-| ------------- | --------------------- | ------------------------------ |
-| primary       | `#0A84FF`             | CTA, selected nav, active data |
-| primaryTint   | `#EAF5FF`             | Subtle badges and rest surface |
-| secondary     | `#5E5CE6`             | Secondary analytics            |
-| background    | `#F7F7F9`             | App background                 |
-| surface       | `#FFFFFF`             | Cards/sheets                   |
-| surfaceSubtle | `#F2F2F7`             | Secondary controls             |
-| textPrimary   | `#111111`             | Main text                      |
-| textSecondary | `#6E6E73`             | Metadata                       |
-| textTertiary  | `#AEAEB2`             | Placeholder/inactive           |
-| separator     | `rgba(60,60,67,0.12)` | Dividers                       |
-| success       | `#34C759`             | Completed sets                 |
-| warning       | `#FF9F0A`             | Warnings                       |
-| danger        | `#FF3B30`             | Destructive/error              |
+| Token         | Value                 | Use                                        |
+| ------------- | --------------------- | ------------------------------------------ |
+| primary       | `#0A84FF`             | CTA, selected nav, active data             |
+| primaryTint   | `#EAF5FF`             | Subtle badges and rest surface             |
+| secondary     | `#5E5CE6`             | Secondary analytics                        |
+| background    | `#F7F7F9`             | App background                             |
+| surface       | `#FFFFFF`             | Cards/sheets                               |
+| surfaceSubtle | `#F2F2F7`             | Secondary controls                         |
+| textPrimary   | `#111111`             | Main text                                  |
+| textEmphasis  | `#000000`             | Progress reference headings and key values |
+| textSecondary | `#6E6E73`             | Metadata                                   |
+| textTertiary  | `#AEAEB2`             | Placeholder/inactive                       |
+| separator     | `rgba(60,60,67,0.12)` | Dividers                                   |
+| success       | `#34C759`             | Completed sets                             |
+| warning       | `#FF9F0A`             | Warnings                                   |
+| danger        | `#FF3B30`             | Destructive/error                          |
 
 No neon palette. Gradients are not the default treatment.
+
+Volume comparison text uses `volumeIncrease: #1B7F37` and
+`volumeDecrease: #C62828`, keeping small signed values readable on white.
 
 ## 3. Spacing — 8pt grid
 
@@ -74,6 +78,7 @@ Use the native/system font stack. On iOS this resolves naturally to San Francisc
 | Style       | Size | Weight | Line height |
 | ----------- | ---: | -----: | ----------: |
 | largeTitle  |   34 |    700 |          41 |
+| statistic   |   40 |    700 |          48 |
 | title1      |   28 |    700 |          34 |
 | title2      |   22 |    700 |          28 |
 | title3      |   20 |    600 |          25 |
@@ -311,7 +316,7 @@ workout rules as part of this presentation alignment.
 
 Top filters: `Overview · Strength · Volume · Muscles`.
 
-Progress periods: `1W · 1M · 3M · 6M · 1Y · ALL`. Default: `1M`. One selected period scopes Progress metrics; History remains the complete archive. Finite periods are rolling local-calendar windows `[start, now]` with both boundaries inclusive. `ALL` includes valid completed workouts through `now`; future-dated workouts do not contribute.
+Progress periods: `1W · 1M · 3M · 6M · 1Y · ALL`. Default: `1M` (30 local-calendar days). One selected period scopes Progress metrics; History remains the complete archive. Finite periods are rolling local-calendar windows `[start, now]` with both boundaries inclusive. `ALL` includes valid completed workouts through `now`; future-dated workouts do not contribute.
 
 Overview hierarchy: total volume chart → workouts → PRs → estimated 1RM/strength trend → meaningful average working weight → muscle-group distribution.
 
@@ -322,20 +327,97 @@ Do not display a metric merely because it is calculable.
 The approved mockups align the existing Progress overview, selected-exercise
 performance and workout-volume sheet with Home/Workout. Use the spaced CRESUM
 identity/tagline, large Progress title, secondary explanation and wrapping
-period controls. Unify selection to the existing primary-blue fill with readable
-white text; the generated references differ slightly in this detail.
+period controls. The user's selected overview screenshot is the exact visual
+reference: use one `surfaceSubtle` segmented track, a `primaryTint` selection
+and primary-blue selected text. Keep effective targets at least 44 pt and allow
+an adaptive wrapped arrangement for large text.
 
 Make Training Volume the dominant white card, followed by Estimated 1RM and
-Logged exercise performance. Cards use `radius.xxl`, `spacing.lg` padding and
-existing soft shadows. Recent workout bars retain chronological order, display
-their factual values and dates, and wrap on compact screens/large text. Use
-secondary for older bars and primary for the latest; do not fabricate trend
-percentages or copy the mockups' demo values.
+Logged exercise performance. Progress cards use `radius.xxl`, `spacing.md`
+padding and existing soft shadows, with the `statistic` token for the dominant
+volume value. Use a 16 pt Progress section gap and a compact header so the
+overview preserves the screenshot's proportions. For 1W, recent workout bars retain chronological order and show factual
+values above them, short-month dates below, a readable zero-based kg scale and
+subtle dashed horizontal grid. Fit all seven in one plot at normal phone sizes;
+if larger text requires multiple rows, repeat the same scale for each row.
+Use secondary for older bars and primary for the latest; do not fabricate trend
+percentages or copy the mockups' demo values. Derive scale ticks from data and
+preserve finite dimensions for zero, fractional and very large volumes.
+
+Progress typography uses the system font and the scoped `progressTypography`
+roles below. These refine the selected reference without resizing other screens.
+
+| Role                           | Size / line height | Weight            | Color                           |
+| ------------------------------ | ------------------ | ----------------- | ------------------------------- |
+| Screen title                   | 34 / 41            | 700               | textEmphasis                    |
+| Volume statistic               | 40 / 48            | 700               | textEmphasis                    |
+| Card heading                   | 20 / 25            | 700               | textEmphasis                    |
+| Exercise record name           | 15 / 20            | 600               | textPrimary                     |
+| Estimated record value         | 17 / 22            | 700               | textEmphasis                    |
+| Volume unit                    | 20 / 25            | 400               | textSecondary                   |
+| Screen explanation             | 15 / 20            | 400               | textSecondary                   |
+| Card explanation / source sets | 13 / 18            | 400               | textSecondary                   |
+| Period                         | 13 / 18            | 400; selected 600 | textSecondary; selected primary |
+| Uppercase volume label         | 11 / 16            | 600               | textSecondary                   |
+| Chart ticks / short months     | 11 / 16            | 400               | textSecondary                   |
+| Chart values                   | 12 / 16            | 600               | textPrimary                     |
+| Chart day                      | 13 / 18            | 500               | textPrimary                     |
+| CRESUM wordmark                | 13 / 18            | 700               | textEmphasis                    |
+| Tagline                        | 11 / 16            | 400               | textSecondary                   |
+
+The wordmark uses 4 pt tracking; the tagline and volume label use 1 pt.
+Keep chart numerals tabular and derive label room from the chart type role.
+An unselected exercise prompt uses textSecondary; the chosen exercise uses
+textPrimary, both in the 16 / 21 regular callout style. Metadata stays readable
+with the existing secondary gray rather than low-contrast tertiary gray.
+Units and dates use regular weight. The chart's “Recent workouts” heading
+remains 13 / 18 semibold textPrimary. Blue identifies actions, selection and
+the existing active estimated-value emphasis; it does not color metadata.
+All type still follows native font scaling and wrapping.
+
+### Progress comparison and chart readability — 2026-10-10
+
+Place the recorded-volume difference to the right of the large total, using a
+small up arrow plus a signed kg amount for an increase, a down arrow for a
+decrease, and neutral “No change” for equality. Use `volumeIncrease` /
+`volumeDecrease` text tokens (readable green/red on white) and textSecondary
+for neutral/unavailable states. Add the quiet “vs previous period” context.
+When unavailable, show compact “No data” in the same right-hand slot; retain
+full unavailable-comparison accessibility copy. For ALL omit the indicator.
+Keep signed numbers and directional accessibility copy so color is not the
+only signal. Allow the summary to wrap below the total on small screens or
+large text, consistently across states. At standard phone width the missing-data
+state must not create a second summary row. Use the 11 pt chart role for the
+quiet comparison context and a shrinkable comparison column. This is a volume
+comparison, not a strength score.
+
+Put TOP PR before the estimated value in the same right-aligned group; preserve
+the common trailing edge of all values. Wrap the group if accessibility text
+requires it. Record names remain explicitly textPrimary.
+
+Every chart date uses two lines: 13 / 18 medium-weight textPrimary day above
+11 / 16 regular textSecondary short month, centered under its bar. Values
+above bars use the `chartValue` role (12 / 16 semibold textPrimary) with an
+opaque surface backing so grid lines cannot pass through their glyphs. Keep
+axis ticks 11 / 16 regular textSecondary; do not bold the scale or place values
+inside bars. Reserve label room using the value font, including wrapped large
+values. Keep actual numeric values and bar proportions unchanged.
 
 Keep the trained-exercise selector, clearly estimated per-workout values and
 their source weight/reps distinct from actual logged sets. Present logged sets
-as quiet numbered rows. The existing Workout volumes sheet retains every
-workout in the selected period, readable date/name/value rows and Close.
+as quiet numbered rows. From 1M onward, use a primary-blue smooth curve through all selected workouts
+on a real date axis, with the same zero-based kg scale. 1M spans the last 30
+days; 3M/6M/1Y/ALL span their selected interval. Preserve factual point values
+and monotonic interpolation between neighbours, without overshoot or false
+rest-day zeros. Show four quiet day/month date ticks at normal size (two at
+larger text), actual selected workout details below, and a single point when
+a trend cannot yet be drawn. Long histories include year context.
+
+The existing Workout volumes sheet retains every
+workout in the selected period, readable date/name/value rows and Close. Its
+heading and kg values use explicit textEmphasis, names textPrimary and dates
+textSecondary. Mirror these explicit colors in the browser adaptation to prevent
+host dark-mode heading/value rules from reducing contrast.
 Preserve all estimate/detail sheets, empty states and the complete History.
 This reference does not add the blueprint's future analysis tabs, muscle map,
 new analytics or illustrations. Native sheets and Dynamic Type need phone QA.
@@ -409,9 +491,9 @@ The source-aligned Core demo is the visual reference for the existing native
 application. Main scroll content in Home, Workout, Progress, and Profile uses a
 centered width of at most 600 pt, with the existing 16 pt screen inset. The active
 workout now uses the focused, expandable program described in section 9 instead
-of permanently visible exercise chips. Progress period chips wrap onto additional
-lines instead of requiring horizontal scrolling. Recent workout volume columns also wrap, retaining chronological
-order, readable dates, and accessible value labels. Home template previews are
+of permanently visible exercise chips. Progress uses the segmented track and
+scaled chart described in section 13, with adaptive wrapping for large text
+rather than horizontal scrolling. Home template previews are
 content-driven rather than truncated to two lines; volume summaries retain
 fractional kilograms instead of rounding to whole kilograms.
 

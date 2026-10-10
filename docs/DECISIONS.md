@@ -2,6 +2,75 @@
 
 This chronological log records approved decisions. The owning product, design, roadmap, and engineering documents remain the detailed sources of truth.
 
+## 2026-10-10 — Full-period volume curves and phone feedback
+
+Status: Approved — pending Git integration
+
+- 1M uses the last 30 local-calendar days for all Progress projections and the
+  previous-period comparison. Longer periods retain their selected ranges.
+- Keep 1W bars. From 1M onward, draw all saved workout volumes as a smooth
+  shape-preserving curve on a real timestamp axis, without invented rest-day
+  zeros or extrapolation. Sparse data remains explicit; selected points expose
+  factual date/workout/kg details and accessible previous/next actions.
+- Keep unavailable comparison in the same right-hand slot using compact
+  “No data”, and explicitly darken Workout volumes heading/kg values.
+- Preserve History, saved snapshots, analytics formulas and offline storage.
+
+Related: `PRODUCT.md`, `DESIGN_SYSTEM.md`, `ROADMAP.md`.
+
+## 2026-10-10 — Progress comparison and readable chart details
+
+Status: Approved — pending Git integration
+
+- Show factual signed kg volume change against the immediately preceding
+  rolling calendar window. Use directional green/red indicators, neutral
+  equality/no-data states and no indicator for ALL; avoid strength claims.
+- Keep comparison windows adjacent without double-counting the shared
+  boundary. Compare completed-set volumes, with usable-record detection and
+  an explicit unavailable state rather than a fabricated zero baseline.
+- Move TOP PR before the value, align value trailing edges, use consistently
+  stacked day/month dates, and dark semibold bar values with white backing
+  against regular gray axis ticks. Explicitly retain dark exercise names.
+- Preserve existing analytics, periods, History, workout state and schema.
+  Browser fixtures stay separate; native layout still needs phone review.
+
+Related: `PRODUCT.md`, `DESIGN_SYSTEM.md`, `ROADMAP.md`.
+
+## 2026-10-10 — Progress typography detail pass
+
+Status: Approved — pending Git integration
+
+- Refine font size, weight and text color against the same selected overview
+  reference. Use scoped Progress type roles: 20 pt card headings, 15 pt record
+  names, 13 pt periods and 11 pt regular chart labels; preserve the 34 pt screen
+  title and 40 pt volume statistic.
+- Use black emphasis for headings/key values, existing readable secondary gray
+  for metadata, regular-weight units, a secondary-gray unselected exercise
+  prompt, and stronger selected-period/wordmark weight.
+- Match the browser preview to native styles. Keep other screens, analytics,
+  period semantics, stored workouts and test-only fixture separation intact.
+
+Related: `DESIGN_SYSTEM.md`.
+
+## 2026-10-10 — Progress overview mockup fidelity correction
+
+Status: Approved — pending Git integration
+
+- The user selected the overview screenshot as the exact Progress reference
+  after reviewing the merged implementation. Correct the visual gaps: a single
+  segmented period track with pale-blue selection, larger volume value,
+  zero-based scaled chart with dashed grid, factual bar labels/short-month dates
+  and narrower card insets.
+- This supersedes the earlier full-blue period fill and 24 pt Progress card
+  padding. Use a 40/48 pt statistic token and 16 pt Progress card insets.
+- Keep analytics, identity, shared periods, full History and local schema v1.
+  Demo values remain preview-only; normal-size charts fit seven bars, while
+  large-text layouts may repeat the same scale across multiple plot rows.
+- Match the browser adaptation to this native correction; device acceptance
+  remains necessary for native sheets, Dynamic Type and dock behavior.
+
+Related: `DESIGN_SYSTEM.md`, `PRODUCT.md`, `ROADMAP.md`.
+
 ## 2026-10-10 — Selected Progress mockups
 
 Status: Approved — pending Git integration

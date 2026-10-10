@@ -93,7 +93,7 @@ describe('exercise-specific logged performance', () => {
   });
 
   it('uses inclusive period boundaries and excludes future sessions even for ALL', () => {
-    const start = new Date(2026, 7, 23, 12).getTime();
+    const start = new Date(2026, 7, 24, 12).getTime();
     const make = (id: string, finishedAt: number) =>
       workout(id, finishedAt, 'bench', 'Bench', [
         savedSet(`${id}-set`, '50', '5', finishedAt - 1),
