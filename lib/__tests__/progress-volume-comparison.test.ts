@@ -61,11 +61,11 @@ it.each(['1W', '1M', '3M', '6M', '1Y'] as ProgressPeriodId[])(
   },
 );
 
-it('preserves month-end clamping for the previous calendar window', () => {
+it('compares adjacent 30-day windows across a month end', () => {
   const end = new Date(2025, 2, 31, 12).getTime();
   const history = [
-    workout('previous', new Date(2025, 0, 28, 12).getTime(), '10'),
-    workout('current', new Date(2025, 1, 28, 12).getTime(), '25'),
+    workout('previous', new Date(2025, 0, 30, 12).getTime(), '10'),
+    workout('current', new Date(2025, 2, 1, 12).getTime(), '25'),
   ];
   expect(projectVolumeComparison(history, '1M', end)).toEqual({
     kind: 'increase',

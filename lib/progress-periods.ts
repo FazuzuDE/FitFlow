@@ -3,7 +3,7 @@ import type { WorkoutSession } from './workout-model';
 
 export const PROGRESS_PERIODS = [
   { id: '1W', label: '1W', accessibilityLabel: '1 week' },
-  { id: '1M', label: '1M', accessibilityLabel: '1 month' },
+  { id: '1M', label: '1M', accessibilityLabel: 'Last 30 days' },
   { id: '3M', label: '3M', accessibilityLabel: '3 months' },
   { id: '6M', label: '6M', accessibilityLabel: '6 months' },
   { id: '1Y', label: '1Y', accessibilityLabel: '1 year' },
@@ -41,11 +41,11 @@ export const progressPeriodStart = (
 ): number | undefined => {
   const date = validNow(now);
   if (period === 'ALL') return undefined;
-  if (period === '1W') {
-    date.setDate(date.getDate() - 7);
+  if (period === '1W' || period === '1M') {
+    date.setDate(date.getDate() - (period === '1W' ? 7 : 30));
     return date.getTime();
   }
-  const months = { '1M': 1, '3M': 3, '6M': 6, '1Y': 12 }[period];
+  const months = { '3M': 3, '6M': 6, '1Y': 12 }[period];
   return subtractLocalMonths(date, months);
 };
 

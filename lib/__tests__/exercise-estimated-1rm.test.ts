@@ -116,7 +116,7 @@ it('combines canonical and legacy IDs but keeps unknown IDs distinct and orders 
 });
 
 it('uses finishedAt for inclusive periods, excludes future sessions, and preserves empty and zero series', () => {
-  const start = new Date(2026, 7, 23, 12).getTime();
+  const start = new Date(2026, 7, 24, 12).getTime();
   const make = (id: string, finishedAt: number, weight: string) =>
     workout(id, finishedAt, 'bench', 'Bench', [
       saved(`${id}-set`, weight, '5', finishedAt - 1),

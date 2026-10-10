@@ -137,6 +137,7 @@ function Stats({ history }: { history: Session[] }) {
         workoutVolumes={analytics.workoutVolumes}
         period={period}
         comparison={comparison}
+        now={now}
       />
       <GlassCard style={s.progressCard}>
         <Text style={s.progressCardTitle} accessibilityRole="header">

@@ -10,10 +10,14 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { GlassCard } from './GlassCard';
+import { VolumeTrendChart } from './VolumeTrendChart';
 import { Ionicons } from '@expo/vector-icons';
 import type { VolumeComparison } from '@/lib/progress-volume-comparison';
 import type { WorkoutVolume } from '@/lib/progress-analytics';
-import type { ProgressPeriodId } from '@/lib/progress-periods';
+import {
+  progressPeriodStart,
+  type ProgressPeriodId,
+} from '@/lib/progress-periods';
 import {
   colors,
   progressTypography,
@@ -28,6 +32,7 @@ type Props = {
   workoutVolumes: readonly WorkoutVolume[];
   period: ProgressPeriodId;
   comparison?: VolumeComparison;
+  now: number;
 };
 
 const shortMonth = (timestamp: number) =>
@@ -48,6 +53,7 @@ export function TrainingVolume({
   workoutVolumes,
   period,
   comparison,
+  now,
 }: Props) {
   const [allOpen, setAllOpen] = useState(false);
   const { width, fontScale } = useWindowDimensions();
@@ -123,7 +129,7 @@ export function TrainingVolume({
       : undefined;
   const changeText =
     !comparison || comparison.kind === 'unavailable'
-      ? 'No comparison data'
+      ? 'No data'
       : comparison.kind === 'unchanged'
         ? 'No change'
         : `${comparison.delta > 0 ? '+' : '−'}${changeAmount} kg`;
@@ -163,7 +169,9 @@ export function TrainingVolume({
                 {changeText}
               </Text>
             </View>
-            <Text style={s.subtitle}>vs previous period</Text>
+            <Text style={[s.subtitle, s.comparisonContext]}>
+              vs previous period
+            </Text>
           </View>
         ) : null}
       </View>
@@ -176,7 +184,11 @@ export function TrainingVolume({
         <>
           <View style={s.chartHeader}>
             <Text style={s.context}>
-              Recent workouts · {recent.length} of {workoutVolumes.length}
+              {period === '1W'
+                ? `Recent workouts · ${recent.length} of ${workoutVolumes.length}`
+                : period === '1M'
+                  ? 'Last 30 days · kg'
+                  : 'Volume by workout · kg'}
             </Text>
             <Pressable
               accessibilityRole="button"
@@ -187,119 +199,133 @@ export function TrainingVolume({
               <Text style={s.viewAllText}>View all workouts in {period}</Text>
             </Pressable>
           </View>
-          <View
-            accessibilityLabel={
-              'Recent workout volumes in kilograms: ' +
-              recent.map(pointLabel).join('; ')
-            }
-          >
-            <View
-              accessibilityLabel="Workout volume chart"
-              onLayout={(event) =>
-                setMeasuredWidth(event.nativeEvent.layout.width)
+          {period !== '1W' ? (
+            <VolumeTrendChart
+              key={period}
+              workouts={workoutVolumes}
+              start={
+                progressPeriodStart(period, now) ??
+                Math.min(now, ...workoutVolumes.map((p) => p.finishedAt))
               }
-              style={s.chartRows}
+              end={now}
+            />
+          ) : (
+            <View
+              accessibilityLabel={
+                'Recent workout volumes in kilograms: ' +
+                recent.map(pointLabel).join('; ')
+              }
             >
-              {rows.map((row, rowIndex) => (
-                <View key={rowIndex} style={s.plotRow}>
-                  <View
-                    accessibilityLabel="Workout volume scale in kilograms"
-                    style={{ width: axisWidth }}
-                  >
-                    {scale.ticks.map((tick, index) => (
-                      <Text
-                        key={index}
-                        style={[
-                          s.axisLabel,
-                          {
-                            top:
-                              labelRoom +
-                              (index * plotHeight) / 4 -
-                              (progressTypography.chart.lineHeight *
-                                textScale) /
-                                2,
-                          },
-                        ]}
-                      >
-                        {volumeChartTick(tick)}
-                      </Text>
-                    ))}
-                  </View>
-                  <View style={s.plot}>
+              <View
+                accessibilityLabel="Workout volume chart"
+                onLayout={(event) =>
+                  setMeasuredWidth(event.nativeEvent.layout.width)
+                }
+                style={s.chartRows}
+              >
+                {rows.map((row, rowIndex) => (
+                  <View key={rowIndex} style={s.plotRow}>
                     <View
-                      pointerEvents="none"
-                      accessibilityElementsHidden
-                      importantForAccessibility="no-hide-descendants"
-                      style={[s.grid, { top: labelRoom, height: plotHeight }]}
+                      accessibilityLabel="Workout volume scale in kilograms"
+                      style={{ width: axisWidth }}
                     >
-                      {scale.ticks.map((_, index) => (
-                        <View
+                      {scale.ticks.map((tick, index) => (
+                        <Text
                           key={index}
                           style={[
-                            s.gridLine,
-                            { top: (index * plotHeight) / 4 },
-                          ]}
-                        />
-                      ))}
-                    </View>
-                    <View style={s.columns}>
-                      {row.map((point) => (
-                        <View
-                          key={point.workoutId}
-                          accessible
-                          accessibilityLabel={`Workout volume: ${pointLabel(point)}`}
-                          style={[
-                            s.column,
-                            { maxWidth: spacing.xxxl * textScale },
+                            s.axisLabel,
+                            {
+                              top:
+                                labelRoom +
+                                (index * plotHeight) / 4 -
+                                (progressTypography.chart.lineHeight *
+                                  textScale) /
+                                  2,
+                            },
                           ]}
                         >
-                          <View
-                            style={[
-                              s.barSlot,
-                              { height: plotHeight + labelRoom },
-                            ]}
-                          >
-                            <Text style={s.pointValue}>
-                              {volumeNumber(point.volume)}
-                            </Text>
-                            <View
-                              style={[
-                                s.bar,
-                                {
-                                  height: Math.max(
-                                    0,
-                                    Math.min(
-                                      plotHeight,
-                                      (point.volume / scale.upper) * plotHeight,
-                                    ),
-                                  ),
-                                  backgroundColor:
-                                    point.workoutId === recent.at(-1)?.workoutId
-                                      ? colors.primary
-                                      : colors.secondary,
-                                },
-                              ]}
-                            />
-                          </View>
-                          <View style={s.date}>
-                            <Text style={s.day}>
-                              {new Date(point.finishedAt).toLocaleDateString(
-                                undefined,
-                                { day: 'numeric' },
-                              )}
-                            </Text>
-                            <Text style={s.month}>
-                              {shortMonth(point.finishedAt)}
-                            </Text>
-                          </View>
-                        </View>
+                          {volumeChartTick(tick)}
+                        </Text>
                       ))}
                     </View>
+                    <View style={s.plot}>
+                      <View
+                        pointerEvents="none"
+                        accessibilityElementsHidden
+                        importantForAccessibility="no-hide-descendants"
+                        style={[s.grid, { top: labelRoom, height: plotHeight }]}
+                      >
+                        {scale.ticks.map((_, index) => (
+                          <View
+                            key={index}
+                            style={[
+                              s.gridLine,
+                              { top: (index * plotHeight) / 4 },
+                            ]}
+                          />
+                        ))}
+                      </View>
+                      <View style={s.columns}>
+                        {row.map((point) => (
+                          <View
+                            key={point.workoutId}
+                            accessible
+                            accessibilityLabel={`Workout volume: ${pointLabel(point)}`}
+                            style={[
+                              s.column,
+                              { maxWidth: spacing.xxxl * textScale },
+                            ]}
+                          >
+                            <View
+                              style={[
+                                s.barSlot,
+                                { height: plotHeight + labelRoom },
+                              ]}
+                            >
+                              <Text style={s.pointValue}>
+                                {volumeNumber(point.volume)}
+                              </Text>
+                              <View
+                                style={[
+                                  s.bar,
+                                  {
+                                    height: Math.max(
+                                      0,
+                                      Math.min(
+                                        plotHeight,
+                                        (point.volume / scale.upper) *
+                                          plotHeight,
+                                      ),
+                                    ),
+                                    backgroundColor:
+                                      point.workoutId ===
+                                      recent.at(-1)?.workoutId
+                                        ? colors.primary
+                                        : colors.secondary,
+                                  },
+                                ]}
+                              />
+                            </View>
+                            <View style={s.date}>
+                              <Text style={s.day}>
+                                {new Date(point.finishedAt).toLocaleDateString(
+                                  undefined,
+                                  { day: 'numeric' },
+                                )}
+                              </Text>
+                              <Text style={s.month}>
+                                {shortMonth(point.finishedAt)}
+                              </Text>
+                            </View>
+                          </View>
+                        ))}
+                      </View>
+                    </View>
                   </View>
-                </View>
-              ))}
+                ))}
+              </View>
             </View>
-          </View>
+          )}
         </>
       )}
       <Modal
@@ -372,7 +398,19 @@ const s = StyleSheet.create({
     justifyContent: 'space-between',
     gap: spacing.sm,
   },
-  comparison: { alignItems: 'flex-end', marginLeft: 'auto', maxWidth: '100%' },
+  comparison: {
+    alignItems: 'flex-end',
+    marginLeft: 'auto',
+    maxWidth: '100%',
+    flexShrink: 1,
+    flexBasis: spacing.xxxl * 2,
+    flexGrow: 1,
+  },
+  comparisonContext: {
+    ...progressTypography.chart,
+    textAlign: 'right',
+    maxWidth: '100%',
+  },
   changeRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -483,7 +521,7 @@ const s = StyleSheet.create({
     gap: spacing.sm,
   },
   headerCopy: { flex: 1, minWidth: 0 },
-  title: { ...typography.title2, color: colors.textPrimary },
+  title: { ...typography.title2, color: colors.textEmphasis },
   close: {
     minWidth: 44,
     minHeight: 44,
@@ -507,7 +545,7 @@ const s = StyleSheet.create({
   rowName: { ...typography.headline, color: colors.textPrimary },
   rowVolume: {
     ...typography.body,
-    color: colors.textPrimary,
+    color: colors.textEmphasis,
     fontVariant: ['tabular-nums'],
     flexShrink: 1,
     textAlign: 'right',

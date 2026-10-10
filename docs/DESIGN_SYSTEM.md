@@ -316,7 +316,7 @@ workout rules as part of this presentation alignment.
 
 Top filters: `Overview · Strength · Volume · Muscles`.
 
-Progress periods: `1W · 1M · 3M · 6M · 1Y · ALL`. Default: `1M`. One selected period scopes Progress metrics; History remains the complete archive. Finite periods are rolling local-calendar windows `[start, now]` with both boundaries inclusive. `ALL` includes valid completed workouts through `now`; future-dated workouts do not contribute.
+Progress periods: `1W · 1M · 3M · 6M · 1Y · ALL`. Default: `1M` (30 local-calendar days). One selected period scopes Progress metrics; History remains the complete archive. Finite periods are rolling local-calendar windows `[start, now]` with both boundaries inclusive. `ALL` includes valid completed workouts through `now`; future-dated workouts do not contribute.
 
 Overview hierarchy: total volume chart → workouts → PRs → estimated 1RM/strength trend → meaningful average working weight → muscle-group distribution.
 
@@ -336,7 +336,7 @@ Make Training Volume the dominant white card, followed by Estimated 1RM and
 Logged exercise performance. Progress cards use `radius.xxl`, `spacing.md`
 padding and existing soft shadows, with the `statistic` token for the dominant
 volume value. Use a 16 pt Progress section gap and a compact header so the
-overview preserves the screenshot's proportions. Recent workout bars retain chronological order and show factual
+overview preserves the screenshot's proportions. For 1W, recent workout bars retain chronological order and show factual
 values above them, short-month dates below, a readable zero-based kg scale and
 subtle dashed horizontal grid. Fit all seven in one plot at normal phone sizes;
 if larger text requires multiple rows, repeat the same scale for each row.
@@ -382,10 +382,14 @@ small up arrow plus a signed kg amount for an increase, a down arrow for a
 decrease, and neutral “No change” for equality. Use `volumeIncrease` /
 `volumeDecrease` text tokens (readable green/red on white) and textSecondary
 for neutral/unavailable states. Add the quiet “vs previous period” context.
-When unavailable, show “No comparison data”; for ALL omit the indicator.
+When unavailable, show compact “No data” in the same right-hand slot; retain
+full unavailable-comparison accessibility copy. For ALL omit the indicator.
 Keep signed numbers and directional accessibility copy so color is not the
 only signal. Allow the summary to wrap below the total on small screens or
-large text. This is a volume comparison, not a strength score.
+large text, consistently across states. At standard phone width the missing-data
+state must not create a second summary row. Use the 11 pt chart role for the
+quiet comparison context and a shrinkable comparison column. This is a volume
+comparison, not a strength score.
 
 Put TOP PR before the estimated value in the same right-aligned group; preserve
 the common trailing edge of all values. Wrap the group if accessibility text
@@ -401,8 +405,19 @@ values. Keep actual numeric values and bar proportions unchanged.
 
 Keep the trained-exercise selector, clearly estimated per-workout values and
 their source weight/reps distinct from actual logged sets. Present logged sets
-as quiet numbered rows. The existing Workout volumes sheet retains every
-workout in the selected period, readable date/name/value rows and Close.
+as quiet numbered rows. From 1M onward, use a primary-blue smooth curve through all selected workouts
+on a real date axis, with the same zero-based kg scale. 1M spans the last 30
+days; 3M/6M/1Y/ALL span their selected interval. Preserve factual point values
+and monotonic interpolation between neighbours, without overshoot or false
+rest-day zeros. Show four quiet day/month date ticks at normal size (two at
+larger text), actual selected workout details below, and a single point when
+a trend cannot yet be drawn. Long histories include year context.
+
+The existing Workout volumes sheet retains every
+workout in the selected period, readable date/name/value rows and Close. Its
+heading and kg values use explicit textEmphasis, names textPrimary and dates
+textSecondary. Mirror these explicit colors in the browser adaptation to prevent
+host dark-mode heading/value rules from reducing contrast.
 Preserve all estimate/detail sheets, empty states and the complete History.
 This reference does not add the blueprint's future analysis tabs, muscle map,
 new analytics or illustrations. Native sheets and Dynamic Type need phone QA.

@@ -368,9 +368,7 @@ it('keeps Progress chart heights finite for very large finite volumes', async ()
   const chart = view.root
     .findAllByType(View)
     .find((node: { props: { accessibilityLabel?: string } }) =>
-      node.props.accessibilityLabel?.startsWith(
-        'Recent workout volumes in kilograms:',
-      ),
+      node.props.accessibilityLabel?.startsWith('Workout volume curve'),
     );
   const heights = chart!
     .findAllByType(View)
@@ -503,9 +501,7 @@ it('scopes Progress by the selected period while keeping the full History archiv
         view.root
           .findAllByType(View)
           .some((node: { props: { accessibilityLabel?: string } }) =>
-            node.props.accessibilityLabel?.startsWith(
-              'Recent workout volumes in kilograms:',
-            ),
+            node.props.accessibilityLabel?.startsWith('Workout volume curve'),
           ),
       ).toBe(false);
       expect(

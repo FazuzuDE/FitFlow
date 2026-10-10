@@ -109,6 +109,46 @@ beforeEach(() => {
 });
 afterEach(() => jest.restoreAllMocks());
 
+it('selects actual curve points without rounding tiny positive volume to zero', async () => {
+  const view = await renderProgress([
+    session('tiny', at(21), '0.000000000000000000000000000001'),
+    session('latest', at(22), '100'),
+  ]);
+  try {
+    const curve = view.root
+      .findAllByProps({ accessibilityRole: 'adjustable' })
+      .find(
+        (item: { props: { onAccessibilityAction?: unknown } }) =>
+          typeof item.props.onAccessibilityAction === 'function',
+      );
+    expect(curve).toBeDefined();
+    act(() =>
+      curve!.props.onAccessibilityAction({
+        nativeEvent: { actionName: 'decrement' },
+      }),
+    );
+    expect(
+      text(view).some(
+        (item: string) =>
+          item.includes('tiny workout') && item.includes('1e-30 kg'),
+      ),
+    ).toBe(true);
+    act(() =>
+      curve!.props.onAccessibilityAction({
+        nativeEvent: { actionName: 'increment' },
+      }),
+    );
+    expect(
+      text(view).some(
+        (item: string) =>
+          item.includes('latest workout') && item.includes('100 kg'),
+      ),
+    ).toBe(true);
+  } finally {
+    act(() => view.unmount());
+  }
+});
+
 it('shows source-derived volume change, updates the comparison with periods and omits it for ALL', async () => {
   const view = await renderProgress([
     session('previous', at(-10), '200'),
@@ -122,9 +162,9 @@ it('shows source-derived volume change, updates the comparison with periods and 
       }),
     ).toBeDefined();
     press(view, 'Progress period 1W');
-    expect(text(view)).toContain('No comparison data');
+    expect(text(view)).toContain('No data');
     press(view, 'Progress period ALL');
-    expect(text(view)).not.toContain('No comparison data');
+    expect(text(view)).not.toContain('No data');
     expect(view.root.findByType(WorkoutHistory).props.history).toHaveLength(2);
   } finally {
     act(() => view.unmount());
@@ -136,6 +176,7 @@ it('shows factual values beside dated bars, including fractional and zero volume
     session('fraction', at(21), '100.25'),
     session('zero', at(22), '0'),
   ]);
+  press(view, 'Progress period 1W');
   try {
     const points = chartPoints(view);
     expect(points).toHaveLength(2);
@@ -159,9 +200,10 @@ it('shows a zero-based kg scale without dropping any of the seven recent workout
   const values = [5200, 6200, 5600, 7000, 6000, 7400, 6600];
   const view = await renderProgress(
     values.map((value, index) =>
-      session(`chart-${index}`, at(index + 10), String(value)),
+      session(`chart-${index}`, at(index + 16), String(value)),
     ),
   );
+  press(view, 'Progress period 1W');
   try {
     const chart = view.root.findByProps({
       accessibilityLabel: 'Workout volume chart',
@@ -202,11 +244,12 @@ it('repeats the same scale for large text without losing workouts or value label
     Array.from({ length: 7 }, (_, index) =>
       session(
         `large-text-${index}`,
-        at(index + 10),
+        at(index + 16),
         String(5200 + index * 100),
       ),
     ),
   );
+  press(view, 'Progress period 1W');
   try {
     const chart = view.root.findByProps({
       accessibilityLabel: 'Workout volume chart',
@@ -246,7 +289,7 @@ it('shows sparse same-day workouts as separate dated points and preserves full H
   const future = session('future', at(24), '200');
   const history = [future, evening, old, morning];
   const view = await renderProgress(history);
-  expect(text(view)).toContain('Recent workouts · 2 of 2');
+  expect(text(view)).toContain('Last 30 days · kg');
   expect(chartPoints(view)).toHaveLength(2);
   const labels = chartPoints(view).map(
     (item: { props: { accessibilityLabel: string } }) =>
@@ -258,10 +301,6 @@ it('shows sparse same-day workouts as separate dated points and preserves full H
   expect(labels[1]).toContain('150 kg');
   expect(labels[0]).toContain(new Date(at(22, 9)).toLocaleString());
   expect(labels[1]).toContain(new Date(at(22, 19)).toLocaleString());
-  for (const part of [{ day: 'numeric' }, { month: 'short' }] as const) {
-    const label = new Date(at(22)).toLocaleDateString(undefined, part);
-    expect(text(view).filter((item: string) => item === label)).toHaveLength(2);
-  }
   expect(view.root.findByType(WorkoutHistory).props.history).toEqual(history);
   press(view, 'View all 2 workout volumes in 1M');
   const all = view.root.findByType(FlatList).props.data;
@@ -286,14 +325,14 @@ it('shows sparse same-day workouts as separate dated points and preserves full H
   act(() => view.unmount());
 });
 
-it('keeps seven recent bars but exposes all ten individual workouts in ALL', async () => {
+it('shows all ten individual workouts on the ALL curve and in details', async () => {
   const history = Array.from({ length: 10 }, (_, index) =>
     session(`day-${index + 1}`, at(index + 1), String(index + 1)),
   );
   const view = await renderProgress(history);
   press(view, 'Progress period ALL');
-  expect(text(view)).toContain('Recent workouts · 7 of 10');
-  expect(chartPoints(view)).toHaveLength(7);
+  expect(text(view)).toContain('Volume by workout · kg');
+  expect(chartPoints(view)).toHaveLength(10);
   press(view, 'View all 10 workout volumes in ALL');
   const all = view.root.findByType(FlatList).props.data;
   expect(all).toHaveLength(10);
@@ -304,6 +343,8 @@ it('keeps seven recent bars but exposes all ten individual workouts in ALL', asy
 
 it('shows a single zero-volume workout without a positive bar height', async () => {
   const view = await renderProgress([session('zero', at(22), '0')]);
+  press(view, 'Progress period 1W');
+
   expect(chartPoints(view)).toHaveLength(1);
   expect(chartPoints(view)[0].props.accessibilityLabel).toContain('0 kg');
   const bar = chartPoints(view)[0]
@@ -318,6 +359,8 @@ it('shows a single zero-volume workout without a positive bar height', async () 
 
 it('does not label a small positive workout volume as zero', async () => {
   const view = await renderProgress([session('small', at(22), '0.0001')]);
+  press(view, 'Progress period 1W');
+
   expect(chartPoints(view)[0].props.accessibilityLabel).toContain('0.0001 kg');
   expect(
     view.root
@@ -328,7 +371,7 @@ it('does not label a small positive workout volume as zero', async () => {
           : false,
       ),
   ).toBe(true);
-  press(view, 'View all 1 workout volumes in 1M');
+  press(view, 'View all 1 workout volumes in 1W');
   expect(text(view)).toContain('0.0001 kg');
   act(() => view.unmount());
 });
@@ -371,6 +414,7 @@ it('preserves relative bar heights for very large finite workout volumes', async
     session('smaller', at(21), smaller),
     session('larger', at(22), larger),
   ]);
+  press(view, 'Progress period 1W');
   const heights = chartPoints(view).map(
     (point: { findAllByType: typeof view.root.findAllByType }) => {
       const bar = point
@@ -383,12 +427,13 @@ it('preserves relative bar heights for very large finite workout volumes', async
       return viewStyle(bar?.props.style).height;
     },
   );
+
   expect(heights[0]).toBeCloseTo(9.6);
   expect(heights[1]).toBe(96);
   act(() => view.unmount());
 });
 
-it('keeps a long ALL dataset accessible without rendering more than seven overview bars', async () => {
+it('keeps every workout accessible in a long ALL curve and full details', async () => {
   const history = Array.from({ length: 40 }, (_, index) =>
     session(
       `archive-${index}`,
@@ -398,7 +443,7 @@ it('keeps a long ALL dataset accessible without rendering more than seven overvi
   );
   const view = await renderProgress(history);
   press(view, 'Progress period ALL');
-  expect(chartPoints(view)).toHaveLength(7);
+  expect(chartPoints(view)).toHaveLength(40);
   press(view, 'View all 40 workout volumes in ALL');
   const list = view.root.findByType(FlatList);
   expect(list.props.data).toHaveLength(40);

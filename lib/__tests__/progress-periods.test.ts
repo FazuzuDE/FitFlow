@@ -66,10 +66,10 @@ describe('Progress local-calendar boundaries', () => {
     );
   });
 
-  it('clamps one-, three-, and six-month boundaries to shorter months', () => {
+  it('uses exactly 30 local days for 1M and clamps longer calendar periods', () => {
     const now = new Date(2025, 2, 31, 15, 20).getTime();
     expect(progressPeriodStart('1M', now)).toBe(
-      new Date(2025, 1, 28, 15, 20).getTime(),
+      new Date(2025, 2, 1, 15, 20).getTime(),
     );
     expect(progressPeriodStart('3M', now)).toBe(
       new Date(2024, 11, 31, 15, 20).getTime(),
@@ -81,7 +81,7 @@ describe('Progress local-calendar boundaries', () => {
 
   it('handles leap-year February for month and year subtraction', () => {
     expect(progressPeriodStart('1M', new Date(2024, 2, 31, 9).getTime())).toBe(
-      new Date(2024, 1, 29, 9).getTime(),
+      new Date(2024, 2, 1, 9).getTime(),
     );
     expect(progressPeriodStart('1Y', new Date(2024, 1, 29, 9).getTime())).toBe(
       new Date(2023, 1, 28, 9).getTime(),
@@ -102,7 +102,7 @@ describe('Progress local-calendar boundaries', () => {
     }
     if (zone === 'Australia/Sydney') {
       const now = new Date(2028, 10, 15, 2, 30).getTime();
-      const expected = new Date(2028, 9, 15, 2, 30).getTime();
+      const expected = new Date(2028, 9, 16, 2, 30).getTime();
       expect(new Date(expected).getHours()).toBe(2);
       expect(progressPeriodStart('1M', now)).toBe(expected);
       const atBoundary = workout('at-boundary', expected);
@@ -143,7 +143,7 @@ describe('Progress local-calendar boundaries', () => {
 
 describe('Progress period projection', () => {
   const now = new Date(2026, 8, 23, 12).getTime();
-  const start = new Date(2026, 7, 23, 12).getTime();
+  const start = new Date(2026, 7, 24, 12).getTime();
 
   it('includes both exact boundaries and excludes adjacent and future workouts', () => {
     const history = [

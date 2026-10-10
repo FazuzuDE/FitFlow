@@ -2,6 +2,22 @@
 
 This chronological log records approved decisions. The owning product, design, roadmap, and engineering documents remain the detailed sources of truth.
 
+## 2026-10-10 — Full-period volume curves and phone feedback
+
+Status: Approved — pending Git integration
+
+- 1M uses the last 30 local-calendar days for all Progress projections and the
+  previous-period comparison. Longer periods retain their selected ranges.
+- Keep 1W bars. From 1M onward, draw all saved workout volumes as a smooth
+  shape-preserving curve on a real timestamp axis, without invented rest-day
+  zeros or extrapolation. Sparse data remains explicit; selected points expose
+  factual date/workout/kg details and accessible previous/next actions.
+- Keep unavailable comparison in the same right-hand slot using compact
+  “No data”, and explicitly darken Workout volumes heading/kg values.
+- Preserve History, saved snapshots, analytics formulas and offline storage.
+
+Related: `PRODUCT.md`, `DESIGN_SYSTEM.md`, `ROADMAP.md`.
+
 ## 2026-10-10 — Progress comparison and readable chart details
 
 Status: Approved — pending Git integration
