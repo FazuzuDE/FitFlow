@@ -472,8 +472,11 @@ it('scopes Progress by the selected period while keeping the full History archiv
       for (const label of ['1W', '1M', '3M', '6M', '1Y', 'ALL']) {
         const button = periodButton(view, label);
         expect(button?.props.accessibilityRole).toBe('button');
+        const style = button?.props.style;
         expect(
-          StyleSheet.flatten(button?.props.style).minHeight,
+          StyleSheet.flatten(
+            typeof style === 'function' ? style({ pressed: false }) : style,
+          ).minHeight,
         ).toBeGreaterThanOrEqual(44);
       }
       expect(

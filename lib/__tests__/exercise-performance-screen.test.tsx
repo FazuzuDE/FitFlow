@@ -110,6 +110,42 @@ const visibleText = (view: ReturnType<typeof create>) =>
     );
 
 describe('ExercisePerformance', () => {
+  it('numbers only saved valid completed sets, leaving planned and invalid sets out', () => {
+    const saved = workout('recent', 22, 'bench', 'Saved Bench', '60');
+    saved.exercises[0].sets.push(
+      {
+        id: 'invalid-completed',
+        weight: 'bad',
+        reps: '10',
+        completedAt: at(22),
+      },
+      {
+        id: 'second-completed',
+        weight: '57.5',
+        reps: '9',
+        completedAt: at(22),
+      },
+    );
+    const original = JSON.stringify(saved);
+    const view = render(
+      <ExercisePerformance history={[saved]} period="1M" now={now} />,
+    );
+    try {
+      press(view, 'Choose exercise for logged performance');
+      press(view, 'View Saved Bench performance');
+      expect(visibleText(view)).toContain('1');
+      expect(visibleText(view)).toContain('2');
+      expect(visibleText(view)).not.toContain('3');
+      expect(visibleText(view)).toContain('60 kg × 8');
+      expect(visibleText(view)).toContain('57.5 kg × 9');
+      expect(visibleText(view)).not.toContain('95 kg × 5');
+      expect(visibleText(view)).not.toContain('bad kg × 10');
+      expect(JSON.stringify(saved)).toBe(original);
+    } finally {
+      act(() => view.unmount());
+    }
+  });
+
   it('shows dated estimated 1RM points for the selected exercise and updates with the period', () => {
     const history = [
       workout('older', 3, 'bench', 'Saved Bench', '60'),

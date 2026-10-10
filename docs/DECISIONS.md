@@ -2,6 +2,23 @@
 
 This chronological log records approved decisions. The owning product, design, roadmap, and engineering documents remain the detailed sources of truth.
 
+## 2026-10-10 — Selected Progress mockups
+
+Status: Approved — pending Git integration
+
+- Use the approved overview, selected-exercise performance and workout-volume
+  sheet mockups as Progress's presentation reference in the Home/Workout style.
+- Lead with training volume, then estimated records and logged performance.
+  Use existing tokens, spacious white cards, wrapping period controls, factual
+  bar values and quiet logged-set/detail rows. Standardize the selected period
+  to the existing primary-blue fill; generated controls vary slightly.
+- Preserve calculations, identity, shared period semantics, all detail sheets,
+  empty states, full History and local schema v1. Mockup data stays test-only;
+  no new analysis tabs, muscle map, recommendations or analytics are included.
+- Native sheets and Dynamic Type require phone acceptance.
+
+Related: `PRODUCT.md`, `DESIGN_SYSTEM.md`, `ROADMAP.md`.
+
 ## 2026-10-10 — Reorder exercises in the active Workout program
 
 Status: Approved — pending Git integration

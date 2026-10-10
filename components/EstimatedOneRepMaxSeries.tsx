@@ -28,14 +28,20 @@ const pointLabel = (point: EstimatedOneRepMaxPoint) =>
 function PointRow({ point }: { point: EstimatedOneRepMaxPoint }) {
   return (
     <View accessible accessibilityLabel={pointLabel(point)} style={s.row}>
-      <Text style={s.date}>{new Date(point.finishedAt).toLocaleString()}</Text>
-      <Text style={s.workout}>{point.workoutName}</Text>
-      <Text style={s.value}>
-        {estimate(point.estimatedOneRepMax)} kg estimated
-      </Text>
-      <Text style={s.source}>
-        From {point.weight} kg × {point.reps}
-      </Text>
+      <View style={s.rowCopy}>
+        <Text style={s.date}>
+          {new Date(point.finishedAt).toLocaleString()}
+        </Text>
+        <Text style={s.workout}>{point.workoutName}</Text>
+      </View>
+      <View style={s.estimateCopy}>
+        <Text style={s.value}>
+          {estimate(point.estimatedOneRepMax)} kg estimated
+        </Text>
+        <Text style={s.source}>
+          From {point.weight} kg × {point.reps}
+        </Text>
+      </View>
     </View>
   );
 }
@@ -45,7 +51,9 @@ export function EstimatedOneRepMaxSeries({ points, period }: Props) {
   const recent = points.slice(-3);
   return (
     <View style={s.section}>
-      <Text style={s.title}>Estimated 1RM · per workout</Text>
+      <Text style={s.title} accessibilityRole="header">
+        Estimated 1RM · per workout
+      </Text>
       {points.length === 0 ? (
         <Text style={s.note}>
           No estimated 1RM data for this exercise in {period}.
@@ -111,18 +119,30 @@ const s = StyleSheet.create({
     marginTop: spacing.xxs,
   },
   row: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    gap: spacing.sm,
     paddingVertical: spacing.sm,
     borderBottomWidth: 1,
     borderBottomColor: colors.separator,
   },
+  rowCopy: { flex: 1, minWidth: 120 },
+  estimateCopy: { flex: 1, minWidth: 120, alignItems: 'flex-end' },
   date: { ...typography.footnote, color: colors.textSecondary },
   workout: { ...typography.headline, color: colors.textPrimary },
   value: {
     ...typography.body,
-    color: colors.textPrimary,
+    color: colors.primary,
     fontVariant: ['tabular-nums'],
+    textAlign: 'right',
   },
-  source: { ...typography.footnote, color: colors.textSecondary },
+  source: {
+    ...typography.footnote,
+    color: colors.textSecondary,
+    textAlign: 'right',
+  },
   viewAll: { minHeight: 44, justifyContent: 'center' },
   action: { ...typography.headline, color: colors.primary },
   pressed: { opacity: 0.6 },
