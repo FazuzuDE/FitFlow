@@ -1,4 +1,12 @@
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useEffect, useState } from 'react';
+import {
+  AppState,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { AppButton } from './AppButton';
 import { DashboardGrid, type DashboardGridItem } from './DashboardGrid';
@@ -17,6 +25,7 @@ type HomeProps = {
   onResume: () => void;
   startTemplate: (template: WorkoutTemplate) => void;
   templates: WorkoutTemplate[];
+  onOpenProfile?: () => void;
 };
 
 function PrimaryWorkoutWidget({
@@ -53,9 +62,17 @@ function PrimaryWorkoutWidget({
     : `Start ${featured!.template.name}`;
   return (
     <GlassCard style={s.hero}>
-      <Text style={s.cardLabel}>
-        {activeWorkout ? 'IN PROGRESS' : 'QUICK START'}
-      </Text>
+      <View style={s.heroTop}>
+        <View style={s.badge}>
+          <Ionicons name="barbell-outline" size={18} color={colors.primary} />
+          <Text style={s.badgeText}>
+            {activeWorkout ? 'In progress' : 'Quick start'}
+          </Text>
+        </View>
+        <Text style={s.sub}>
+          {activeWorkout ? 'Active workout' : 'Saved workout'}
+        </Text>
+      </View>
       <Text style={s.heroTitle} accessibilityRole="header">
         {activeWorkout?.name ?? featured?.template.name}
       </Text>
@@ -63,7 +80,9 @@ function PrimaryWorkoutWidget({
         <Text style={s.sub}>Your workout is ready to continue.</Text>
       ) : (
         <>
-          <Text style={s.meta}>{featured?.count}</Text>
+          <Text style={s.meta}>
+            {featured?.count} · {featured?.plannedSetCount} planned sets
+          </Text>
           {featured?.preview ? (
             <Text style={s.sub} accessibilityLabel={featured.preview}>
               {featured.preview}
@@ -90,15 +109,78 @@ function TrainingSummaryWidget({
   completedCount: number;
 }) {
   return (
-    <GlassCard style={s.summary}>
-      <Text style={s.cardLabel}>TOTAL VOLUME</Text>
-      <Text style={s.metric}>
-        {totalVolume.toLocaleString()} <Text style={s.unit}>kg</Text>
-      </Text>
-      <Text style={s.sub}>
-        {completedCount} completed workout{completedCount === 1 ? '' : 's'}
-        {' · saved locally'}
-      </Text>
+    <View style={s.statPair}>
+      <GlassCard style={s.statCard}>
+        <Text style={s.sub}>Last 4 weeks</Text>
+        <Text style={s.metric}>
+          {completedCount}{' '}
+          <Text style={s.unit}>
+            completed workout{completedCount === 1 ? '' : 's'}
+          </Text>
+        </Text>
+        <Text style={s.sub}> · saved locally</Text>
+      </GlassCard>
+      <GlassCard style={s.statCard}>
+        <Text style={s.sub}>Total volume</Text>
+        <Text style={s.metric}>
+          {(totalVolume >= 1000
+            ? totalVolume / 1000
+            : totalVolume
+          ).toLocaleString(undefined, { maximumFractionDigits: 6 })}{' '}
+          <Text style={s.unit}>{totalVolume >= 1000 ? 't' : 'kg'}</Text>
+        </Text>
+        <Text style={s.sub}>Last 4 weeks</Text>
+      </GlassCard>
+    </View>
+  );
+}
+
+function TrainingWeekWidget({
+  week,
+}: {
+  week: ReturnType<typeof projectHomeDashboard>['week'];
+}) {
+  const labels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+  return (
+    <GlassCard style={s.weekCard}>
+      <View style={s.heroTop}>
+        <Text style={s.section} accessibilityRole="header">
+          Your week
+        </Text>
+        <View style={s.badge}>
+          <Text style={s.badgeText}>
+            {week.completedCount} workout{week.completedCount === 1 ? '' : 's'}
+          </Text>
+        </View>
+      </View>
+      <View style={s.weekDays}>
+        {week.days.map((day, index) => (
+          <View
+            key={day.timestamp}
+            style={s.weekDay}
+            accessible
+            accessibilityLabel={`${new Date(day.timestamp).toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' })}: ${day.completedCount} completed workouts${day.isToday ? ', today' : ''}`}
+          >
+            <Text style={s.dayLabel}>{labels[index]}</Text>
+            <View style={[s.dayMarker, day.isToday && s.todayCircle]}>
+              <View
+                style={[
+                  s.dayCircle,
+                  day.completedCount > 0 && s.completedCircle,
+                ]}
+              >
+                {day.completedCount > 0 ? (
+                  <Ionicons name="checkmark" size={20} color={colors.surface} />
+                ) : (
+                  <Text style={[s.dayNumber, day.isToday && s.todayNumber]}>
+                    {day.dayOfMonth}
+                  </Text>
+                )}
+              </View>
+            </View>
+          </View>
+        ))}
+      </View>
     </GlassCard>
   );
 }
@@ -191,8 +273,21 @@ export function HomeDashboard({
   onResume,
   startTemplate,
   templates,
+  onOpenProfile,
 }: HomeProps) {
-  const data = projectHomeDashboard(history, activeWorkout, templates);
+  const [now, setNow] = useState(Date.now);
+  useEffect(() => {
+    const refresh = () => setNow(Date.now());
+    const timer = setInterval(refresh, 60_000);
+    const subscription = AppState.addEventListener('change', (state) => {
+      if (state === 'active') refresh();
+    });
+    return () => {
+      clearInterval(timer);
+      subscription.remove();
+    };
+  }, []);
+  const data = projectHomeDashboard(history, activeWorkout, templates, now);
   const content = {
     primary: (
       <PrimaryWorkoutWidget
@@ -205,10 +300,11 @@ export function HomeDashboard({
     ),
     summary: (
       <TrainingSummaryWidget
-        totalVolume={data.totalVolume}
-        completedCount={data.completedCount}
+        totalVolume={data.fourWeeks.totalVolume}
+        completedCount={data.fourWeeks.completedCount}
       />
     ),
+    week: <TrainingWeekWidget week={data.week} />,
     latest: <LatestWorkoutWidget latest={data.latestWorkout} />,
     templates: data.otherTemplates.length ? (
       <WorkoutTemplatesWidget
@@ -228,13 +324,32 @@ export function HomeDashboard({
   return (
     <ScrollView contentContainerStyle={[s.content, s.homeContent]}>
       <View style={s.header}>
-        <Text style={s.brand}>CRESUM</Text>
-        <Text style={s.greeting}>
-          {history.length ? 'Welcome back' : 'Welcome'}
-        </Text>
-        <Text style={s.title} accessibilityRole="header">
-          Ready to train?
-        </Text>
+        <View style={s.brandRow}>
+          <Text style={s.brand}>CRESUM</Text>
+          <Text style={s.tagline}>TRAIN. TRACK. GROW.</Text>
+        </View>
+        <View style={s.greetingRow}>
+          <View style={s.greetingCopy}>
+            <Text style={s.title} accessibilityRole="header">
+              {history.length ? 'Welcome back' : 'Welcome'}
+            </Text>
+            <Text style={s.greeting}>A good day for progress.</Text>
+          </View>
+          {onOpenProfile ? (
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Open Profile"
+              onPress={onOpenProfile}
+              style={({ pressed }) => [s.avatar, pressed && s.pressed]}
+            >
+              <Ionicons
+                name="person-outline"
+                size={22}
+                color={colors.primary}
+              />
+            </Pressable>
+          ) : null}
+        </View>
       </View>
       <DashboardGrid items={items} />
     </ScrollView>
@@ -249,16 +364,95 @@ const s = StyleSheet.create({
     alignSelf: 'center',
     paddingBottom: spacing.lg,
   },
-  header: { gap: spacing.xxs },
-  brand: { ...typography.caption, color: colors.primary },
-  greeting: { ...typography.subheadline, color: colors.textSecondary },
-  title: { ...typography.title1, color: colors.textPrimary },
-  hero: { gap: spacing.sm },
-  heroTitle: { ...typography.title2, color: colors.textPrimary },
+  header: { gap: spacing.xl, paddingVertical: spacing.sm },
+  brandRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    flexWrap: 'wrap',
+    gap: spacing.xs,
+  },
+  brand: { ...typography.caption, letterSpacing: 2, color: colors.textPrimary },
+  tagline: {
+    ...typography.caption,
+    letterSpacing: 1,
+    color: colors.textSecondary,
+  },
+  greetingRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+  greetingCopy: { flex: 1, gap: spacing.xs },
+  avatar: {
+    minWidth: 44,
+    minHeight: 44,
+    borderRadius: radius.pill,
+    backgroundColor: colors.surface,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  greeting: { ...typography.body, color: colors.textSecondary },
+  title: { ...typography.largeTitle, color: colors.textPrimary },
+  hero: { gap: spacing.lg, padding: spacing.lg, borderRadius: radius.xxl },
+  heroTop: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    flexWrap: 'wrap',
+    gap: spacing.xs,
+  },
+  badge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xxs,
+    backgroundColor: colors.primaryTint,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
+    borderRadius: radius.sm,
+  },
+  badgeText: { ...typography.footnote, color: colors.textPrimary },
+  heroTitle: { ...typography.title1, color: colors.textPrimary },
   meta: { ...typography.subheadline, color: colors.textSecondary },
-  summary: { gap: spacing.xxs },
+  statPair: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
+  statCard: {
+    flex: 1,
+    minWidth: 140,
+    gap: spacing.xs,
+    padding: spacing.md,
+    borderRadius: radius.xxl,
+  },
+  weekCard: { gap: spacing.lg, padding: spacing.md, borderRadius: radius.xxl },
+  weekDays: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: spacing.xxs,
+  },
+  weekDay: { flex: 1, minWidth: 0, alignItems: 'center', gap: spacing.sm },
+  dayLabel: { ...typography.caption, color: colors.textSecondary },
+  dayMarker: {
+    width: '100%',
+    maxWidth: 44,
+    aspectRatio: 1,
+    borderRadius: radius.pill,
+    backgroundColor: colors.surface,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  dayCircle: {
+    width: '100%',
+    flex: 1,
+    borderRadius: radius.pill,
+    backgroundColor: colors.surfaceSubtle,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  todayCircle: {
+    backgroundColor: colors.surface,
+    borderWidth: 2,
+    borderColor: colors.primary,
+    padding: spacing.xxs,
+  },
+  completedCircle: { backgroundColor: colors.primary },
+  dayNumber: { ...typography.footnote, color: colors.textSecondary },
+  todayNumber: { color: colors.primary },
   metric: {
-    ...typography.title1,
+    ...typography.largeTitle,
     color: colors.textPrimary,
     fontVariant: ['tabular-nums'],
   },

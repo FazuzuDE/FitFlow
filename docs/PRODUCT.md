@@ -54,6 +54,16 @@ Onboarding has its own versioned local state. It must not alter `fitflow_state_v
 
 An existing workout-template entry and useful recent stats. Starting/resuming a workout is dominant; the template is not labeled as a recommendation.
 
+Home's selected dashboard presentation shows workout count and training volume
+over a rolling local-calendar window from the same local time 28 days ago
+through now, both boundaries inclusive (not a calendar-month window). A Monday–Sunday
+week shows actual completed sessions only, counts multiple workouts on a day,
+and distinguishes today without implying a schedule or missed training. Exclude
+unfinished, invalid and future-dated sessions from these recent projections and
+the latest-workout card. The complete History remains available. Template
+planned-set metadata is not performed work or a duration estimate. Do not seed
+demo data or a fake user identity in production.
+
 Dashboard content is composed of independent modules with stable identities. The
 module's position must not own workout or analytics logic. The current Home
 keeps its primary workout action, factual training summary, latest workout,

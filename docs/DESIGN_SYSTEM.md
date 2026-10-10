@@ -20,6 +20,7 @@ CRESUM must feel fast, calm, precise and premium. Workout logging always has pri
 | Token         | Value                 | Use                            |
 | ------------- | --------------------- | ------------------------------ |
 | primary       | `#0A84FF`             | CTA, selected nav, active data |
+| primaryTint   | `#EAF5FF`             | Subtle Home badges             |
 | secondary     | `#5E5CE6`             | Secondary analytics            |
 | background    | `#F7F7F9`             | App background                 |
 | surface       | `#FFFFFF`             | Cards/sheets                   |
@@ -216,12 +217,38 @@ Safe Area
   Header: CRESUM identity + greeting
   Primary Workout Module: Resume active workout or Start an existing template
   Training Summary Module: factual completed workouts + total volume
+  Training Week Module: Monday–Sunday with factual completed-day marks
   Latest Workout Module: factual saved result or empty state
   Workout Templates Module: other existing templates and Start actions
   Bottom Dock
 ```
 
 `Start Workout` is dominant. Home is not a social feed. Detailed analytics belong in Progress.
+
+### Selected Home reference — 2026-10-09
+
+The user's selected CRESUM greeting/dashboard screenshot supersedes the prior
+Home presentation reference only. Keep the light background, black spaced brand
+wordmark and small “TRAIN. TRACK. GROW.” tagline, large greeting with secondary
+copy, round Profile entry, spacious white hero with a blue badge, prominent blue
+Start/Resume action, two adjacent white statistic cards, and a compact training
+week. Reuse native type, radius, spacing, shadows and components; small screens
+and larger text may wrap the statistic cards rather than clip them.
+
+Summary cards use the same trailing four-week window, not all-time totals.
+The week starts on Monday; blue checks indicate actual completed workouts and
+an outlined date indicates today. Dates without completed sessions remain
+neutral, not planned or missed workouts. Day accessibility labels announce date,
+completion count and today. Refresh time-sensitive data on foreground and once
+per minute. No editable dashboard or new scheduling system is included.
+
+Use a neutral greeting/profile icon until a real user name is available. Do not
+hardcode the screenshot's name, initials, dates or statistics. Template metadata
+may show available exercise and planned-set counts; omit unsupported duration
+estimates and “Today” claims. Keep current English Core copy and catalog names;
+the Russian screenshot approves presentation, not an app-wide localization.
+ChatGPT chrome in the screenshot is not app chrome. Existing latest-workout and
+template modules remain below the week; other screens are separate future tasks.
 
 ## 12. Active Workout blueprint
 

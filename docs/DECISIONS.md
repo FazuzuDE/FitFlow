@@ -2,6 +2,23 @@
 
 This chronological log records approved decisions. The owning product, design, roadmap, and engineering documents remain the detailed sources of truth.
 
+## 2026-10-09 — Selected Home screenshot alignment
+
+Status: Approved — pending Git integration
+
+- The user selected the earlier greeting/dashboard screenshot as the Home
+  reference and approved changing existing CRESUM code, Home first.
+- Adopt its light spacious greeting, hero, paired summary cards and training
+  week using existing native architecture and tokens. ChatGPT chrome is excluded.
+- Four-week stats use trailing 28 local calendar days. Monday–Sunday completion
+  marks derive from valid completed History, not a schedule; today is distinct.
+- Do not hardcode identity, demo metrics, unsupported workout duration or a
+  “Today” assignment. Keep existing English copy, latest results, templates,
+  offline persistence and Start/Resume behavior. Other screen restyling remains
+  separate. No storage migration, recommendation engine or Expo server launch.
+
+Related: `DESIGN_SYSTEM.md`, `PRODUCT.md`, `ROADMAP.md`.
+
 ## 2026-10-05 — CRESUM Male Outfit Presets v1
 
 Status: Approved

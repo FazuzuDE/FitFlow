@@ -496,6 +496,7 @@ export default function App() {
               onResume={() => setTab('workout')}
               templates={visibleTemplates}
               startTemplate={startTemplate}
+              onOpenProfile={() => setTab('profile')}
             />
           ) : tab === 'workout' ? (
             <Workout

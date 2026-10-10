@@ -11,9 +11,19 @@ import type { WorkoutSession } from '../workout-model';
 import { STATE_KEY } from '../workout-repository';
 import { isPressable } from './pressable';
 import { completeOnboardingForTest } from './onboarding-fixture';
-import { Text } from 'react-native';
+import {
+  StyleSheet,
+  Text,
+  View,
+  type StyleProp,
+  type ViewStyle,
+} from 'react-native';
+import { colors, spacing } from '../theme';
 
 const { act, create } = jest.requireActual('react-test-renderer');
+
+beforeEach(() => jest.spyOn(Date, 'now').mockReturnValue(1_700_000_200_000));
+afterEach(() => jest.restoreAllMocks());
 
 jest.mock('@react-native-async-storage/async-storage', () =>
   jest.requireActual(
@@ -94,13 +104,16 @@ it('renders the established Home modules in stable grid order', async () => {
   expect(grid.props.items.map((item: { id: string }) => item.id)).toEqual([
     'primary',
     'summary',
+    'week',
     'latest',
     'templates',
   ]);
   expect(
     grid.props.items.every((item: { size: string }) => item.size === 'medium'),
   ).toBe(true);
-  expect(visibleText(view)).toContain('Ready to train?');
+  expect(visibleText(view)).toContain('A good day for progress.');
+  expect(visibleText(view)).toContain('TRAIN. TRACK. GROW.');
+  expect(visibleText(view)).toContain('Your week');
   await act(async () => view.unmount());
 });
 
@@ -112,7 +125,8 @@ it('shows CRESUM, a prominent template action, and truthful empty training stats
   expect(visibleText(view)).toContain('CRESUM');
   expect(visibleText(view)).not.toContain('FITFLOW CORE');
   expect(visibleText(view)).toContain('No completed workouts yet');
-  expect(visibleText(view)).toContain('TOTAL VOLUME');
+  expect(visibleText(view)).toContain('Total volume');
+  expect(visibleText(view)).toContain('Last 4 weeks');
   expect(button(view, 'Start Upper Body')).toBeDefined();
   expect(view.root.findByType(Dock).props.active).toBe('home');
 
@@ -221,6 +235,44 @@ it('keeps Resume dominant for an active workout without starting another session
   await act(async () => button(view, 'Resume Upper Body')!.props.onPress());
   expect(view.root.findByType(Workout).props.session.id).toBe(active.id);
   act(() => view.unmount());
+});
+
+it('keeps today visually distinct even after completing a workout today', async () => {
+  await AsyncStorage.clear();
+  await AsyncStorage.setItem(
+    STATE_KEY,
+    JSON.stringify({
+      schemaVersion: 1,
+      activeWorkout: null,
+      history: [completed('today', 'Today workout', Date.now(), '60', '8')],
+      templates: defaultTemplates,
+    }),
+  );
+  const view = await renderApp();
+  try {
+    const today = view.root
+      .findAllByType(View)
+      .find(
+        (node: {
+          props: { accessible?: boolean; accessibilityLabel?: string };
+        }) =>
+          node.props.accessible &&
+          node.props.accessibilityLabel?.endsWith(', today'),
+      );
+    expect(today).toBeDefined();
+    const marker = today
+      .findAllByType(View)
+      .find(
+        (node: { props: { style?: StyleProp<ViewStyle> } }) =>
+          StyleSheet.flatten(node.props.style)?.borderColor === colors.primary,
+      );
+    expect(marker).toBeDefined();
+    const style = StyleSheet.flatten(marker.props.style);
+    expect(style.borderColor).toBe(colors.primary);
+    expect(style.padding).toBe(spacing.xxs);
+  } finally {
+    await act(async () => view.unmount());
+  }
 });
 
 it('keeps full long template names accessible in compact secondary actions', async () => {
