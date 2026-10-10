@@ -54,7 +54,13 @@ import { OnboardingRepository } from '@/lib/onboarding-repository';
 import { resetLocalData } from '@/lib/local-data-reset';
 import { HiddenBuiltInsRepository } from '@/lib/hidden-builtins';
 import type { TemplateDraft } from '@/lib/workout-templates';
-import { colors, radius, spacing, typography } from '@/lib/theme';
+import {
+  colors,
+  progressTypography,
+  radius,
+  spacing,
+  typography,
+} from '@/lib/theme';
 
 const blue = colors.primary;
 function Stats({ history }: { history: Session[] }) {
@@ -87,7 +93,7 @@ function Stats({ history }: { history: Session[] }) {
           <Text style={s.tagline}>TRAIN. TRACK. GROW.</Text>
         </View>
         <View style={s.progressHeading}>
-          <Text style={s.title} accessibilityRole="header">
+          <Text style={s.progressTitle} accessibilityRole="header">
             Progress
           </Text>
           <Text style={s.progressSubtitle}>
@@ -148,7 +154,7 @@ function Stats({ history }: { history: Session[] }) {
               ]}
             >
               <View style={s.recordCopy}>
-                <Text style={s.h3}>{r.name}</Text>
+                <Text style={s.recordName}>{r.name}</Text>
                 <Text style={s.sub}>
                   {r.weight} kg × {r.reps}
                 </Text>
@@ -629,16 +635,27 @@ const s = StyleSheet.create({
     justifyContent: 'space-between',
     gap: spacing.xs,
   },
-  brand: { ...typography.caption, letterSpacing: 2, color: colors.textPrimary },
+  brand: {
+    ...progressTypography.brand,
+    letterSpacing: 4,
+    color: colors.textEmphasis,
+  },
   tagline: {
-    ...typography.caption,
+    ...progressTypography.tagline,
     letterSpacing: 1,
     color: colors.textSecondary,
   },
   progressHeading: { gap: spacing.xxs },
-  progressSubtitle: { ...typography.callout, color: colors.textSecondary },
+  progressTitle: { ...progressTypography.title, color: colors.textEmphasis },
+  progressSubtitle: {
+    ...progressTypography.explanation,
+    color: colors.textSecondary,
+  },
   progressCard: { padding: spacing.md, borderRadius: radius.xxl },
-  progressCardTitle: { ...typography.title2, color: colors.textPrimary },
+  progressCardTitle: {
+    ...progressTypography.sectionTitle,
+    color: colors.textEmphasis,
+  },
   estimateContext: {
     ...typography.footnote,
     color: colors.textSecondary,
@@ -662,7 +679,7 @@ const s = StyleSheet.create({
     justifyContent: 'center',
   },
   periodText: {
-    ...typography.subheadline,
+    ...progressTypography.period,
     color: colors.textSecondary,
     width: '100%',
     textAlign: 'center',
@@ -671,6 +688,7 @@ const s = StyleSheet.create({
   },
   periodChipLargeText: { flexBasis: '30%' },
   periodSelectedText: {
+    ...progressTypography.selectedPeriod,
     color: colors.primary,
     backgroundColor: colors.primaryTint,
   },
@@ -685,6 +703,7 @@ const s = StyleSheet.create({
     paddingVertical: spacing.xxs,
   },
   recordCopy: { flex: 1, minWidth: 120 },
+  recordName: { ...progressTypography.recordName, color: colors.textPrimary },
   recordValue: { alignItems: 'flex-end', flexShrink: 1, gap: spacing.xxs },
   history: {
     flexDirection: 'row',
@@ -697,8 +716,8 @@ const s = StyleSheet.create({
     borderBottomColor: colors.separator,
   },
   value2: {
-    ...typography.headline,
-    color: colors.textPrimary,
+    ...progressTypography.recordValue,
+    color: colors.textEmphasis,
     fontVariant: ['tabular-nums'],
   },
   lastRecord: { borderBottomWidth: 0 },

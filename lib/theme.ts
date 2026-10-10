@@ -7,6 +7,7 @@ export const colors = {
   surface: '#FFFFFF',
   surfaceSubtle: '#F2F2F7',
   textPrimary: '#111111',
+  textEmphasis: '#000000',
   textSecondary: '#6E6E73',
   textTertiary: '#AEAEB2',
   separator: 'rgba(60,60,67,0.12)',
@@ -44,6 +45,23 @@ export const typography = {
   subheadline: { fontSize: 15, fontWeight: '400', lineHeight: 20 },
   footnote: { fontSize: 13, fontWeight: '400', lineHeight: 18 },
   caption: { fontSize: 12, fontWeight: '500', lineHeight: 16 },
+} as const;
+// Selected Progress reference roles; other screens retain the base type scale.
+export const progressTypography = {
+  title: typography.largeTitle,
+  statistic: typography.statistic,
+  sectionTitle: { ...typography.title3, fontWeight: '700' },
+  recordName: { ...typography.subheadline, fontWeight: '600' },
+  recordValue: { ...typography.headline, fontWeight: '700' },
+  unit: { ...typography.title3, fontWeight: '400' },
+  explanation: typography.subheadline,
+  period: typography.footnote,
+  selectedPeriod: { ...typography.footnote, fontWeight: '600' },
+  label: { ...typography.caption, fontSize: 11, fontWeight: '600' },
+  chart: { ...typography.caption, fontSize: 11, fontWeight: '400' },
+  brand: { ...typography.footnote, fontWeight: '700' },
+  tagline: { ...typography.caption, fontSize: 11, fontWeight: '400' },
+  selector: typography.callout,
 } as const;
 export const cardShadow = {
   shadowColor: '#000000',

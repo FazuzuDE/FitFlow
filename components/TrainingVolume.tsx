@@ -12,7 +12,13 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { GlassCard } from './GlassCard';
 import type { WorkoutVolume } from '@/lib/progress-analytics';
 import type { ProgressPeriodId } from '@/lib/progress-periods';
-import { colors, radius, spacing, typography } from '@/lib/theme';
+import {
+  colors,
+  progressTypography,
+  radius,
+  spacing,
+  typography,
+} from '@/lib/theme';
 import { volumeChartScale, volumeChartTick } from '@/lib/training-volume-chart';
 
 type Props = {
@@ -48,7 +54,7 @@ export function TrainingVolume({ totalVolume, workoutVolumes, period }: Props) {
     ...scale.ticks.map(
       (tick) =>
         volumeChartTick(tick).length *
-        typography.caption.fontSize *
+        progressTypography.chart.fontSize *
         0.5 *
         textScale,
     ),
@@ -79,7 +85,7 @@ export function TrainingVolume({ totalVolume, workoutVolumes, period }: Props) {
     ...recent.map((point) =>
       Math.ceil(
         (volumeNumber(point.volume).length *
-          typography.caption.fontSize *
+          progressTypography.chart.fontSize *
           0.6 *
           textScale) /
           columnWidth,
@@ -89,7 +95,7 @@ export function TrainingVolume({ totalVolume, workoutVolumes, period }: Props) {
   const largest = Math.max(0, ...recent.map((point) => point.volume));
   const labelRoom = Math.max(
     0,
-    valueLines * typography.caption.lineHeight * textScale +
+    valueLines * progressTypography.chart.lineHeight * textScale +
       spacing.xxs -
       plotHeight * (1 - largest / scale.upper),
   );
@@ -153,7 +159,9 @@ export function TrainingVolume({ totalVolume, workoutVolumes, period }: Props) {
                             top:
                               labelRoom +
                               (index * plotHeight) / 4 -
-                              (typography.caption.lineHeight * textScale) / 2,
+                              (progressTypography.chart.lineHeight *
+                                textScale) /
+                                2,
                           },
                         ]}
                       >
@@ -280,17 +288,17 @@ export function TrainingVolume({ totalVolume, workoutVolumes, period }: Props) {
 const s = StyleSheet.create({
   card: { padding: spacing.md, borderRadius: radius.xxl },
   cardLabel: {
-    ...typography.caption,
+    ...progressTypography.label,
     color: colors.textSecondary,
     marginBottom: spacing.xxs,
     letterSpacing: 1,
   },
   big: {
-    ...typography.statistic,
-    color: colors.textPrimary,
+    ...progressTypography.statistic,
+    color: colors.textEmphasis,
     fontVariant: ['tabular-nums'],
   },
-  unit: { ...typography.title3, color: colors.textSecondary },
+  unit: { ...progressTypography.unit, color: colors.textSecondary },
   subtitle: { ...typography.footnote, color: colors.textSecondary },
   empty: {
     ...typography.footnote,
@@ -311,7 +319,7 @@ const s = StyleSheet.create({
     fontWeight: '600',
   },
   pointValue: {
-    ...typography.caption,
+    ...progressTypography.chart,
     color: colors.textSecondary,
     textAlign: 'center',
     fontVariant: ['tabular-nums'],
@@ -331,7 +339,8 @@ const s = StyleSheet.create({
     borderStyle: 'dashed',
   },
   axisLabel: {
-    ...typography.caption,
+    ...progressTypography.chart,
+    fontVariant: ['tabular-nums'],
     position: 'absolute',
     left: 0,
     right: 0,
@@ -357,7 +366,8 @@ const s = StyleSheet.create({
     borderTopRightRadius: radius.sm,
   },
   date: {
-    ...typography.caption,
+    ...progressTypography.chart,
+    fontVariant: ['tabular-nums'],
     color: colors.textSecondary,
     textAlign: 'center',
   },

@@ -17,21 +17,22 @@ CRESUM must feel fast, calm, precise and premium. Workout logging always has pri
 
 ## 2. Colors
 
-| Token         | Value                 | Use                            |
-| ------------- | --------------------- | ------------------------------ |
-| primary       | `#0A84FF`             | CTA, selected nav, active data |
-| primaryTint   | `#EAF5FF`             | Subtle badges and rest surface |
-| secondary     | `#5E5CE6`             | Secondary analytics            |
-| background    | `#F7F7F9`             | App background                 |
-| surface       | `#FFFFFF`             | Cards/sheets                   |
-| surfaceSubtle | `#F2F2F7`             | Secondary controls             |
-| textPrimary   | `#111111`             | Main text                      |
-| textSecondary | `#6E6E73`             | Metadata                       |
-| textTertiary  | `#AEAEB2`             | Placeholder/inactive           |
-| separator     | `rgba(60,60,67,0.12)` | Dividers                       |
-| success       | `#34C759`             | Completed sets                 |
-| warning       | `#FF9F0A`             | Warnings                       |
-| danger        | `#FF3B30`             | Destructive/error              |
+| Token         | Value                 | Use                                        |
+| ------------- | --------------------- | ------------------------------------------ |
+| primary       | `#0A84FF`             | CTA, selected nav, active data             |
+| primaryTint   | `#EAF5FF`             | Subtle badges and rest surface             |
+| secondary     | `#5E5CE6`             | Secondary analytics                        |
+| background    | `#F7F7F9`             | App background                             |
+| surface       | `#FFFFFF`             | Cards/sheets                               |
+| surfaceSubtle | `#F2F2F7`             | Secondary controls                         |
+| textPrimary   | `#111111`             | Main text                                  |
+| textEmphasis  | `#000000`             | Progress reference headings and key values |
+| textSecondary | `#6E6E73`             | Metadata                                   |
+| textTertiary  | `#AEAEB2`             | Placeholder/inactive                       |
+| separator     | `rgba(60,60,67,0.12)` | Dividers                                   |
+| success       | `#34C759`             | Completed sets                             |
+| warning       | `#FF9F0A`             | Warnings                                   |
+| danger        | `#FF3B30`             | Destructive/error                          |
 
 No neon palette. Gradients are not the default treatment.
 
@@ -339,6 +340,35 @@ if larger text requires multiple rows, repeat the same scale for each row.
 Use secondary for older bars and primary for the latest; do not fabricate trend
 percentages or copy the mockups' demo values. Derive scale ticks from data and
 preserve finite dimensions for zero, fractional and very large volumes.
+
+Progress typography uses the system font and the scoped `progressTypography`
+roles below. These refine the selected reference without resizing other screens.
+
+| Role                           | Size / line height | Weight            | Color                           |
+| ------------------------------ | ------------------ | ----------------- | ------------------------------- |
+| Screen title                   | 34 / 41            | 700               | textEmphasis                    |
+| Volume statistic               | 40 / 48            | 700               | textEmphasis                    |
+| Card heading                   | 20 / 25            | 700               | textEmphasis                    |
+| Exercise record name           | 15 / 20            | 600               | textPrimary                     |
+| Estimated record value         | 17 / 22            | 700               | textEmphasis                    |
+| Volume unit                    | 20 / 25            | 400               | textSecondary                   |
+| Screen explanation             | 15 / 20            | 400               | textSecondary                   |
+| Card explanation / source sets | 13 / 18            | 400               | textSecondary                   |
+| Period                         | 13 / 18            | 400; selected 600 | textSecondary; selected primary |
+| Uppercase volume label         | 11 / 16            | 600               | textSecondary                   |
+| Chart values / ticks / dates   | 11 / 16            | 400               | textSecondary                   |
+| CRESUM wordmark                | 13 / 18            | 700               | textEmphasis                    |
+| Tagline                        | 11 / 16            | 400               | textSecondary                   |
+
+The wordmark uses 4 pt tracking; the tagline and volume label use 1 pt.
+Keep chart numerals tabular and derive label room from the chart type role.
+An unselected exercise prompt uses textSecondary; the chosen exercise uses
+textPrimary, both in the 16 / 21 regular callout style. Metadata stays readable
+with the existing secondary gray rather than low-contrast tertiary gray.
+Units and dates use regular weight. The chart's “Recent workouts” heading
+remains 13 / 18 semibold textPrimary. Blue identifies actions, selection and
+the existing active estimated-value emphasis; it does not color metadata.
+All type still follows native font scaling and wrapping.
 
 Keep the trained-exercise selector, clearly estimated per-workout values and
 their source weight/reps distinct from actual logged sets. Present logged sets

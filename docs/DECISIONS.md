@@ -2,6 +2,22 @@
 
 This chronological log records approved decisions. The owning product, design, roadmap, and engineering documents remain the detailed sources of truth.
 
+## 2026-10-10 — Progress typography detail pass
+
+Status: Approved — pending Git integration
+
+- Refine font size, weight and text color against the same selected overview
+  reference. Use scoped Progress type roles: 20 pt card headings, 15 pt record
+  names, 13 pt periods and 11 pt regular chart labels; preserve the 34 pt screen
+  title and 40 pt volume statistic.
+- Use black emphasis for headings/key values, existing readable secondary gray
+  for metadata, regular-weight units, a secondary-gray unselected exercise
+  prompt, and stronger selected-period/wordmark weight.
+- Match the browser preview to native styles. Keep other screens, analytics,
+  period semantics, stored workouts and test-only fixture separation intact.
+
+Related: `DESIGN_SYSTEM.md`.
+
 ## 2026-10-10 — Progress overview mockup fidelity correction
 
 Status: Approved — pending Git integration

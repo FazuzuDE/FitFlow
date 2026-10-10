@@ -19,7 +19,13 @@ import {
 } from '@/lib/exercise-performance';
 import type { ProgressPeriodId } from '@/lib/progress-periods';
 import type { WorkoutSession } from '@/lib/workout-model';
-import { colors, radius, spacing, typography } from '@/lib/theme';
+import {
+  colors,
+  progressTypography,
+  radius,
+  spacing,
+  typography,
+} from '@/lib/theme';
 
 type Props = {
   history: readonly WorkoutSession[];
@@ -86,7 +92,7 @@ export function ExercisePerformance({ history, period, now }: Props) {
             onPress={() => setSelectorOpen(true)}
             style={({ pressed }) => [s.choose, pressed && s.pressed]}
           >
-            <Text style={s.chooseText}>
+            <Text style={[s.chooseText, !selected && s.choosePlaceholder]}>
               {selected ? choiceLabel(selected) : 'Choose exercise'}
             </Text>
             <Ionicons
@@ -193,7 +199,7 @@ export function ExercisePerformance({ history, period, now }: Props) {
 
 const s = StyleSheet.create({
   card: { padding: spacing.md, borderRadius: radius.xxl },
-  title: { ...typography.title2, color: colors.textPrimary },
+  title: { ...progressTypography.sectionTitle, color: colors.textEmphasis },
   subtitle: {
     ...typography.footnote,
     color: colors.textSecondary,
@@ -216,7 +222,12 @@ const s = StyleSheet.create({
     backgroundColor: colors.surfaceSubtle,
     paddingVertical: spacing.sm,
   },
-  chooseText: { ...typography.body, color: colors.textPrimary, flex: 1 },
+  chooseText: {
+    ...progressTypography.selector,
+    color: colors.textPrimary,
+    flex: 1,
+  },
+  choosePlaceholder: { color: colors.textSecondary },
   entries: { marginTop: spacing.sm },
   entry: {
     paddingVertical: spacing.sm,
