@@ -25,6 +25,22 @@ const workout = (id: string, at: number, weight = '50'): WorkoutSession => ({
   ],
 });
 
+it('keeps extreme but finite volume changes finite after rounding', () => {
+  const previous = workout('previous', new Date(2026, 8, 1, 12).getTime(), '0');
+  const current = workout('current', now);
+  current.exercises[0].sets = Array.from({ length: 100 }, (_, index) => ({
+    id: `current-${index}`,
+    weight: index === 0 ? '17976931348623157' + '0'.repeat(292) : '0',
+    reps: '1',
+    completedAt: now - 100,
+  }));
+  expect(projectVolumeComparison([previous, current], '1M', now)).toEqual({
+    kind: 'increase',
+    delta: Number.MAX_VALUE,
+    previousVolume: 0,
+  });
+});
+
 it.each(['1W', '1M', '3M', '6M', '1Y'] as ProgressPeriodId[])(
   'compares adjacent %s windows without counting their boundary twice',
   (period) => {
@@ -162,6 +178,5 @@ it('accounts for accumulated roundoff across many completed sets', () => {
   });
   const comparison = projectVolumeComparison([previous, current], '1M', now);
   expect(comparison?.kind).toBe('increase');
-  if (comparison?.kind === 'increase')
-    expect(comparison.delta).toBeCloseTo(0.001, 10);
+  if (comparison?.kind === 'increase') expect(comparison.delta).toBe(0.001);
 });

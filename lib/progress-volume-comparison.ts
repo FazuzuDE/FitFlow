@@ -63,7 +63,27 @@ export const projectVolumeComparison = (
     Math.max(current.totalVolume, previousVolume) *
     roundingOperations *
     2;
-  const delta = Math.abs(difference) <= tolerance ? 0 : difference;
+  // Keep the reliable significant digits of the difference; rounding error must
+  // not leak into the displayed amount. The rounding step is <= tolerance,
+  // so a difference exceeding that tolerance retains its direction.
+  const reliableDigits =
+    tolerance > 0
+      ? Math.min(
+          100,
+          Math.max(
+            1,
+            Math.ceil(Math.log10(Math.abs(difference))) -
+              Math.floor(Math.log10(tolerance)),
+          ),
+        )
+      : 100;
+  const roundedDelta =
+    Math.abs(difference) <= tolerance
+      ? 0
+      : tolerance > 0
+        ? Number(difference.toPrecision(reliableDigits))
+        : difference;
+  const delta = Number.isFinite(roundedDelta) ? roundedDelta : difference;
   return {
     kind: delta > 0 ? 'increase' : delta < 0 ? 'decrease' : 'unchanged',
     delta,

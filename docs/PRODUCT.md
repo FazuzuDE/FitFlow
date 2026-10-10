@@ -133,8 +133,9 @@ for comparison. An empty current window can show a decline against recorded
 previous volume. A recorded zero-volume baseline remains comparable. `ALL`
 has no previous-window indicator. The complete History remains unfiltered.
 Treat machine-precision roundoff between equivalent decimal volumes as equality;
-do not use a fixed minimum kg change. Difference text uses up to 12 significant
-digits for readability without changing recorded weights or existing totals.
+do not use a fixed minimum kg change. Normalize only unreliable digits of the
+difference based on the completed-set and workout summation error bound, without
+changing recorded weights or existing totals.
 
 Prioritize total volume, workout frequency, PRs, weight/repetition progression, estimated 1RM (clearly labeled estimate), and muscle distribution when supported.
 

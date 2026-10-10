@@ -119,7 +119,7 @@ export function TrainingVolume({
         : colors.textSecondary;
   const changeAmount =
     comparison && comparison.kind !== 'unavailable'
-      ? volumeNumber(Number(Math.abs(comparison.delta).toPrecision(12)))
+      ? volumeNumber(Math.abs(comparison.delta))
       : undefined;
   const changeText =
     !comparison || comparison.kind === 'unavailable'
