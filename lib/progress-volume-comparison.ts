@@ -27,23 +27,42 @@ export const projectVolumeComparison = (
     (session) => session.finishedAt! < start,
   );
   const current = projectPeriodAnalytics(history, period, now);
-  const usable = (workouts: readonly WorkoutSession[]) =>
-    workouts.some((session) =>
-      session.exercises.some((exercise) =>
-        exercise.sets.some((set) => completedSetMetrics(set) !== undefined),
-      ),
+  const sampleCount = (workouts: readonly WorkoutSession[]) =>
+    workouts.reduce(
+      (total, session) =>
+        total +
+        session.exercises.reduce(
+          (exerciseTotal, exercise) =>
+            exerciseTotal +
+            exercise.sets.filter(
+              (set) => completedSetMetrics(set) !== undefined,
+            ).length,
+          0,
+        ),
+      0,
     );
+  const previousSamples = sampleCount(previous);
+  const currentSamples = sampleCount(current.workouts);
   if (
-    !usable(previous) ||
-    (current.workouts.length > 0 && !usable(current.workouts))
+    previousSamples === 0 ||
+    (current.workouts.length > 0 && currentSamples === 0)
   ) {
     return { kind: 'unavailable' };
   }
   const previousVolume = projectProgressAnalytics(previous).totalVolume;
   const difference = current.totalVolume - previousVolume;
-  // Suppress only floating-point roundoff, not a fixed kg-sized threshold.
+  // Allow for decimal parsing, multiplication, and the set/workout sums.
+  // Scale with sample count so accumulated roundoff cannot create a trend.
+  // There is no fixed kg-sized threshold that would hide real small changes.
+  const roundingOperations =
+    Math.max(currentSamples, previousSamples) +
+    Math.max(current.workouts.length, previous.length) +
+    2;
   const tolerance =
-    Number.EPSILON * Math.max(current.totalVolume, previousVolume) * 8;
+    Number.EPSILON *
+    Math.max(current.totalVolume, previousVolume) *
+    roundingOperations *
+    2;
   const delta = Math.abs(difference) <= tolerance ? 0 : difference;
   return {
     kind: delta > 0 ? 'increase' : delta < 0 ? 'decrease' : 'unchanged',

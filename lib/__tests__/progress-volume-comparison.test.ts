@@ -133,3 +133,35 @@ it('treats floating-point noise as equality while preserving real small changes'
     previousVolume: 0,
   });
 });
+
+it('accounts for accumulated roundoff across many completed sets', () => {
+  const previous = workout('previous', new Date(2026, 8, 1, 12).getTime());
+  previous.exercises[0].sets = Array.from({ length: 10 }, (_, index) => ({
+    id: `previous-${index}`,
+    weight: '201',
+    reps: '3',
+    completedAt: previous.finishedAt! - 100,
+  }));
+  const current = workout('current', now);
+  current.exercises[0].sets = Array.from({ length: 100 }, (_, index) => ({
+    id: `current-${index}`,
+    weight: '20.1',
+    reps: '3',
+    completedAt: now - 100,
+  }));
+  expect(projectVolumeComparison([previous, current], '1M', now)).toEqual({
+    kind: 'unchanged',
+    delta: 0,
+    previousVolume: 6030,
+  });
+  current.exercises[0].sets.push({
+    id: 'tiny-change',
+    weight: '0.001',
+    reps: '1',
+    completedAt: now - 100,
+  });
+  const comparison = projectVolumeComparison([previous, current], '1M', now);
+  expect(comparison?.kind).toBe('increase');
+  if (comparison?.kind === 'increase')
+    expect(comparison.delta).toBeCloseTo(0.001, 10);
+});
