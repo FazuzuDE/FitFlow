@@ -34,6 +34,7 @@ export const radius = {
 } as const;
 export const typography = {
   largeTitle: { fontSize: 34, fontWeight: '700', lineHeight: 41 },
+  statistic: { fontSize: 40, fontWeight: '700', lineHeight: 48 },
   title1: { fontSize: 28, fontWeight: '700', lineHeight: 34 },
   title2: { fontSize: 22, fontWeight: '700', lineHeight: 28 },
   title3: { fontSize: 20, fontWeight: '600', lineHeight: 25 },

@@ -130,6 +130,10 @@ and actual logged sets separate from their estimates. This is presentation
 alignment: preserve calculations, period semantics, saved snapshots and local
 schema v1; do not introduce new metrics or production demo data.
 
+The selected overview uses a data-derived, zero-based kg scale with factual bar
+labels. Chart scaling is presentation only; it must not round stored or
+projected volumes, omit workouts from details, or change period boundaries.
+
 Future Training Insights follow the hierarchy Result → Analysis → Suggestion. Interpretations must be cautious, actionable only when justified, and able to explain the principal signals through a “Why?” affordance without fake precision or invented scientific certainty.
 
 A future Suggested Next Workout flow may use recent training history, estimated muscle load, goals, available equipment, and legitimate recovery information. Muscle load is one signal, not ground truth; the system must not simply choose the least-loaded muscle. The user can customize a suggestion before starting and the system can adapt from subsequent workouts.

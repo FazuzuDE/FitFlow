@@ -6,12 +6,14 @@ import {
   StyleSheet,
   Text,
   View,
+  useWindowDimensions,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { GlassCard } from './GlassCard';
 import type { WorkoutVolume } from '@/lib/progress-analytics';
 import type { ProgressPeriodId } from '@/lib/progress-periods';
 import { colors, radius, spacing, typography } from '@/lib/theme';
+import { volumeChartScale, volumeChartTick } from '@/lib/training-volume-chart';
 
 type Props = {
   totalVolume: number;
@@ -21,7 +23,7 @@ type Props = {
 
 const shortDate = (timestamp: number) =>
   new Date(timestamp).toLocaleDateString(undefined, {
-    month: 'numeric',
+    month: 'short',
     day: 'numeric',
   });
 const fullDate = (timestamp: number) => new Date(timestamp).toLocaleString();
@@ -35,8 +37,67 @@ const pointLabel = (point: WorkoutVolume) =>
 
 export function TrainingVolume({ totalVolume, workoutVolumes, period }: Props) {
   const [allOpen, setAllOpen] = useState(false);
+  const { width, fontScale } = useWindowDimensions();
+  const [measuredWidth, setMeasuredWidth] = useState<number>();
   const recent = workoutVolumes.slice(0, 7).reverse();
-  const max = Math.max(1, ...recent.map((point) => point.volume));
+  const scale = volumeChartScale(recent.map((point) => point.volume));
+  const textScale = Math.max(1, fontScale);
+  const plotHeight = spacing.xxxl * 2 * textScale;
+  const axisWidth = Math.max(
+    spacing.xxl,
+    ...scale.ticks.map(
+      (tick) =>
+        volumeChartTick(tick).length *
+        typography.caption.fontSize *
+        0.5 *
+        textScale,
+    ),
+  );
+  const chartWidth =
+    measuredWidth ?? Math.max(0, Math.min(width, 600) - spacing.md * 4);
+  const columnsPerRow = Math.max(
+    1,
+    Math.min(
+      7,
+      Math.floor(
+        (chartWidth - axisWidth - spacing.xs + spacing.xxs) /
+          (spacing.lg * textScale + spacing.xxs),
+      ),
+    ),
+  );
+  const columnCount = Math.max(1, Math.min(columnsPerRow, recent.length));
+  const columnWidth = Math.max(
+    1,
+    Math.min(
+      spacing.xxxl * textScale,
+      (chartWidth - axisWidth - spacing.xs - (columnCount - 1) * spacing.xxs) /
+        columnCount,
+    ),
+  );
+  const valueLines = Math.max(
+    1,
+    ...recent.map((point) =>
+      Math.ceil(
+        (volumeNumber(point.volume).length *
+          typography.caption.fontSize *
+          0.6 *
+          textScale) /
+          columnWidth,
+      ),
+    ),
+  );
+  const largest = Math.max(0, ...recent.map((point) => point.volume));
+  const labelRoom = Math.max(
+    0,
+    valueLines * typography.caption.lineHeight * textScale +
+      spacing.xxs -
+      plotHeight * (1 - largest / scale.upper),
+  );
+  const rows = Array.from(
+    { length: Math.ceil(recent.length / columnsPerRow) },
+    (_, index) =>
+      recent.slice(index * columnsPerRow, (index + 1) * columnsPerRow),
+  );
 
   return (
     <GlassCard style={s.card}>
@@ -53,8 +114,7 @@ export function TrainingVolume({ totalVolume, workoutVolumes, period }: Props) {
         <>
           <View style={s.chartHeader}>
             <Text style={s.context}>
-              Recent workouts · {recent.length} of {workoutVolumes.length} in{' '}
-              {period}
+              Recent workouts · {recent.length} of {workoutVolumes.length}
             </Text>
             <Pressable
               accessibilityRole="button"
@@ -70,39 +130,103 @@ export function TrainingVolume({ totalVolume, workoutVolumes, period }: Props) {
               'Recent workout volumes in kilograms: ' +
               recent.map(pointLabel).join('; ')
             }
-            style={s.chart}
           >
-            {recent.map((point, index) => (
-              <View
-                key={point.workoutId}
-                accessible
-                accessibilityLabel={`Workout volume: ${pointLabel(point)}`}
-                style={s.column}
-              >
-                <Text style={s.pointValue}>{volumeNumber(point.volume)}</Text>
-                <View style={s.barSlot}>
+            <View
+              accessibilityLabel="Workout volume chart"
+              onLayout={(event) =>
+                setMeasuredWidth(event.nativeEvent.layout.width)
+              }
+              style={s.chartRows}
+            >
+              {rows.map((row, rowIndex) => (
+                <View key={rowIndex} style={s.plotRow}>
                   <View
-                    style={[
-                      s.bar,
-                      {
-                        height:
-                          point.volume === 0
-                            ? 0
-                            : Math.max(
-                                0,
-                                Math.min(60, (point.volume / max) * 60),
-                              ),
-                        backgroundColor:
-                          index === recent.length - 1
-                            ? colors.primary
-                            : colors.secondary,
-                      },
-                    ]}
-                  />
+                    accessibilityLabel="Workout volume scale in kilograms"
+                    style={{ width: axisWidth }}
+                  >
+                    {scale.ticks.map((tick, index) => (
+                      <Text
+                        key={index}
+                        style={[
+                          s.axisLabel,
+                          {
+                            top:
+                              labelRoom +
+                              (index * plotHeight) / 4 -
+                              (typography.caption.lineHeight * textScale) / 2,
+                          },
+                        ]}
+                      >
+                        {volumeChartTick(tick)}
+                      </Text>
+                    ))}
+                  </View>
+                  <View style={s.plot}>
+                    <View
+                      pointerEvents="none"
+                      accessibilityElementsHidden
+                      importantForAccessibility="no-hide-descendants"
+                      style={[s.grid, { top: labelRoom, height: plotHeight }]}
+                    >
+                      {scale.ticks.map((_, index) => (
+                        <View
+                          key={index}
+                          style={[
+                            s.gridLine,
+                            { top: (index * plotHeight) / 4 },
+                          ]}
+                        />
+                      ))}
+                    </View>
+                    <View style={s.columns}>
+                      {row.map((point) => (
+                        <View
+                          key={point.workoutId}
+                          accessible
+                          accessibilityLabel={`Workout volume: ${pointLabel(point)}`}
+                          style={[
+                            s.column,
+                            { maxWidth: spacing.xxxl * textScale },
+                          ]}
+                        >
+                          <View
+                            style={[
+                              s.barSlot,
+                              { height: plotHeight + labelRoom },
+                            ]}
+                          >
+                            <Text style={s.pointValue}>
+                              {volumeNumber(point.volume)}
+                            </Text>
+                            <View
+                              style={[
+                                s.bar,
+                                {
+                                  height: Math.max(
+                                    0,
+                                    Math.min(
+                                      plotHeight,
+                                      (point.volume / scale.upper) * plotHeight,
+                                    ),
+                                  ),
+                                  backgroundColor:
+                                    point.workoutId === recent.at(-1)?.workoutId
+                                      ? colors.primary
+                                      : colors.secondary,
+                                },
+                              ]}
+                            />
+                          </View>
+                          <Text style={s.date}>
+                            {shortDate(point.finishedAt)}
+                          </Text>
+                        </View>
+                      ))}
+                    </View>
+                  </View>
                 </View>
-                <Text style={s.date}>{shortDate(point.finishedAt)}</Text>
-              </View>
-            ))}
+              ))}
+            </View>
           </View>
         </>
       )}
@@ -154,19 +278,19 @@ export function TrainingVolume({ totalVolume, workoutVolumes, period }: Props) {
 }
 
 const s = StyleSheet.create({
-  card: { padding: spacing.lg, borderRadius: radius.xxl },
+  card: { padding: spacing.md, borderRadius: radius.xxl },
   cardLabel: {
     ...typography.caption,
     color: colors.textSecondary,
-    marginBottom: spacing.xs,
+    marginBottom: spacing.xxs,
     letterSpacing: 1,
   },
   big: {
-    ...typography.largeTitle,
+    ...typography.statistic,
     color: colors.textPrimary,
     fontVariant: ['tabular-nums'],
   },
-  unit: { ...typography.footnote, color: colors.textSecondary },
+  unit: { ...typography.title3, color: colors.textSecondary },
   subtitle: { ...typography.footnote, color: colors.textSecondary },
   empty: {
     ...typography.footnote,
@@ -179,11 +303,12 @@ const s = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     gap: spacing.xs,
-    marginTop: spacing.lg,
+    marginTop: spacing.xxs,
   },
   context: {
     ...typography.footnote,
-    color: colors.textSecondary,
+    color: colors.textPrimary,
+    fontWeight: '600',
   },
   pointValue: {
     ...typography.caption,
@@ -191,23 +316,46 @@ const s = StyleSheet.create({
     textAlign: 'center',
     fontVariant: ['tabular-nums'],
     alignSelf: 'stretch',
+    marginBottom: spacing.xxs,
   },
-  chart: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    alignItems: 'flex-end',
-    gap: spacing.xs,
-    paddingVertical: spacing.sm,
+  chartRows: { gap: spacing.lg },
+  plotRow: { flexDirection: 'row', gap: spacing.xs },
+  plot: { flex: 1, minWidth: 0 },
+  grid: { position: 'absolute', left: 0, right: 0 },
+  gridLine: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    borderBottomWidth: 1,
+    borderColor: colors.separator,
+    borderStyle: 'dashed',
   },
+  axisLabel: {
+    ...typography.caption,
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    textAlign: 'right',
+    color: colors.textSecondary,
+  },
+  columns: { flexDirection: 'row', gap: spacing.xxs },
   column: {
-    minWidth: 44,
-    maxWidth: 60,
     flex: 1,
+    minWidth: 0,
     alignItems: 'center',
     gap: spacing.xs,
   },
-  barSlot: { height: 60, justifyContent: 'flex-end' },
-  bar: { width: spacing.lg, borderRadius: radius.sm },
+  barSlot: {
+    alignSelf: 'stretch',
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+  },
+  bar: {
+    width: '100%',
+    maxWidth: spacing.xl,
+    borderTopLeftRadius: radius.sm,
+    borderTopRightRadius: radius.sm,
+  },
   date: {
     ...typography.caption,
     color: colors.textSecondary,

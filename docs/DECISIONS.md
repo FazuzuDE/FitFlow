@@ -2,6 +2,25 @@
 
 This chronological log records approved decisions. The owning product, design, roadmap, and engineering documents remain the detailed sources of truth.
 
+## 2026-10-10 — Progress overview mockup fidelity correction
+
+Status: Approved — pending Git integration
+
+- The user selected the overview screenshot as the exact Progress reference
+  after reviewing the merged implementation. Correct the visual gaps: a single
+  segmented period track with pale-blue selection, larger volume value,
+  zero-based scaled chart with dashed grid, factual bar labels/short-month dates
+  and narrower card insets.
+- This supersedes the earlier full-blue period fill and 24 pt Progress card
+  padding. Use a 40/48 pt statistic token and 16 pt Progress card insets.
+- Keep analytics, identity, shared periods, full History and local schema v1.
+  Demo values remain preview-only; normal-size charts fit seven bars, while
+  large-text layouts may repeat the same scale across multiple plot rows.
+- Match the browser adaptation to this native correction; device acceptance
+  remains necessary for native sheets, Dynamic Type and dock behavior.
+
+Related: `DESIGN_SYSTEM.md`, `PRODUCT.md`, `ROADMAP.md`.
+
 ## 2026-10-10 — Selected Progress mockups
 
 Status: Approved — pending Git integration

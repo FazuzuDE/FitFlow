@@ -192,7 +192,7 @@ export function ExercisePerformance({ history, period, now }: Props) {
 }
 
 const s = StyleSheet.create({
-  card: { padding: spacing.lg, borderRadius: radius.xxl },
+  card: { padding: spacing.md, borderRadius: radius.xxl },
   title: { ...typography.title2, color: colors.textPrimary },
   subtitle: {
     ...typography.footnote,

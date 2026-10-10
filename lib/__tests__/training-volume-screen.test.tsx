@@ -1,5 +1,5 @@
 import { isPressable } from './pressable';
-import { FlatList, StyleSheet, Text, View } from 'react-native';
+import { Dimensions, FlatList, StyleSheet, Text, View } from 'react-native';
 import type { StyleProp, ViewStyle } from 'react-native';
 import App from '../../app/index';
 import { Dock } from '../../components/Dock';
@@ -103,6 +103,9 @@ const viewStyle = (style: unknown) =>
 
 beforeEach(() => {
   jest.spyOn(Date, 'now').mockReturnValue(now);
+  jest
+    .spyOn(Dimensions, 'get')
+    .mockReturnValue({ width: 390, height: 844, scale: 3, fontScale: 1 });
 });
 afterEach(() => jest.restoreAllMocks());
 
@@ -130,6 +133,90 @@ it('shows factual values beside dated bars, including fractional and zero volume
   }
 });
 
+it('shows a zero-based kg scale without dropping any of the seven recent workouts', async () => {
+  const values = [5200, 6200, 5600, 7000, 6000, 7400, 6600];
+  const view = await renderProgress(
+    values.map((value, index) =>
+      session(`chart-${index}`, at(index + 10), String(value)),
+    ),
+  );
+  try {
+    const chart = view.root.findByProps({
+      accessibilityLabel: 'Workout volume chart',
+    });
+    act(() =>
+      chart.props.onLayout({ nativeEvent: { layout: { width: 326 } } }),
+    );
+    const axes = view.root
+      .findAllByType(View)
+      .filter(
+        (node: { props: { accessibilityLabel?: string } }) =>
+          node.props.accessibilityLabel === 'Workout volume scale in kilograms',
+      );
+    expect(axes).toHaveLength(1);
+    expect(
+      axes[0]
+        .findAllByType(Text)
+        .map((node: { props: { children: string } }) => node.props.children),
+    ).toEqual(['10,000', '7,500', '5,000', '2,500', '0']);
+    expect(chartPoints(view)).toHaveLength(7);
+    const bar = chartPoints(view)[0]
+      .findAllByType(View)
+      .find(
+        (node: { props: { style: unknown } }) =>
+          viewStyle(node.props.style).backgroundColor === '#5E5CE6',
+      );
+    expect(viewStyle(bar?.props.style).height).toBeCloseTo((96 * 5200) / 10000);
+  } finally {
+    act(() => view.unmount());
+  }
+});
+
+it('repeats the same scale for large text without losing workouts or value labels', async () => {
+  jest
+    .mocked(Dimensions.get)
+    .mockReturnValue({ width: 390, height: 844, scale: 3, fontScale: 2 });
+  const view = await renderProgress(
+    Array.from({ length: 7 }, (_, index) =>
+      session(
+        `large-text-${index}`,
+        at(index + 10),
+        String(5200 + index * 100),
+      ),
+    ),
+  );
+  try {
+    const chart = view.root.findByProps({
+      accessibilityLabel: 'Workout volume chart',
+    });
+    act(() =>
+      chart.props.onLayout({ nativeEvent: { layout: { width: 326 } } }),
+    );
+    const axes = view.root
+      .findAllByType(View)
+      .filter(
+        (node: { props: { accessibilityLabel?: string } }) =>
+          node.props.accessibilityLabel === 'Workout volume scale in kilograms',
+      );
+    expect(axes.length).toBeGreaterThan(1);
+    const ticks = axes.map(
+      (axis: { findAllByType: typeof view.root.findAllByType }) =>
+        axis
+          .findAllByType(Text)
+          .map((node: { props: { children: string } }) => node.props.children),
+    );
+    expect(
+      ticks.every(
+        (values: string[]) => values.join('|') === ticks[0].join('|'),
+      ),
+    ).toBe(true);
+    expect(chartPoints(view)).toHaveLength(7);
+    expect(text(view)).toContain('5,800');
+  } finally {
+    act(() => view.unmount());
+  }
+});
+
 it('shows sparse same-day workouts as separate dated points and preserves full History', async () => {
   const morning = session('morning', at(22, 9), '100');
   const evening = session('evening', at(22, 19), '150');
@@ -137,7 +224,7 @@ it('shows sparse same-day workouts as separate dated points and preserves full H
   const future = session('future', at(24), '200');
   const history = [future, evening, old, morning];
   const view = await renderProgress(history);
-  expect(text(view)).toContain('Recent workouts · 2 of 2 in 1M');
+  expect(text(view)).toContain('Recent workouts · 2 of 2');
   expect(chartPoints(view)).toHaveLength(2);
   const labels = chartPoints(view).map(
     (item: { props: { accessibilityLabel: string } }) =>
@@ -150,7 +237,7 @@ it('shows sparse same-day workouts as separate dated points and preserves full H
   expect(labels[0]).toContain(new Date(at(22, 9)).toLocaleString());
   expect(labels[1]).toContain(new Date(at(22, 19)).toLocaleString());
   const shortDate = new Date(at(22)).toLocaleDateString(undefined, {
-    month: 'numeric',
+    month: 'short',
     day: 'numeric',
   });
   expect(text(view).filter((item: string) => item === shortDate)).toHaveLength(
@@ -186,7 +273,7 @@ it('keeps seven recent bars but exposes all ten individual workouts in ALL', asy
   );
   const view = await renderProgress(history);
   press(view, 'Progress period ALL');
-  expect(text(view)).toContain('Recent workouts · 7 of 10 in ALL');
+  expect(text(view)).toContain('Recent workouts · 7 of 10');
   expect(chartPoints(view)).toHaveLength(7);
   press(view, 'View all 10 workout volumes in ALL');
   const all = view.root.findByType(FlatList).props.data;
@@ -242,7 +329,7 @@ it('keeps large-volume dimensions finite and hides controls for an empty period'
   expect(
     heights.every(
       (height: number) =>
-        Number.isFinite(height) && height >= 0 && height <= 60,
+        Number.isFinite(height) && height >= 0 && height <= 120,
     ),
   ).toBe(true);
   press(view, 'Progress period 1W');
@@ -277,8 +364,8 @@ it('preserves relative bar heights for very large finite workout volumes', async
       return viewStyle(bar?.props.style).height;
     },
   );
-  expect(heights[0]).toBeCloseTo(6);
-  expect(heights[1]).toBe(60);
+  expect(heights[0]).toBeCloseTo(9.6);
+  expect(heights[1]).toBe(96);
   act(() => view.unmount());
 });
 

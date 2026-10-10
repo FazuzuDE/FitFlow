@@ -74,6 +74,7 @@ Use the native/system font stack. On iOS this resolves naturally to San Francisc
 | Style       | Size | Weight | Line height |
 | ----------- | ---: | -----: | ----------: |
 | largeTitle  |   34 |    700 |          41 |
+| statistic   |   40 |    700 |          48 |
 | title1      |   28 |    700 |          34 |
 | title2      |   22 |    700 |          28 |
 | title3      |   20 |    600 |          25 |
@@ -322,15 +323,22 @@ Do not display a metric merely because it is calculable.
 The approved mockups align the existing Progress overview, selected-exercise
 performance and workout-volume sheet with Home/Workout. Use the spaced CRESUM
 identity/tagline, large Progress title, secondary explanation and wrapping
-period controls. Unify selection to the existing primary-blue fill with readable
-white text; the generated references differ slightly in this detail.
+period controls. The user's selected overview screenshot is the exact visual
+reference: use one `surfaceSubtle` segmented track, a `primaryTint` selection
+and primary-blue selected text. Keep effective targets at least 44 pt and allow
+an adaptive wrapped arrangement for large text.
 
 Make Training Volume the dominant white card, followed by Estimated 1RM and
-Logged exercise performance. Cards use `radius.xxl`, `spacing.lg` padding and
-existing soft shadows. Recent workout bars retain chronological order, display
-their factual values and dates, and wrap on compact screens/large text. Use
-secondary for older bars and primary for the latest; do not fabricate trend
-percentages or copy the mockups' demo values.
+Logged exercise performance. Progress cards use `radius.xxl`, `spacing.md`
+padding and existing soft shadows, with the `statistic` token for the dominant
+volume value. Use a 16 pt Progress section gap and a compact header so the
+overview preserves the screenshot's proportions. Recent workout bars retain chronological order and show factual
+values above them, short-month dates below, a readable zero-based kg scale and
+subtle dashed horizontal grid. Fit all seven in one plot at normal phone sizes;
+if larger text requires multiple rows, repeat the same scale for each row.
+Use secondary for older bars and primary for the latest; do not fabricate trend
+percentages or copy the mockups' demo values. Derive scale ticks from data and
+preserve finite dimensions for zero, fractional and very large volumes.
 
 Keep the trained-exercise selector, clearly estimated per-workout values and
 their source weight/reps distinct from actual logged sets. Present logged sets
@@ -409,9 +417,9 @@ The source-aligned Core demo is the visual reference for the existing native
 application. Main scroll content in Home, Workout, Progress, and Profile uses a
 centered width of at most 600 pt, with the existing 16 pt screen inset. The active
 workout now uses the focused, expandable program described in section 9 instead
-of permanently visible exercise chips. Progress period chips wrap onto additional
-lines instead of requiring horizontal scrolling. Recent workout volume columns also wrap, retaining chronological
-order, readable dates, and accessible value labels. Home template previews are
+of permanently visible exercise chips. Progress uses the segmented track and
+scaled chart described in section 13, with adaptive wrapping for large text
+rather than horizontal scrolling. Home template previews are
 content-driven rather than truncated to two lines; volume summaries retain
 fractional kilograms instead of rounding to whole kilograms.
 

@@ -48,6 +48,8 @@ Later, separately approved work may sync custom workouts, preferences/profile, a
   records, trained-exercise performance and the existing workout-volume sheet
   in the Home/Workout style. Preserve calculations, shared periods and complete
   History; native sheet/Dynamic Type acceptance remains a phone-review task.
+  Correct overview fidelity to the selected screenshot: segmented periods,
+  pale selection, larger volume and a scaled chart with grid/dated values.
 - UI consistency, interaction states, haptics, accessibility, phone-sized layouts.
 
 ## P2 — Release readiness
