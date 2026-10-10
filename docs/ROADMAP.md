@@ -36,6 +36,10 @@ Later, separately approved work may sync custom workouts, preferences/profile, a
   a separate focused PR: matching header/cards/rest surface and current-exercise
   focus with an expandable program. Progress and Profile remain separate later
   tasks; preserve existing Core behavior.
+- Expanded Workout program reordering: hold, restrained jiggle/light haptic,
+  vertical drag and accessible Move up/Move down, persisting only the active
+  session order. Native gesture/scroll and Reduce Motion review is required;
+  source-template editing remains a separate task.
 - Modular dashboard foundation for existing Home content. Reorder/show-hide,
   supported-size selection, and saved/synced layouts come later as a separate
   task; do not add drag/drop or layout persistence to the foundation.

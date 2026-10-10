@@ -164,6 +164,19 @@ a row collapses the program. Automatic exercise progression and a new session
 also return to the focused view. Expansion is temporary presentation state, not
 part of the persisted workout. Disable program controls while saving.
 
+In the expanded program, holding a row activates vertical drag with one light
+haptic and a small temporary jiggle. Other rows make room as the held row moves;
+release commits its position and stops motion, leaving the program open. A
+normal tap still selects and collapses. Respect Reduce Motion by omitting the
+jiggle and animated settling while retaining reordering. Expose Move up/Move
+down accessibility actions; do not add permanent editing buttons to every row.
+Use measured row heights for wrapping names and Dynamic Type. Cancel an
+unfinished drag on interruption, backgrounding, layout changes or saving.
+
+Reordering changes the active workout only, preserving the selected exercise's
+snapshot ID, entered/completed sets and rest deadline. Templates and existing
+History are unchanged. Scroll long programs near viewport edges during a drag.
+
 ### Exercise asset illustration direction
 
 Future production artwork has two separate modes for the same exact exercise variant:

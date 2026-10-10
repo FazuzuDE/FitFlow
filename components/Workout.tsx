@@ -15,6 +15,8 @@ import { GlassCard } from './GlassCard';
 import { AppButton } from './AppButton';
 import { Confirmation } from './Confirmation';
 import { ExerciseLibrary } from './ExerciseLibrary';
+import { WorkoutProgram } from './WorkoutProgram';
+import { useProgramScroll } from './useProgramScroll';
 import {
   addSet,
   appendExercise,
@@ -64,6 +66,14 @@ export function Workout({
   const [picker, setPicker] = useState(false);
   const [inputError, setInputError] = useState('');
   const [removeIndex, setRemoveIndex] = useState<number | null>(null);
+  const {
+    attachRef,
+    dragging,
+    onScroll,
+    onLayout,
+    onContentSizeChange,
+    control: programScroll,
+  } = useProgramScroll();
   const notified = useRef<number | undefined>(undefined);
   const deadline = session?.restEndsAt;
   useEffect(() => {
@@ -131,6 +141,12 @@ export function Workout({
         }}
       />
       <ScrollView
+        ref={attachRef}
+        scrollEnabled={!dragging}
+        onScroll={onScroll}
+        scrollEventThrottle={16}
+        onLayout={onLayout}
+        onContentSizeChange={onContentSizeChange}
         keyboardShouldPersistTaps="handled"
         contentContainerStyle={s.content}
       >
@@ -170,6 +186,7 @@ export function Workout({
               session={session}
               busy={busy}
               update={update}
+              scroll={programScroll}
             />
             <Text style={s.heading} accessibilityRole="header">
               {exercise.name}
@@ -354,76 +371,6 @@ export function Workout({
   );
 }
 
-// Keyed by the current session/exercise so progression resets only the program
-// presentation, leaving workout inputs, confirmations and the timer intact.
-function WorkoutProgram({
-  session,
-  busy,
-  update,
-}: {
-  session: WorkoutSession;
-  busy: boolean;
-  update: (transform: (session: WorkoutSession) => WorkoutSession) => void;
-}) {
-  const [expanded, setExpanded] = useState(false);
-  const index = session.currentExerciseIndex;
-  const exercise = session.exercises[index];
-  return (
-    <>
-      <View style={s.exerciseTop}>
-        <Text style={s.position}>
-          {exercise.muscle} · Exercise {index + 1} of {session.exercises.length}
-        </Text>
-        <Pressable
-          disabled={busy}
-          accessibilityRole="button"
-          accessibilityLabel={expanded ? 'Collapse exercises' : 'All exercises'}
-          accessibilityState={{ expanded, disabled: busy }}
-          onPress={() => setExpanded((value) => !value)}
-          style={({ pressed }) => [s.programToggle, (pressed || busy) && s.dim]}
-        >
-          <Text style={s.programToggleText}>
-            {expanded ? 'Collapse' : 'All exercises'}
-          </Text>
-        </Pressable>
-      </View>
-      {expanded && (
-        <View style={s.program}>
-          {session.exercises.map((item, i) => (
-            <Pressable
-              key={item.id}
-              disabled={busy}
-              accessibilityRole="button"
-              accessibilityLabel={`Select exercise ${i + 1}: ${item.name}${
-                item.sets.length > 0 && item.sets.every(isSetComplete)
-                  ? ', completed'
-                  : ''
-              }`}
-              accessibilityState={{ selected: index === i, disabled: busy }}
-              onPress={() => {
-                update((current) => setCurrentExercise(current, i));
-                setExpanded(false);
-              }}
-              style={({ pressed }) => [
-                s.programItem,
-                i === index && s.selected,
-                (pressed || busy) && s.dim,
-              ]}
-            >
-              <Text style={s.programName}>
-                {i + 1}. {item.name}
-                {item.sets.length > 0 && item.sets.every(isSetComplete)
-                  ? ' ✓'
-                  : ''}
-              </Text>
-            </Pressable>
-          ))}
-        </View>
-      )}
-    </>
-  );
-}
-
 const s = StyleSheet.create({
   flex: { flex: 1 },
   content: {
@@ -480,38 +427,6 @@ const s = StyleSheet.create({
     borderRadius: radius.xxl,
     gap: spacing.xs,
   },
-  exerciseTop: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: spacing.xs,
-  },
-  position: {
-    ...typography.footnote,
-    flexShrink: 1,
-    color: colors.textSecondary,
-  },
-  programToggle: {
-    maxWidth: '100%',
-    paddingHorizontal: spacing.sm,
-    paddingVertical: spacing.xs,
-    minHeight: 44,
-    borderRadius: radius.md,
-    backgroundColor: colors.primaryTint,
-    justifyContent: 'center',
-  },
-  programToggleText: { ...typography.footnote, color: colors.textPrimary },
-  program: { gap: spacing.xs, marginVertical: spacing.xs },
-  programItem: {
-    padding: spacing.sm,
-    minHeight: 44,
-    borderRadius: radius.md,
-    backgroundColor: colors.surfaceSubtle,
-    justifyContent: 'center',
-  },
-  programName: { ...typography.subheadline, color: colors.textPrimary },
-  selected: { backgroundColor: colors.primaryTint },
   previous: {
     ...typography.footnote,
     color: colors.textSecondary,

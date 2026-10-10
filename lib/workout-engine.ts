@@ -215,6 +215,35 @@ export const setCurrentExercise = (
   ),
 });
 
+// Session snapshot IDs distinguish repeated occurrences of a library exercise.
+// Keep the exact current snapshot and all set/rest state when its position moves.
+export const moveWorkoutExercise = (
+  session: WorkoutSession,
+  exerciseId: string,
+  targetIndex: number,
+): WorkoutSession => {
+  const from = session.exercises.findIndex((item) => item.id === exerciseId);
+  if (
+    session.finishedAt !== undefined ||
+    from < 0 ||
+    from === targetIndex ||
+    !Number.isInteger(targetIndex) ||
+    targetIndex < 0 ||
+    targetIndex >= session.exercises.length
+  )
+    return session;
+  const currentId = session.exercises[session.currentExerciseIndex]?.id;
+  if (!currentId) return session;
+  const exercises = [...session.exercises];
+  const [moved] = exercises.splice(from, 1);
+  exercises.splice(targetIndex, 0, moved);
+  return {
+    ...session,
+    exercises,
+    currentExerciseIndex: exercises.findIndex((item) => item.id === currentId),
+  };
+};
+
 export const restartRest = (
   session: WorkoutSession,
   now = Date.now(),
