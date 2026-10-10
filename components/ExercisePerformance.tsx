@@ -9,6 +9,7 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
 import { GlassCard } from './GlassCard';
 import { EstimatedOneRepMaxSeries } from './EstimatedOneRepMaxSeries';
 import {
@@ -66,8 +67,10 @@ export function ExercisePerformance({ history, period, now }: Props) {
   };
 
   return (
-    <GlassCard>
-      <Text style={s.title}>Logged exercise performance</Text>
+    <GlassCard style={s.card}>
+      <Text style={s.title} accessibilityRole="header">
+        Logged exercise performance
+      </Text>
       <Text style={s.subtitle}>Saved completed sets · weight × reps</Text>
       {choices.length === 0 ? (
         <Text style={s.empty}>
@@ -86,6 +89,12 @@ export function ExercisePerformance({ history, period, now }: Props) {
             <Text style={s.chooseText}>
               {selected ? choiceLabel(selected) : 'Choose exercise'}
             </Text>
+            <Ionicons
+              name="chevron-down"
+              size={20}
+              color={colors.textSecondary}
+              accessible={false}
+            />
           </Pressable>
           {selected ? (
             <>
@@ -105,11 +114,16 @@ export function ExercisePerformance({ history, period, now }: Props) {
                         {new Date(entry.finishedAt).toLocaleString()}
                       </Text>
                       <Text style={s.workout}>{entry.workoutName}</Text>
-                      {entry.sets.map((set) => (
-                        <Text key={set.id} style={s.set}>
-                          {set.weight} kg × {set.reps}
-                        </Text>
-                      ))}
+                      <View style={s.loggedSets}>
+                        {entry.sets.map((set, index) => (
+                          <View key={set.id} style={s.setRow}>
+                            <Text style={s.setNumber}>{String(index + 1)}</Text>
+                            <Text style={s.set}>
+                              {set.weight} kg × {set.reps}
+                            </Text>
+                          </View>
+                        ))}
+                      </View>
                     </View>
                   ))}
                 </View>
@@ -178,7 +192,8 @@ export function ExercisePerformance({ history, period, now }: Props) {
 }
 
 const s = StyleSheet.create({
-  title: { ...typography.title3, color: colors.textPrimary },
+  card: { padding: spacing.lg, borderRadius: radius.xxl },
+  title: { ...typography.title2, color: colors.textPrimary },
   subtitle: {
     ...typography.footnote,
     color: colors.textSecondary,
@@ -190,14 +205,18 @@ const s = StyleSheet.create({
     marginTop: spacing.sm,
   },
   choose: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
     minHeight: 44,
-    justifyContent: 'center',
+    justifyContent: 'space-between',
     paddingHorizontal: spacing.sm,
     marginTop: spacing.md,
     borderRadius: radius.md,
     backgroundColor: colors.surfaceSubtle,
+    paddingVertical: spacing.sm,
   },
-  chooseText: { ...typography.body, color: colors.primary },
+  chooseText: { ...typography.body, color: colors.textPrimary, flex: 1 },
   entries: { marginTop: spacing.sm },
   entry: {
     paddingVertical: spacing.sm,
@@ -214,7 +233,24 @@ const s = StyleSheet.create({
     ...typography.body,
     color: colors.textPrimary,
     fontVariant: ['tabular-nums'],
-    marginTop: spacing.xxs,
+    flex: 1,
+  },
+  loggedSets: {
+    backgroundColor: colors.surfaceSubtle,
+    borderRadius: radius.xl,
+    padding: spacing.sm,
+    marginTop: spacing.sm,
+  },
+  setRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    paddingVertical: spacing.xs,
+  },
+  setNumber: {
+    ...typography.footnote,
+    minWidth: spacing.lg,
+    color: colors.textSecondary,
   },
   sheet: {
     flex: 1,

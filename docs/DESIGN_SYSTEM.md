@@ -317,6 +317,29 @@ Overview hierarchy: total volume chart → workouts → PRs → estimated 1RM/st
 
 Do not display a metric merely because it is calculable.
 
+### Selected Progress references — 2026-10-10
+
+The approved mockups align the existing Progress overview, selected-exercise
+performance and workout-volume sheet with Home/Workout. Use the spaced CRESUM
+identity/tagline, large Progress title, secondary explanation and wrapping
+period controls. Unify selection to the existing primary-blue fill with readable
+white text; the generated references differ slightly in this detail.
+
+Make Training Volume the dominant white card, followed by Estimated 1RM and
+Logged exercise performance. Cards use `radius.xxl`, `spacing.lg` padding and
+existing soft shadows. Recent workout bars retain chronological order, display
+their factual values and dates, and wrap on compact screens/large text. Use
+secondary for older bars and primary for the latest; do not fabricate trend
+percentages or copy the mockups' demo values.
+
+Keep the trained-exercise selector, clearly estimated per-workout values and
+their source weight/reps distinct from actual logged sets. Present logged sets
+as quiet numbered rows. The existing Workout volumes sheet retains every
+workout in the selected period, readable date/name/value rows and Close.
+Preserve all estimate/detail sheets, empty states and the complete History.
+This reference does not add the blueprint's future analysis tabs, muscle map,
+new analytics or illustrations. Native sheets and Dynamic Type need phone QA.
+
 ## 14. Motion / haptics
 
 Motion should make CRESUM feel alive, not animated. Use it to explain an interaction, confirm an action, preserve spatial continuity, or clarify a state transition. Avoid decorative loops, long springy movement, and animation that slows logging. Button-press guidance of roughly 100–160ms and card/sheet guidance of roughly 180–260ms are starting points, not a frozen motion specification.

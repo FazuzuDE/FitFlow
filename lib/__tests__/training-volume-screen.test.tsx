@@ -106,6 +106,30 @@ beforeEach(() => {
 });
 afterEach(() => jest.restoreAllMocks());
 
+it('shows factual values beside dated bars, including fractional and zero volumes', async () => {
+  const view = await renderProgress([
+    session('fraction', at(21), '100.25'),
+    session('zero', at(22), '0'),
+  ]);
+  try {
+    const points = chartPoints(view);
+    expect(points).toHaveLength(2);
+    expect(
+      points[0]
+        .findAllByType(Text)
+        .map((node: { props: { children: unknown } }) => node.props.children),
+    ).toContain('100.25');
+    expect(
+      points[1]
+        .findAllByType(Text)
+        .map((node: { props: { children: unknown } }) => node.props.children),
+    ).toContain('0');
+    expect(view.root.findByType(WorkoutHistory).props.history).toHaveLength(2);
+  } finally {
+    act(() => view.unmount());
+  }
+});
+
 it('shows sparse same-day workouts as separate dated points and preserves full History', async () => {
   const morning = session('morning', at(22, 9), '100');
   const evening = session('evening', at(22, 19), '150');

@@ -79,9 +79,20 @@ function Stats({ history }: { history: Session[] }) {
   const records = analytics.estimatedOneRepMaxRecords;
   return (
     <ScrollView contentContainerStyle={s.content}>
-      <Text style={s.eyebrow}>YOUR PROGRESS</Text>
-      <Text style={s.title}>Progress</Text>
-      <Text style={s.sub}>Volume and estimated strength records</Text>
+      <View style={s.progressHeader}>
+        <View style={s.brandRow}>
+          <Text style={s.brand}>CRESUM</Text>
+          <Text style={s.tagline}>TRAIN. TRACK. GROW.</Text>
+        </View>
+        <View style={s.progressHeading}>
+          <Text style={s.title} accessibilityRole="header">
+            Progress
+          </Text>
+          <Text style={s.progressSubtitle}>
+            Volume and estimated strength records
+          </Text>
+        </View>
+      </View>
       <View style={s.periods} accessibilityLabel="Progress period">
         {PROGRESS_PERIODS.map((option) => (
           <Pressable
@@ -91,7 +102,11 @@ function Stats({ history }: { history: Session[] }) {
             accessibilityHint={`Show Progress for ${option.accessibilityLabel}`}
             accessibilityState={{ selected: period === option.id }}
             onPress={() => setPeriod(option.id)}
-            style={[s.periodChip, period === option.id && s.periodSelected]}
+            style={({ pressed }) => [
+              s.periodChip,
+              period === option.id && s.periodSelected,
+              pressed && s.pressed,
+            ]}
           >
             <Text
               style={[
@@ -109,9 +124,13 @@ function Stats({ history }: { history: Session[] }) {
         workoutVolumes={analytics.workoutVolumes}
         period={period}
       />
-      <GlassCard>
-        <Text style={s.h3}>Estimated 1RM</Text>
-        <Text style={s.sub}>Epley formula · based on completed sets</Text>
+      <GlassCard style={s.progressCard}>
+        <Text style={s.progressCardTitle} accessibilityRole="header">
+          Estimated 1RM
+        </Text>
+        <Text style={s.estimateContext}>
+          Epley formula · based on completed sets
+        </Text>
         {analytics.excludedSampleCount > 0 ? (
           <Text style={s.sub}>Some saved sets could not be included.</Text>
         ) : null}
@@ -126,7 +145,7 @@ function Stats({ history }: { history: Session[] }) {
                   {r.weight} kg × {r.reps}
                 </Text>
               </View>
-              <View style={{ alignItems: 'flex-end' }}>
+              <View style={s.recordValue}>
                 <Text style={s.value2}>
                   {r.estimatedOneRepMax.toFixed(1)} kg
                 </Text>
@@ -592,25 +611,56 @@ const s = StyleSheet.create({
     justifyContent: 'center',
     gap: spacing.sm,
   },
-  eyebrow: { ...typography.caption, color: colors.textSecondary },
   title: { ...typography.largeTitle, color: colors.textPrimary },
   sub: { ...typography.footnote, color: colors.textSecondary },
+  progressHeader: { gap: spacing.xl, paddingVertical: spacing.sm },
+  brandRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    gap: spacing.xs,
+  },
+  brand: { ...typography.caption, letterSpacing: 2, color: colors.textPrimary },
+  tagline: {
+    ...typography.caption,
+    letterSpacing: 1,
+    color: colors.textSecondary,
+  },
+  progressHeading: { gap: spacing.xs },
+  progressSubtitle: { ...typography.callout, color: colors.textSecondary },
+  progressCard: { padding: spacing.lg, borderRadius: radius.xxl },
+  progressCardTitle: { ...typography.title2, color: colors.textPrimary },
+  estimateContext: {
+    ...typography.footnote,
+    color: colors.textSecondary,
+    marginTop: spacing.xxs,
+    marginBottom: spacing.xs,
+  },
   periods: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs },
   periodChip: {
     minWidth: 44,
     minHeight: 44,
     paddingHorizontal: spacing.sm,
-    borderRadius: radius.pill,
+    borderRadius: radius.md,
     backgroundColor: colors.surfaceSubtle,
     alignItems: 'center',
     justifyContent: 'center',
   },
   periodSelected: { backgroundColor: colors.primary },
-  periodText: { ...typography.caption, color: colors.textPrimary },
+  periodText: { ...typography.subheadline, color: colors.textPrimary },
   periodSelectedText: { color: colors.surface },
+  pressed: { opacity: 0.6 },
   h3: { ...typography.headline, color: colors.textPrimary },
-  pr: { ...typography.caption, color: colors.textSecondary },
+  pr: {
+    ...typography.caption,
+    color: colors.primary,
+    backgroundColor: colors.primaryTint,
+    borderRadius: radius.md,
+    paddingHorizontal: spacing.xs,
+    paddingVertical: spacing.xxs,
+  },
   recordCopy: { flex: 1, minWidth: 120 },
+  recordValue: { alignItems: 'flex-end', flexShrink: 1, gap: spacing.xxs },
   history: {
     flexDirection: 'row',
     flexWrap: 'wrap',

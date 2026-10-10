@@ -121,6 +121,15 @@ List and inspect completed workouts accurately.
 
 Prioritize total volume, workout frequency, PRs, weight/repetition progression, estimated 1RM (clearly labeled estimate), and muscle distribution when supported.
 
+The selected Progress presentation foregrounds training volume, existing
+estimated records, and selected-exercise logged performance. The shared
+`1W / 1M / 3M / 6M / 1Y / ALL` period continues to scope these projections;
+the complete History remains unfiltered. Keep every workout-volume and
+estimated-point detail available, trained-exercise identity/selection intact,
+and actual logged sets separate from their estimates. This is presentation
+alignment: preserve calculations, period semantics, saved snapshots and local
+schema v1; do not introduce new metrics or production demo data.
+
 Future Training Insights follow the hierarchy Result → Analysis → Suggestion. Interpretations must be cautious, actionable only when justified, and able to explain the principal signals through a “Why?” affordance without fake precision or invented scientific certainty.
 
 A future Suggested Next Workout flow may use recent training history, estimated muscle load, goals, available equipment, and legitimate recovery information. Muscle load is one signal, not ground truth; the system must not simply choose the least-loaded muscle. The user can customize a suggestion before starting and the system can adapt from subsequent workouts.

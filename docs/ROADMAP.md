@@ -44,6 +44,10 @@ Later, separately approved work may sync custom workouts, preferences/profile, a
   supported-size selection, and saved/synced layouts come later as a separate
   task; do not add drag/drop or layout persistence to the foundation.
 - Essential Settings/Profile.
+- Selected Progress reference alignment: volume-first overview, estimated
+  records, trained-exercise performance and the existing workout-volume sheet
+  in the Home/Workout style. Preserve calculations, shared periods and complete
+  History; native sheet/Dynamic Type acceptance remains a phone-review task.
 - UI consistency, interaction states, haptics, accessibility, phone-sized layouts.
 
 ## P2 — Release readiness

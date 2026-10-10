@@ -39,7 +39,7 @@ export function TrainingVolume({ totalVolume, workoutVolumes, period }: Props) {
   const max = Math.max(1, ...recent.map((point) => point.volume));
 
   return (
-    <GlassCard>
+    <GlassCard style={s.card}>
       <Text style={s.cardLabel}>TRAINING VOLUME</Text>
       <Text style={s.big}>
         {volumeNumber(totalVolume)} <Text style={s.unit}>kg</Text>
@@ -51,10 +51,20 @@ export function TrainingVolume({ totalVolume, workoutVolumes, period }: Props) {
         <Text style={s.empty}>No workouts in this period yet.</Text>
       ) : (
         <>
-          <Text style={s.context}>
-            Recent workouts · {recent.length} of {workoutVolumes.length} in{' '}
-            {period}
-          </Text>
+          <View style={s.chartHeader}>
+            <Text style={s.context}>
+              Recent workouts · {recent.length} of {workoutVolumes.length} in{' '}
+              {period}
+            </Text>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={`View all ${workoutVolumes.length} workout volumes in ${period}`}
+              onPress={() => setAllOpen(true)}
+              style={({ pressed }) => [s.viewAll, pressed && s.pressed]}
+            >
+              <Text style={s.viewAllText}>View all workouts in {period}</Text>
+            </Pressable>
+          </View>
           <View
             accessibilityLabel={
               'Recent workout volumes in kilograms: ' +
@@ -69,6 +79,7 @@ export function TrainingVolume({ totalVolume, workoutVolumes, period }: Props) {
                 accessibilityLabel={`Workout volume: ${pointLabel(point)}`}
                 style={s.column}
               >
+                <Text style={s.pointValue}>{volumeNumber(point.volume)}</Text>
                 <View style={s.barSlot}>
                   <View
                     style={[
@@ -93,14 +104,6 @@ export function TrainingVolume({ totalVolume, workoutVolumes, period }: Props) {
               </View>
             ))}
           </View>
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel={`View all ${workoutVolumes.length} workout volumes in ${period}`}
-            onPress={() => setAllOpen(true)}
-            style={({ pressed }) => [s.viewAll, pressed && s.pressed]}
-          >
-            <Text style={s.viewAllText}>View all workouts in {period}</Text>
-          </Pressable>
         </>
       )}
       <Modal
@@ -136,8 +139,10 @@ export function TrainingVolume({ totalVolume, workoutVolumes, period }: Props) {
                 accessibilityLabel={pointLabel(item)}
                 style={s.row}
               >
-                <Text style={s.rowDate}>{fullDate(item.finishedAt)}</Text>
-                <Text style={s.rowName}>{item.workoutName}</Text>
+                <View style={s.rowCopy}>
+                  <Text style={s.rowDate}>{fullDate(item.finishedAt)}</Text>
+                  <Text style={s.rowName}>{item.workoutName}</Text>
+                </View>
                 <Text style={s.rowVolume}>{volumeLabel(item.volume)}</Text>
               </View>
             )}
@@ -149,10 +154,12 @@ export function TrainingVolume({ totalVolume, workoutVolumes, period }: Props) {
 }
 
 const s = StyleSheet.create({
+  card: { padding: spacing.lg, borderRadius: radius.xxl },
   cardLabel: {
     ...typography.caption,
     color: colors.textSecondary,
     marginBottom: spacing.xs,
+    letterSpacing: 1,
   },
   big: {
     ...typography.largeTitle,
@@ -166,10 +173,24 @@ const s = StyleSheet.create({
     color: colors.textSecondary,
     marginTop: spacing.sm,
   },
+  chartHeader: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: spacing.xs,
+    marginTop: spacing.lg,
+  },
   context: {
     ...typography.footnote,
     color: colors.textSecondary,
-    marginTop: spacing.sm,
+  },
+  pointValue: {
+    ...typography.caption,
+    color: colors.textSecondary,
+    textAlign: 'center',
+    fontVariant: ['tabular-nums'],
+    alignSelf: 'stretch',
   },
   chart: {
     flexDirection: 'row',
@@ -186,14 +207,14 @@ const s = StyleSheet.create({
     gap: spacing.xs,
   },
   barSlot: { height: 60, justifyContent: 'flex-end' },
-  bar: { width: 24, borderRadius: radius.sm },
+  bar: { width: spacing.lg, borderRadius: radius.sm },
   date: {
     ...typography.caption,
     color: colors.textSecondary,
     textAlign: 'center',
   },
-  viewAll: { minHeight: 44, justifyContent: 'center', marginTop: spacing.xs },
-  viewAllText: { ...typography.headline, color: colors.primary },
+  viewAll: { minHeight: 44, justifyContent: 'center' },
+  viewAllText: { ...typography.footnote, color: colors.primary },
   pressed: { opacity: 0.6 },
   sheet: {
     flex: 1,
@@ -218,16 +239,23 @@ const s = StyleSheet.create({
   closeText: { ...typography.headline, color: colors.primary },
   list: { paddingBottom: spacing.xxl },
   row: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     paddingVertical: spacing.md,
     borderBottomWidth: 1,
     borderBottomColor: colors.separator,
-    gap: spacing.xxs,
+    gap: spacing.sm,
   },
+  rowCopy: { flex: 1, minWidth: 120, gap: spacing.xxs },
   rowDate: { ...typography.footnote, color: colors.textSecondary },
   rowName: { ...typography.headline, color: colors.textPrimary },
   rowVolume: {
     ...typography.body,
     color: colors.textPrimary,
     fontVariant: ['tabular-nums'],
+    flexShrink: 1,
+    textAlign: 'right',
   },
 });
