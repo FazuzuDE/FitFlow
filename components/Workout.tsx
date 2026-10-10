@@ -134,45 +134,47 @@ export function Workout({
         keyboardShouldPersistTaps="handled"
         contentContainerStyle={s.content}
       >
-        <Text style={s.title}>{session.name}</Text>
+        <View style={s.header}>
+          <View style={s.brandRow}>
+            <Text style={s.brand}>CRESUM</Text>
+            <Text style={s.tagline}>TRAIN. TRACK. GROW.</Text>
+          </View>
+          <View style={s.titleRow}>
+            <Text style={s.title} accessibilityRole="header">
+              {session.name}
+            </Text>
+            <View style={s.elapsed}>
+              <Text
+                style={s.elapsedText}
+                accessibilityLabel={
+                  duration(now - session.startedAt) + ' elapsed'
+                }
+              >
+                {duration(now - session.startedAt)}
+              </Text>
+            </View>
+          </View>
+          <Text style={s.summary}>
+            {completed}/{total} sets · {volume(session).toLocaleString()} kg
+          </Text>
+        </View>
         {inputError ? (
-          <Text accessibilityRole="alert" style={s.sub}>
+          <Text accessibilityRole="alert" style={s.error}>
             {inputError}
           </Text>
         ) : null}
-        <Text style={s.sub}>
-          {duration(now - session.startedAt)} elapsed · {completed}/{total} sets
-          · {volume(session).toLocaleString()} kg
-        </Text>
-        <View style={s.tabs}>
-          {session.exercises.map((item, i) => (
-            <Pressable
-              key={item.id}
-              disabled={busy}
-              accessibilityRole="button"
-              accessibilityState={{ selected: index === i }}
-              onPress={() =>
-                update((current) => setCurrentExercise(current, i))
-              }
-              style={[s.tab, i === index && s.selected]}
-            >
-              <Text style={[s.sub, i === index && s.white]}>
-                {i + 1}. {item.name}
-                {item.sets.length > 0 && item.sets.every(isSetComplete)
-                  ? ' ✓'
-                  : ''}
-              </Text>
-            </Pressable>
-          ))}
-        </View>
         {exercise && (
-          <GlassCard>
-            <Text style={s.heading}>{exercise.name}</Text>
-            <Text style={s.sub}>
-              {exercise.muscle} · Exercise {index + 1} of{' '}
-              {session.exercises.length}
+          <GlassCard style={s.exerciseCard}>
+            <WorkoutProgram
+              key={`${session.id}:${exercise.id}`}
+              session={session}
+              busy={busy}
+              update={update}
+            />
+            <Text style={s.heading} accessibilityRole="header">
+              {exercise.name}
             </Text>
-            <Text style={s.sub}>
+            <Text style={s.previous}>
               {previous?.length
                 ? 'Last: ' +
                   previous
@@ -180,7 +182,7 @@ export function Workout({
                     .join(' · ')
                 : 'First recorded session'}
             </Text>
-            <View style={s.row}>
+            <View style={s.tableHeader}>
               <Text style={s.number}>SET</Text>
               <Text style={s.column}>KG</Text>
               <Text style={s.column}>REPS</Text>
@@ -189,15 +191,15 @@ export function Workout({
             {exercise.sets.map((set, i) => {
               const done = isSetComplete(set);
               return (
-                <View key={set.id} style={s.row}>
+                <View key={set.id} style={s.setRow}>
                   <Pressable
-                    style={s.target}
+                    style={({ pressed }) => [s.target, pressed && s.dim]}
                     disabled={busy || exercise.sets.length === 1}
                     accessibilityLabel={'Remove set ' + (i + 1)}
                     accessibilityHint="Opens a confirmation"
                     onPress={() => remove(i)}
                   >
-                    <Text style={s.body}>{i + 1}</Text>
+                    <Text style={s.setNumber}>{i + 1}</Text>
                   </Pressable>
                   <TextInput
                     accessibilityLabel={
@@ -233,9 +235,16 @@ export function Workout({
                     accessibilityState={{ checked: done, disabled: busy }}
                     disabled={busy}
                     onPress={() => toggle(i)}
-                    style={[s.target, s.check, done && s.completed]}
+                    style={({ pressed }) => [
+                      s.target,
+                      s.check,
+                      done && s.checked,
+                      (pressed || busy) && s.dim,
+                    ]}
                   >
-                    <Text style={s.body}>{done ? '✓' : '○'}</Text>
+                    <Text style={[s.checkText, done && s.checkedText]}>
+                      {done ? '✓' : '○'}
+                    </Text>
                   </Pressable>
                 </View>
               );
@@ -249,62 +258,78 @@ export function Workout({
           </GlassCard>
         )}
         {deadline !== undefined && (
-          <GlassCard>
-            <Text style={s.heading}>
-              {rest > 0 ? 'Rest timer' : 'Rest complete'}
-            </Text>
-            <Text
-              accessibilityLabel={rest + ' seconds remaining'}
-              style={s.timer}
-            >
-              {duration(rest * 1000)}
-            </Text>
-            <View style={s.row}>
-              <AppButton
-                title="−15s"
-                secondary
-                disabled={busy}
-                onPress={() => update((current) => extendRest(current, -15))}
-              />
-              <AppButton
-                title="+15s"
-                secondary
-                disabled={busy}
-                onPress={() => update((current) => extendRest(current, 15))}
-              />
+          <GlassCard style={s.restCard}>
+            <View style={s.restHeading}>
+              <Text style={s.heading} accessibilityRole="header">
+                {rest > 0 ? 'Rest timer' : 'Rest complete'}
+              </Text>
+              <Text
+                accessibilityLabel={rest + ' seconds remaining'}
+                style={s.timer}
+              >
+                {duration(rest * 1000)}
+              </Text>
             </View>
-            <View style={s.actions}>
-              <AppButton
-                title="Restart"
-                secondary
-                disabled={busy}
-                onPress={() => update(restartRest)}
-              />
-              <AppButton
-                title={rest ? 'Skip rest' : 'Continue'}
-                secondary
-                disabled={busy}
-                onPress={() => update(skipRest)}
-              />
+            <View style={s.actionRow}>
+              <View style={s.action}>
+                <AppButton
+                  title="−15s"
+                  secondary
+                  disabled={busy}
+                  onPress={() => update((current) => extendRest(current, -15))}
+                />
+              </View>
+              <View style={s.action}>
+                <AppButton
+                  title="+15s"
+                  secondary
+                  disabled={busy}
+                  onPress={() => update((current) => extendRest(current, 15))}
+                />
+              </View>
+            </View>
+            <View style={s.actionRow}>
+              <View style={s.action}>
+                <AppButton
+                  title="Restart"
+                  secondary
+                  disabled={busy}
+                  onPress={() => update(restartRest)}
+                />
+              </View>
+              <View style={s.action}>
+                <AppButton
+                  title={rest ? 'Skip rest' : 'Continue'}
+                  secondary
+                  disabled={busy}
+                  onPress={() => update(skipRest)}
+                />
+              </View>
             </View>
           </GlassCard>
         )}
-        <AppButton
-          title="Add exercise"
-          secondary
-          disabled={busy}
-          onPress={() => setPicker(true)}
-        />
-        {index < session.exercises.length - 1 && (
-          <AppButton
-            title="Next exercise"
-            secondary
-            disabled={busy}
-            onPress={() =>
-              update((current) => setCurrentExercise(current, index + 1))
-            }
-          />
-        )}
+        <View style={s.actionRow}>
+          <View style={s.action}>
+            <AppButton
+              title="Add exercise"
+              secondary
+              disabled={busy}
+              onPress={() => setPicker(true)}
+            />
+          </View>
+          {index < session.exercises.length - 1 && (
+            <View style={s.action}>
+              <AppButton
+                title="Next exercise"
+                secondary
+                disabled={busy}
+                onPress={() =>
+                  update((current) => setCurrentExercise(current, index + 1))
+                }
+              />
+            </View>
+          )}
+        </View>
         <AppButton
           title={
             busy
@@ -328,6 +353,77 @@ export function Workout({
     </KeyboardAvoidingView>
   );
 }
+
+// Keyed by the current session/exercise so progression resets only the program
+// presentation, leaving workout inputs, confirmations and the timer intact.
+function WorkoutProgram({
+  session,
+  busy,
+  update,
+}: {
+  session: WorkoutSession;
+  busy: boolean;
+  update: (transform: (session: WorkoutSession) => WorkoutSession) => void;
+}) {
+  const [expanded, setExpanded] = useState(false);
+  const index = session.currentExerciseIndex;
+  const exercise = session.exercises[index];
+  return (
+    <>
+      <View style={s.exerciseTop}>
+        <Text style={s.position}>
+          {exercise.muscle} · Exercise {index + 1} of {session.exercises.length}
+        </Text>
+        <Pressable
+          disabled={busy}
+          accessibilityRole="button"
+          accessibilityLabel={expanded ? 'Collapse exercises' : 'All exercises'}
+          accessibilityState={{ expanded, disabled: busy }}
+          onPress={() => setExpanded((value) => !value)}
+          style={({ pressed }) => [s.programToggle, (pressed || busy) && s.dim]}
+        >
+          <Text style={s.programToggleText}>
+            {expanded ? 'Collapse' : 'All exercises'}
+          </Text>
+        </Pressable>
+      </View>
+      {expanded && (
+        <View style={s.program}>
+          {session.exercises.map((item, i) => (
+            <Pressable
+              key={item.id}
+              disabled={busy}
+              accessibilityRole="button"
+              accessibilityLabel={`Select exercise ${i + 1}: ${item.name}${
+                item.sets.length > 0 && item.sets.every(isSetComplete)
+                  ? ', completed'
+                  : ''
+              }`}
+              accessibilityState={{ selected: index === i, disabled: busy }}
+              onPress={() => {
+                update((current) => setCurrentExercise(current, i));
+                setExpanded(false);
+              }}
+              style={({ pressed }) => [
+                s.programItem,
+                i === index && s.selected,
+                (pressed || busy) && s.dim,
+              ]}
+            >
+              <Text style={s.programName}>
+                {i + 1}. {item.name}
+                {item.sets.length > 0 && item.sets.every(isSetComplete)
+                  ? ' ✓'
+                  : ''}
+              </Text>
+            </Pressable>
+          ))}
+        </View>
+      )}
+    </>
+  );
+}
+
 const s = StyleSheet.create({
   flex: { flex: 1 },
   content: {
@@ -337,32 +433,99 @@ const s = StyleSheet.create({
     maxWidth: 600,
     alignSelf: 'center',
   },
-  title: { ...typography.largeTitle, color: colors.textPrimary },
+  header: { gap: spacing.sm, paddingVertical: spacing.sm },
+  brandRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    gap: spacing.xs,
+    marginBottom: spacing.lg,
+  },
+  brand: { ...typography.caption, letterSpacing: 2, color: colors.textPrimary },
+  tagline: {
+    ...typography.caption,
+    letterSpacing: 1,
+    color: colors.textSecondary,
+  },
+  titleRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: spacing.sm,
+  },
+  title: { ...typography.largeTitle, flexShrink: 1, color: colors.textPrimary },
+  elapsed: {
+    backgroundColor: colors.primaryTint,
+    borderRadius: radius.md,
+    padding: spacing.sm,
+  },
+  elapsedText: {
+    ...typography.headline,
+    fontVariant: ['tabular-nums'],
+    color: colors.textPrimary,
+  },
+  summary: { ...typography.subheadline, color: colors.textSecondary },
   heading: { ...typography.title2, color: colors.textPrimary },
-  body: { ...typography.body, color: colors.textPrimary },
   sub: { ...typography.footnote, color: colors.textSecondary },
+  error: { ...typography.footnote, color: colors.danger },
   empty: {
     flex: 1,
     padding: spacing.md,
     justifyContent: 'center',
     gap: spacing.md,
   },
-  tabs: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs },
-  tab: {
+  exerciseCard: {
+    padding: spacing.lg,
+    borderRadius: radius.xxl,
+    gap: spacing.xs,
+  },
+  exerciseTop: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: spacing.xs,
+  },
+  position: {
+    ...typography.footnote,
+    flexShrink: 1,
+    color: colors.textSecondary,
+  },
+  programToggle: {
     maxWidth: '100%',
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
+    minHeight: 44,
+    borderRadius: radius.md,
+    backgroundColor: colors.primaryTint,
+    justifyContent: 'center',
+  },
+  programToggleText: { ...typography.footnote, color: colors.textPrimary },
+  program: { gap: spacing.xs, marginVertical: spacing.xs },
+  programItem: {
     padding: spacing.sm,
     minHeight: 44,
-    borderRadius: radius.pill,
+    borderRadius: radius.md,
     backgroundColor: colors.surfaceSubtle,
     justifyContent: 'center',
   },
-  selected: { backgroundColor: colors.primary },
-  white: { color: colors.surface },
-  row: {
+  programName: { ...typography.subheadline, color: colors.textPrimary },
+  selected: { backgroundColor: colors.primaryTint },
+  previous: {
+    ...typography.footnote,
+    color: colors.textSecondary,
+    marginBottom: spacing.sm,
+  },
+  tableHeader: {
     flexDirection: 'row',
     gap: spacing.xs,
     alignItems: 'center',
-    marginVertical: spacing.xs,
+  },
+  setRow: {
+    flexDirection: 'row',
+    gap: spacing.xs,
+    alignItems: 'center',
   },
   number: {
     ...typography.caption,
@@ -377,28 +540,48 @@ const s = StyleSheet.create({
     color: colors.textSecondary,
   },
   target: {
-    minWidth: 44,
-    minHeight: 44,
+    width: 44,
+    minHeight: 48,
     alignItems: 'center',
     justifyContent: 'center',
   },
+  setNumber: { ...typography.subheadline, color: colors.textSecondary },
   check: { borderRadius: radius.md, backgroundColor: colors.surfaceSubtle },
+  checked: { backgroundColor: colors.success },
+  checkText: { ...typography.title2, color: colors.primary },
+  checkedText: { color: colors.textPrimary },
   input: {
     ...typography.headline,
     fontVariant: ['tabular-nums'],
     flex: 1,
     minWidth: 0,
-    minHeight: 44,
+    minHeight: 48,
     borderRadius: radius.md,
     backgroundColor: colors.surfaceSubtle,
     color: colors.textPrimary,
     textAlign: 'center',
   },
   completed: { borderColor: colors.success, borderWidth: 2 },
+  restCard: {
+    padding: spacing.lg,
+    borderRadius: radius.xxl,
+    backgroundColor: colors.primaryTint,
+    gap: spacing.xs,
+  },
+  restHeading: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: spacing.sm,
+    marginBottom: spacing.sm,
+  },
   timer: {
     ...typography.largeTitle,
     fontVariant: ['tabular-nums'],
     color: colors.primary,
   },
-  actions: { gap: spacing.xs },
+  actionRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs },
+  action: { flexGrow: 1, flexBasis: 120, minWidth: 0 },
+  dim: { opacity: 0.6 },
 });

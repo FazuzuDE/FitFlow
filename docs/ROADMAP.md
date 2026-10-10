@@ -32,8 +32,10 @@ Later, separately approved work may sync custom workouts, preferences/profile, a
 - Onboarding Foundation: resumable lightweight personalization or direct first-workout creation through the Guided Workout Builder, separate versioned local state, legacy-user bypass, and later Profile re-entry. Calibration and recommendations remain separate future work.
 - Home Dashboard using real app data and `docs/DESIGN_SYSTEM.md`.
 - Selected Home reference alignment: greeting/hero, paired four-week stats,
-  and factual Monday–Sunday completion view first. Workout, Progress and
-  Profile restyling follow separately; preserve existing Core behavior.
+  and factual Monday–Sunday completion view first. Active Workout follows in
+  a separate focused PR: matching header/cards/rest surface and current-exercise
+  focus with an expandable program. Progress and Profile remain separate later
+  tasks; preserve existing Core behavior.
 - Modular dashboard foundation for existing Home content. Reorder/show-hide,
   supported-size selection, and saved/synced layouts come later as a separate
   task; do not add drag/drop or layout persistence to the foundation.
