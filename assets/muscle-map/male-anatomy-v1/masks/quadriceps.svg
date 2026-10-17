@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1312" height="1199" viewBox="0 0 1312 1199">
+<title>Квадрицепсы — editable draft mask</title>
+<g id="quadriceps" fill="currentColor">
+<path id="quadriceps--front--right--0" data-side="right" data-structure="rectus-femoris" data-view="front" d="M279 534 C292 527 302 548 308 581 C314 614 305 658 292 693 L281 711 C264 698 256 668 259 630 C260 592 267 550 279 534 Z"/>
+<path id="quadriceps--front--right--1" data-side="right" data-structure="vastus-lateralis" data-view="front" d="M262 550 C253 590 249 628 252 657 C255 681 266 701 272 715 L266 744 C249 730 244 703 242 671 C240 634 244 590 254 560 Z"/>
+<path id="quadriceps--front--right--2" data-side="right" data-structure="vastus-medialis" data-view="front" d="M303 686 C310 673 319 675 323 697 C329 722 323 748 308 766 Q298 776 291 765 C282 751 282 736 289 718 Z"/>
+<path id="quadriceps--front--left--3" data-side="left" data-structure="rectus-femoris" data-view="front" d="M454 533 C442 530 430 551 424 582 C417 615 426 658 441 694 L455 711 C471 697 480 668 477 629 C475 592 466 549 454 533 Z"/>
+<path id="quadriceps--front--left--4" data-side="left" data-structure="vastus-lateralis" data-view="front" d="M475 550 C484 590 488 628 485 657 C482 681 471 701 465 715 L471 744 C487 730 492 703 495 671 C497 634 493 590 483 560 Z"/>
+<path id="quadriceps--front--left--5" data-side="left" data-structure="vastus-medialis" data-view="front" d="M433 686 C426 673 417 675 413 697 C408 722 414 748 429 766 Q439 776 446 765 C455 751 455 736 448 718 Z"/>
+</g>
+</svg>

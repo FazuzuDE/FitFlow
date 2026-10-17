@@ -1,0 +1,269 @@
+{
+  "id": "cresum-male-anatomy-mask-draft-v1",
+  "revision": 2,
+  "status": "draft-boundary-review-required",
+  "source": "source.png",
+  "sourceSha256": "39c66852a6e3ae4a93fac1b0ca29ede1bc17d15520f6d0106d0d135a5d8a7e4a",
+  "width": 1312,
+  "height": 1199,
+  "views": {
+    "front": { "viewBox": [40, 0, 616, 1199], "mirrorAxis": 368 },
+    "back": { "viewBox": [656, 0, 616, 1199], "mirrorAxis": 939 }
+  },
+  "notes": "Manual conservative surface traces. Bilateral contours start mirrored and require separate boundary review against the asymmetric generated image. Group membership is the existing CRESUM taxonomy, not a clinical muscle segmentation. Left/right refer to anatomical sides: front image-left is right, back image-left is left. No exercise mappings or scores are defined here.",
+  "groups": [
+    {
+      "id": "chest",
+      "label": "Грудь",
+      "traceStatus": "2d-landmark-refinement-draft",
+      "regions": [
+        {
+          "view": "front",
+          "side": "right",
+          "structureId": "pectoralis-major-clavicular",
+          "structureLabel": "Большая грудная — ключичная часть",
+          "path": "M253 248 C267 229 289 215 313 214 C334 215 350 218 362 226 L362 260 C327 246 291 242 253 256 Z"
+        },
+        {
+          "view": "front",
+          "side": "right",
+          "structureId": "pectoralis-major-sternocostal",
+          "structureLabel": "Большая грудная — грудино-рёберная часть",
+          "path": "M250 260 C283 248 325 250 362 266 L362 300 C360 310 348 315 333 319 C304 326 284 322 268 307 C255 292 246 277 250 260 Z"
+        },
+        {
+          "view": "front",
+          "side": "left",
+          "structureId": "pectoralis-major-clavicular",
+          "structureLabel": "Большая грудная — ключичная часть",
+          "path": "M376 226 C388 217 409 214 430 214 C454 214 473 229 486 248 L486 256 C449 242 412 246 376 260 Z"
+        },
+        {
+          "view": "front",
+          "side": "left",
+          "structureId": "pectoralis-major-sternocostal",
+          "structureLabel": "Большая грудная — грудино-рёберная часть",
+          "path": "M376 266 C413 250 453 248 486 260 C490 277 482 292 467 307 C451 322 429 326 400 319 C385 315 376 309 376 300 Z"
+        }
+      ]
+    },
+    {
+      "id": "upper-back",
+      "label": "Верх спины",
+      "regions": [
+        {
+          "view": "back",
+          "path": "M854 243 C874 246 889 271 907 302 L923 323 L902 351 C878 344 851 329 837 311 L831 283 Z"
+        }
+      ]
+    },
+    {
+      "id": "lats",
+      "label": "Широчайшие",
+      "traceStatus": "2d-landmark-refinement-draft",
+      "regions": [
+        {
+          "view": "back",
+          "side": "left",
+          "structureId": "latissimus-dorsi-visible",
+          "structureLabel": "Широчайшая — видимая поверхность",
+          "path": "M820 311 C843 314 865 309 883 300 C890 322 904 342 914 365 C923 389 920 412 899 432 L879 448 C868 430 859 415 853 397 C845 381 836 367 831 349 C824 335 819 322 820 311 Z"
+        },
+        {
+          "view": "back",
+          "side": "right",
+          "structureId": "latissimus-dorsi-visible",
+          "structureLabel": "Широчайшая — видимая поверхность",
+          "path": "M1059 312 C1036 315 1013 311 996 302 C989 324 975 344 965 366 C956 389 959 412 980 433 L1000 449 C1011 430 1020 415 1026 397 C1033 380 1042 366 1048 348 C1056 333 1060 321 1059 312 Z"
+        }
+      ]
+    },
+    {
+      "id": "traps",
+      "label": "Трапеции",
+      "regions": [
+        {
+          "view": "back",
+          "path": "M913 132 C916 158 901 178 869 197 L846 211 C874 226 909 262 939 319 L939 162 Z"
+        }
+      ]
+    },
+    {
+      "id": "front-delts",
+      "label": "Передние дельты",
+      "regions": [
+        {
+          "view": "front",
+          "path": "M247 211 C229 210 215 226 213 244 C211 261 214 278 222 291 L245 277 C245 257 251 238 266 223 Z"
+        }
+      ]
+    },
+    {
+      "id": "side-delts",
+      "label": "Средние дельты",
+      "regions": [
+        {
+          "view": "front",
+          "path": "M229 217 C214 226 204 246 205 268 L213 285 L220 275 C215 251 217 234 229 217 Z"
+        },
+        {
+          "view": "back",
+          "path": "M807 218 C784 230 772 253 773 279 L783 301 L795 284 C786 260 793 235 807 218 Z"
+        }
+      ]
+    },
+    {
+      "id": "rear-delts",
+      "label": "Задние дельты",
+      "regions": [
+        {
+          "view": "back",
+          "path": "M832 211 C811 211 792 227 786 248 C782 264 787 284 800 296 L835 278 L860 246 C854 226 845 217 832 211 Z"
+        }
+      ]
+    },
+    {
+      "id": "biceps",
+      "label": "Бицепсы",
+      "regions": [
+        {
+          "view": "front",
+          "path": "M218 291 C231 283 246 291 252 307 C257 333 248 360 235 382 L219 399 C209 382 205 365 209 341 Z"
+        }
+      ]
+    },
+    {
+      "id": "triceps",
+      "label": "Трицепсы",
+      "regions": [
+        {
+          "view": "back",
+          "path": "M792 302 C808 297 829 305 832 323 C831 344 821 366 808 383 L796 396 C784 381 782 363 784 344 Z"
+        }
+      ]
+    },
+    {
+      "id": "forearms",
+      "label": "Предплечья",
+      "regions": [
+        {
+          "view": "front",
+          "path": "M207 399 C220 402 223 419 214 443 L181 513 C174 526 162 535 150 539 L150 529 L164 487 C177 452 192 426 207 399 Z"
+        },
+        {
+          "view": "back",
+          "path": "M779 408 C792 410 793 426 784 447 L752 510 C744 525 732 534 718 539 L711 530 L728 486 C746 455 761 426 779 408 Z"
+        }
+      ]
+    },
+    {
+      "id": "abs",
+      "label": "Пресс и косые",
+      "regions": [
+        {
+          "view": "front",
+          "path": "M319 326 C332 325 349 329 361 333 L361 363 Q343 375 320 365 Z M320 374 Q341 383 362 373 L362 406 Q341 417 321 406 Z M322 416 Q342 425 362 416 L362 449 Q345 459 327 449 Z M329 459 Q344 469 362 457 L362 499 Q347 497 339 485 Z M284 336 L309 349 L307 399 Q311 442 328 481 L304 463 Q282 420 279 376 Z"
+        }
+      ]
+    },
+    {
+      "id": "lower-back",
+      "label": "Поясница",
+      "regions": [
+        {
+          "view": "back",
+          "path": "M921 404 L936 382 L936 493 C924 485 913 481 902 478 L910 450 Z"
+        }
+      ]
+    },
+    {
+      "id": "glutes",
+      "label": "Ягодицы",
+      "regions": [
+        {
+          "view": "back",
+          "path": "M845 491 C874 476 915 486 936 510 L936 584 C928 609 905 620 881 617 C853 615 836 600 831 580 C827 550 832 514 845 491 Z"
+        }
+      ]
+    },
+    {
+      "id": "quadriceps",
+      "label": "Квадрицепсы",
+      "traceStatus": "2d-landmark-refinement-draft",
+      "regions": [
+        {
+          "view": "front",
+          "side": "right",
+          "structureId": "rectus-femoris",
+          "structureLabel": "Прямая мышца бедра",
+          "path": "M279 534 C292 527 302 548 308 581 C314 614 305 658 292 693 L281 711 C264 698 256 668 259 630 C260 592 267 550 279 534 Z"
+        },
+        {
+          "view": "front",
+          "side": "right",
+          "structureId": "vastus-lateralis",
+          "structureLabel": "Латеральная широкая мышца бедра",
+          "path": "M262 550 C253 590 249 628 252 657 C255 681 266 701 272 715 L266 744 C249 730 244 703 242 671 C240 634 244 590 254 560 Z"
+        },
+        {
+          "view": "front",
+          "side": "right",
+          "structureId": "vastus-medialis",
+          "structureLabel": "Медиальная широкая мышца бедра",
+          "path": "M303 686 C310 673 319 675 323 697 C329 722 323 748 308 766 Q298 776 291 765 C282 751 282 736 289 718 Z"
+        },
+        {
+          "view": "front",
+          "side": "left",
+          "structureId": "rectus-femoris",
+          "structureLabel": "Прямая мышца бедра",
+          "path": "M454 533 C442 530 430 551 424 582 C417 615 426 658 441 694 L455 711 C471 697 480 668 477 629 C475 592 466 549 454 533 Z"
+        },
+        {
+          "view": "front",
+          "side": "left",
+          "structureId": "vastus-lateralis",
+          "structureLabel": "Латеральная широкая мышца бедра",
+          "path": "M475 550 C484 590 488 628 485 657 C482 681 471 701 465 715 L471 744 C487 730 492 703 495 671 C497 634 493 590 483 560 Z"
+        },
+        {
+          "view": "front",
+          "side": "left",
+          "structureId": "vastus-medialis",
+          "structureLabel": "Медиальная широкая мышца бедра",
+          "path": "M433 686 C426 673 417 675 413 697 C408 722 414 748 429 766 Q439 776 446 765 C455 751 455 736 448 718 Z"
+        }
+      ]
+    },
+    {
+      "id": "hamstrings",
+      "label": "Задняя поверхность бедра",
+      "regions": [
+        {
+          "view": "back",
+          "path": "M844 626 C863 635 886 629 906 614 L923 636 C922 661 915 699 906 730 L882 793 L858 786 C848 758 841 720 839 683 Z"
+        }
+      ]
+    },
+    {
+      "id": "calves",
+      "label": "Икры",
+      "regions": [
+        {
+          "view": "back",
+          "path": "M850 821 C865 810 882 820 886 844 C891 877 877 915 864 947 L851 1002 C837 975 829 942 826 906 C825 871 834 835 850 821 Z"
+        }
+      ]
+    },
+    {
+      "id": "adductors",
+      "label": "Приводящие мышцы",
+      "regions": [
+        {
+          "view": "front",
+          "path": "M343 582 L359 599 C359 626 354 653 345 678 L329 710 L319 698 C330 666 337 630 337 605 Z"
+        }
+      ]
+    }
+  ]
+}

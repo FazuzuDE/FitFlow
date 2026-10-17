@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1312" height="1199" viewBox="0 0 1312 1199">
+<title>Трицепсы — editable draft mask</title>
+<g id="triceps" fill="currentColor">
+<path id="triceps--back--left--0" data-side="left" data-structure="triceps" data-view="back" d="M792 302 C808 297 829 305 832 323 C831 344 821 366 808 383 L796 396 C784 381 782 363 784 344 Z"/>
+<path id="triceps--back--right--0" data-side="right" data-structure="triceps" data-view="back" d="M792 302 C808 297 829 305 832 323 C831 344 821 366 808 383 L796 396 C784 381 782 363 784 344 Z" transform="translate(1878 0) scale(-1 1)"/>
+</g>
+</svg>

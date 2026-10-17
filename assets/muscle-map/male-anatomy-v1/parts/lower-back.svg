@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1312" height="1199" viewBox="0 0 1312 1199">
+<title>Поясница — source texture clipped by draft mask</title>
+<defs><clipPath id="region"><path id="lower-back--back--left--0" data-side="left" data-structure="lower-back" data-view="back" d="M921 404 L936 382 L936 493 C924 485 913 481 902 478 L910 450 Z"/>
+<path id="lower-back--back--right--0" data-side="right" data-structure="lower-back" data-view="back" d="M921 404 L936 382 L936 493 C924 485 913 481 902 478 L910 450 Z" transform="translate(1878 0) scale(-1 1)"/></clipPath></defs>
+<image href="../source.png" width="1312" height="1199" clip-path="url(#region)"/>
+</svg>

@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1312" height="1199" viewBox="0 0 1312 1199">
+<title>Задняя поверхность бедра — source texture clipped by draft mask</title>
+<defs><clipPath id="region"><path id="hamstrings--back--left--0" data-side="left" data-structure="hamstrings" data-view="back" d="M844 626 C863 635 886 629 906 614 L923 636 C922 661 915 699 906 730 L882 793 L858 786 C848 758 841 720 839 683 Z"/>
+<path id="hamstrings--back--right--0" data-side="right" data-structure="hamstrings" data-view="back" d="M844 626 C863 635 886 629 906 614 L923 636 C922 661 915 699 906 730 L882 793 L858 786 C848 758 841 720 839 683 Z" transform="translate(1878 0) scale(-1 1)"/></clipPath></defs>
+<image href="../source.png" width="1312" height="1199" clip-path="url(#region)"/>
+</svg>

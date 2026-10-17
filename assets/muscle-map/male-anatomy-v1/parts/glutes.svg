@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1312" height="1199" viewBox="0 0 1312 1199">
+<title>Ягодицы — source texture clipped by draft mask</title>
+<defs><clipPath id="region"><path id="glutes--back--left--0" data-side="left" data-structure="glutes" data-view="back" d="M845 491 C874 476 915 486 936 510 L936 584 C928 609 905 620 881 617 C853 615 836 600 831 580 C827 550 832 514 845 491 Z"/>
+<path id="glutes--back--right--0" data-side="right" data-structure="glutes" data-view="back" d="M845 491 C874 476 915 486 936 510 L936 584 C928 609 905 620 881 617 C853 615 836 600 831 580 C827 550 832 514 845 491 Z" transform="translate(1878 0) scale(-1 1)"/></clipPath></defs>
+<image href="../source.png" width="1312" height="1199" clip-path="url(#region)"/>
+</svg>

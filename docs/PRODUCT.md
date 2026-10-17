@@ -568,3 +568,21 @@ a coverage notice and never receive guessed muscle mappings. A set can involve
 multiple muscles; muscle counts must not be summed as a unique total.
 No stimulus coefficients, recovery estimates, intensity normalization, medical
 claims, recommendations, schema changes or history rewrites are introduced.
+
+### Anatomical 3D source direction — approved 2026-10-17
+
+Use a reviewed anatomical 3D source with individually identifiable muscles to
+produce consistent front/back views, visible-surface masks and shading layers.
+Keep the selected grayscale character with modesty insert as the appearance
+reference; the generated image and manual masks are not anatomical ground truth.
+Map multiple anatomical objects to the existing 17 catalog groups without
+changing exercise mappings, saved history or participation calculations.
+The initial app presentation may remain 2D. Interactive rotation and deep-layer
+anatomy views require separate product work. Hidden muscles must not be painted
+over an unrelated visible surface. Source selection must verify anatomy,
+object separation, usable pose, export workflow and asset licensing.
+
+Current steering (2026-10-17): 3D is unavailable, so continue the 2D source/mask
+review. The future model-derived workflow remains an option; it is not required
+to improve current visible contours. Editable anatomical subparts aggregate
+into the existing groups and do not create new set/activation measurements.

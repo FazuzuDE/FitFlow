@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1312" height="1199" viewBox="0 0 1312 1199">
+<title>Прямая мышца бедра — draft 2D structure</title>
+<g fill="currentColor"><path id="quadriceps--front--right--0" data-side="right" data-structure="rectus-femoris" data-view="front" d="M279 534 C292 527 302 548 308 581 C314 614 305 658 292 693 L281 711 C264 698 256 668 259 630 C260 592 267 550 279 534 Z"/>
+<path id="quadriceps--front--left--1" data-side="left" data-structure="rectus-femoris" data-view="front" d="M454 533 C442 530 430 551 424 582 C417 615 426 658 441 694 L455 711 C471 697 480 668 477 629 C475 592 466 549 454 533 Z"/></g>
+</svg>

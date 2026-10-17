@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1312" height="1199" viewBox="0 0 1312 1199">
+<title>Передние дельты — editable draft mask</title>
+<g id="front-delts" fill="currentColor">
+<path id="front-delts--front--right--0" data-side="right" data-structure="front-delts" data-view="front" d="M247 211 C229 210 215 226 213 244 C211 261 214 278 222 291 L245 277 C245 257 251 238 266 223 Z"/>
+<path id="front-delts--front--left--0" data-side="left" data-structure="front-delts" data-view="front" d="M247 211 C229 210 215 226 213 244 C211 261 214 278 222 291 L245 277 C245 257 251 238 266 223 Z" transform="translate(736 0) scale(-1 1)"/>
+</g>
+</svg>

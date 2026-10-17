@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1312" height="1199" viewBox="0 0 1312 1199">
+<title>Бицепсы — source texture clipped by draft mask</title>
+<defs><clipPath id="region"><path id="biceps--front--right--0" data-side="right" data-structure="biceps" data-view="front" d="M218 291 C231 283 246 291 252 307 C257 333 248 360 235 382 L219 399 C209 382 205 365 209 341 Z"/>
+<path id="biceps--front--left--0" data-side="left" data-structure="biceps" data-view="front" d="M218 291 C231 283 246 291 252 307 C257 333 248 360 235 382 L219 399 C209 382 205 365 209 341 Z" transform="translate(736 0) scale(-1 1)"/></clipPath></defs>
+<image href="../source.png" width="1312" height="1199" clip-path="url(#region)"/>
+</svg>

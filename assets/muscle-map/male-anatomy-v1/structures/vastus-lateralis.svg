@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1312" height="1199" viewBox="0 0 1312 1199">
+<title>Латеральная широкая мышца бедра — draft 2D structure</title>
+<g fill="currentColor"><path id="quadriceps--front--right--0" data-side="right" data-structure="vastus-lateralis" data-view="front" d="M262 550 C253 590 249 628 252 657 C255 681 266 701 272 715 L266 744 C249 730 244 703 242 671 C240 634 244 590 254 560 Z"/>
+<path id="quadriceps--front--left--1" data-side="left" data-structure="vastus-lateralis" data-view="front" d="M475 550 C484 590 488 628 485 657 C482 681 471 701 465 715 L471 744 C487 730 492 703 495 671 C497 634 493 590 483 560 Z"/></g>
+</svg>

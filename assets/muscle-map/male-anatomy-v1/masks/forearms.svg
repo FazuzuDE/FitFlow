@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1312" height="1199" viewBox="0 0 1312 1199">
+<title>Предплечья — editable draft mask</title>
+<g id="forearms" fill="currentColor">
+<path id="forearms--front--right--0" data-side="right" data-structure="forearms" data-view="front" d="M207 399 C220 402 223 419 214 443 L181 513 C174 526 162 535 150 539 L150 529 L164 487 C177 452 192 426 207 399 Z"/>
+<path id="forearms--front--left--0" data-side="left" data-structure="forearms" data-view="front" d="M207 399 C220 402 223 419 214 443 L181 513 C174 526 162 535 150 539 L150 529 L164 487 C177 452 192 426 207 399 Z" transform="translate(736 0) scale(-1 1)"/>
+<path id="forearms--back--left--1" data-side="left" data-structure="forearms" data-view="back" d="M779 408 C792 410 793 426 784 447 L752 510 C744 525 732 534 718 539 L711 530 L728 486 C746 455 761 426 779 408 Z"/>
+<path id="forearms--back--right--1" data-side="right" data-structure="forearms" data-view="back" d="M779 408 C792 410 793 426 784 447 L752 510 C744 525 732 534 718 539 L711 530 L728 486 C746 455 761 426 779 408 Z" transform="translate(1878 0) scale(-1 1)"/>
+</g>
+</svg>

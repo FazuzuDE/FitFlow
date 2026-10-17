@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1312" height="1199" viewBox="0 0 1312 1199">
+<title>Трапеции — editable draft mask</title>
+<g id="traps" fill="currentColor">
+<path id="traps--back--left--0" data-side="left" data-structure="traps" data-view="back" d="M913 132 C916 158 901 178 869 197 L846 211 C874 226 909 262 939 319 L939 162 Z"/>
+<path id="traps--back--right--0" data-side="right" data-structure="traps" data-view="back" d="M913 132 C916 158 901 178 869 197 L846 211 C874 226 909 262 939 319 L939 162 Z" transform="translate(1878 0) scale(-1 1)"/>
+</g>
+</svg>

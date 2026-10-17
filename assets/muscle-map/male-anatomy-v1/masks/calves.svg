@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1312" height="1199" viewBox="0 0 1312 1199">
+<title>Икры — editable draft mask</title>
+<g id="calves" fill="currentColor">
+<path id="calves--back--left--0" data-side="left" data-structure="calves" data-view="back" d="M850 821 C865 810 882 820 886 844 C891 877 877 915 864 947 L851 1002 C837 975 829 942 826 906 C825 871 834 835 850 821 Z"/>
+<path id="calves--back--right--0" data-side="right" data-structure="calves" data-view="back" d="M850 821 C865 810 882 820 886 844 C891 877 877 915 864 947 L851 1002 C837 975 829 942 826 906 C825 871 834 835 850 821 Z" transform="translate(1878 0) scale(-1 1)"/>
+</g>
+</svg>

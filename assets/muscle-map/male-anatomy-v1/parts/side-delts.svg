@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1312" height="1199" viewBox="0 0 1312 1199">
+<title>Средние дельты — source texture clipped by draft mask</title>
+<defs><clipPath id="region"><path id="side-delts--front--right--0" data-side="right" data-structure="side-delts" data-view="front" d="M229 217 C214 226 204 246 205 268 L213 285 L220 275 C215 251 217 234 229 217 Z"/>
+<path id="side-delts--front--left--0" data-side="left" data-structure="side-delts" data-view="front" d="M229 217 C214 226 204 246 205 268 L213 285 L220 275 C215 251 217 234 229 217 Z" transform="translate(736 0) scale(-1 1)"/>
+<path id="side-delts--back--left--1" data-side="left" data-structure="side-delts" data-view="back" d="M807 218 C784 230 772 253 773 279 L783 301 L795 284 C786 260 793 235 807 218 Z"/>
+<path id="side-delts--back--right--1" data-side="right" data-structure="side-delts" data-view="back" d="M807 218 C784 230 772 253 773 279 L783 301 L795 284 C786 260 793 235 807 218 Z" transform="translate(1878 0) scale(-1 1)"/></clipPath></defs>
+<image href="../source.png" width="1312" height="1199" clip-path="url(#region)"/>
+</svg>

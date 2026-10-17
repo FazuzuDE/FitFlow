@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1312" height="1199" viewBox="0 0 1312 1199">
+<title>Широчайшие — editable draft mask</title>
+<g id="lats" fill="currentColor">
+<path id="lats--back--left--0" data-side="left" data-structure="latissimus-dorsi-visible" data-view="back" d="M820 311 C843 314 865 309 883 300 C890 322 904 342 914 365 C923 389 920 412 899 432 L879 448 C868 430 859 415 853 397 C845 381 836 367 831 349 C824 335 819 322 820 311 Z"/>
+<path id="lats--back--right--1" data-side="right" data-structure="latissimus-dorsi-visible" data-view="back" d="M1059 312 C1036 315 1013 311 996 302 C989 324 975 344 965 366 C956 389 959 412 980 433 L1000 449 C1011 430 1020 415 1026 397 C1033 380 1042 366 1048 348 C1056 333 1060 321 1059 312 Z"/>
+</g>
+</svg>

@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1312" height="1199" viewBox="0 0 1312 1199">
+<title>Большая грудная — грудино-рёберная часть — draft 2D structure</title>
+<g fill="currentColor"><path id="chest--front--right--0" data-side="right" data-structure="pectoralis-major-sternocostal" data-view="front" d="M250 260 C283 248 325 250 362 266 L362 300 C360 310 348 315 333 319 C304 326 284 322 268 307 C255 292 246 277 250 260 Z"/>
+<path id="chest--front--left--1" data-side="left" data-structure="pectoralis-major-sternocostal" data-view="front" d="M376 266 C413 250 453 248 486 260 C490 277 482 292 467 307 C451 322 429 326 400 319 C385 315 376 309 376 300 Z"/></g>
+</svg>

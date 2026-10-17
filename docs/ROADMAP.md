@@ -320,3 +320,35 @@ Progress using existing taxonomy and mappings. This is separate from deferred
 Muscle Load/stimulus/recovery/recommendation work and does not approve any
 coefficients, new anatomical taxonomy or normalized red-intensity scale.
 Native visual/accessibility acceptance remains open before release.
+
+### Muscle Map source and mask preparation — 2026-10-17
+
+Prepare the user-selected anatomical front/back source with modesty insert and
+17 independently editable draft muscle-group layers. Preserve common image
+coordinates and existing IDs; deliver source, masks, clipped texture references
+and offline review. Review contours/anatomy and native compositing before
+replacing the merged schematic map. The subsequent 3D-source direction below is
+now approved. Live 3D, Female model and stimulus/recovery calculations remain
+separate stages.
+
+### Anatomical 3D source evaluation — approved 2026-10-17
+
+Next, evaluate a source with individually identifiable muscles, anatomy review,
+compatible asset rights and a reproducible render/mask export. Prove a small
+sample (chest, lats and quadriceps) before adapting all 17 groups. Keep neutral
+render, visible ID masks and shading aligned. Retain the current application
+renderer while this source is evaluated. #66 remains a draft checkpoint of the
+chosen appearance, manual mask experiment and review tooling; those contours
+are not the final anatomical source. Evaluation is read-only until a candidate
+is selected; importing a library does not automatically approve its anatomy or
+license suitability. No automatic merge of the checkpoint is authorized.
+
+### Current steering: continue with 2D — 2026-10-17
+
+The user has no 3D file yet and requested working with 2D. Defer model production
+and registration. Refine the selected image's chest, lats and quadriceps masks
+first using anatomy references and visible landmarks, preserve source alignment,
+and expose editable visible substructures. Keep the 17 catalog groups unchanged.
+The generated image and manual fitting remain a draft, not exact segmentation.
+The future 3D-source direction above is retained but is not a dependency for
+this 2D review. Keep #66 in Draft until visual/anatomical acceptance.

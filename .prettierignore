@@ -5,3 +5,9 @@ coverage/
 .npm-cache/
 package-lock.json
 .tools/
+# Deterministic generated exports from scripts/build-muscle-mask-atlas.cjs
+assets/muscle-map/male-anatomy-v1/atlas.svg
+assets/muscle-map/male-anatomy-v1/masks/
+assets/muscle-map/male-anatomy-v1/parts/
+assets/muscle-map/male-anatomy-v1/structures/
+assets/muscle-map/male-anatomy-v1/viewer.html

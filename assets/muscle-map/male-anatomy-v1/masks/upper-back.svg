@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1312" height="1199" viewBox="0 0 1312 1199">
+<title>Верх спины — editable draft mask</title>
+<g id="upper-back" fill="currentColor">
+<path id="upper-back--back--left--0" data-side="left" data-structure="upper-back" data-view="back" d="M854 243 C874 246 889 271 907 302 L923 323 L902 351 C878 344 851 329 837 311 L831 283 Z"/>
+<path id="upper-back--back--right--0" data-side="right" data-structure="upper-back" data-view="back" d="M854 243 C874 246 889 271 907 302 L923 323 L902 351 C878 344 851 329 837 311 L831 283 Z" transform="translate(1878 0) scale(-1 1)"/>
+</g>
+</svg>

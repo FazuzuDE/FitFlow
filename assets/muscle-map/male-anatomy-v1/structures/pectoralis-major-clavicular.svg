@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1312" height="1199" viewBox="0 0 1312 1199">
+<title>Большая грудная — ключичная часть — draft 2D structure</title>
+<g fill="currentColor"><path id="chest--front--right--0" data-side="right" data-structure="pectoralis-major-clavicular" data-view="front" d="M253 248 C267 229 289 215 313 214 C334 215 350 218 362 226 L362 260 C327 246 291 242 253 256 Z"/>
+<path id="chest--front--left--1" data-side="left" data-structure="pectoralis-major-clavicular" data-view="front" d="M376 226 C388 217 409 214 430 214 C454 214 473 229 486 248 L486 256 C449 242 412 246 376 260 Z"/></g>
+</svg>

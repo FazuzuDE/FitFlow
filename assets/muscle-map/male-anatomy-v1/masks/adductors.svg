@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1312" height="1199" viewBox="0 0 1312 1199">
+<title>Приводящие мышцы — editable draft mask</title>
+<g id="adductors" fill="currentColor">
+<path id="adductors--front--right--0" data-side="right" data-structure="adductors" data-view="front" d="M343 582 L359 599 C359 626 354 653 345 678 L329 710 L319 698 C330 666 337 630 337 605 Z"/>
+<path id="adductors--front--left--0" data-side="left" data-structure="adductors" data-view="front" d="M343 582 L359 599 C359 626 354 653 345 678 L329 710 L319 698 C330 666 337 630 337 605 Z" transform="translate(736 0) scale(-1 1)"/>
+</g>
+</svg>

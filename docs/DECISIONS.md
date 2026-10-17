@@ -958,3 +958,35 @@ on presentation and tests; no new dependency, schema or protocol is needed.
   IDs for simultaneous overview/detail maps, and restrict calf highlights to the
   posterior calf rather than mislabeling the anterior shin.
 - Rebuild the in-conversation preview for acceptance; no automatic merge.
+
+## 2026-10-17 — Anatomical source selected; per-group layers requested
+
+- After merged #65, the user selected the detailed grayscale anatomical
+  front/back character and approved the small smooth central modesty insert.
+- Requested independent muscle layers for future load-map changes. Keep the
+  existing 17 group IDs, a shared canvas, source integrity and separate view/side
+  parts. Deliver editable draft masks and a review tool before app integration.
+- Appearance selection does not approve anatomical correctness or draft masks.
+  No stimulus/recovery calculation, exercise mapping or runtime renderer changes.
+
+## 2026-10-17 — Individually separated anatomical 3D source approved
+
+- User approved evaluating an anatomical 3D model with separate muscles as the
+  source for precise aligned front/back images, visible masks and shading.
+- Preserve selected character appearance, modesty insert and existing 17 group
+  semantics; individual anatomical objects may aggregate into one app group.
+- Current manual masks are an experiment, not anatomical ground truth. #66 is
+  retained as an unmerged draft checkpoint; this approval does not authorize its
+  merge or production use of its contours.
+- Validate source anatomy, separation, rights and export with a small sample
+  before full adaptation. App may retain 2D presentation; live 3D/deep anatomy
+  and training-stimulus algorithms are not part of this approval.
+
+## 2026-10-17 — 3D unavailable; continue 2D
+
+- User explicitly directed continuing with 2D while no 3D model is available.
+  Defer 3D production/registration and retain it as a future option.
+- Refine chest/lats/quadriceps on the selected unchanged source with anatomy
+  reference notes, explicit anatomical sides and visible component masks.
+- Keep #66 as Draft. Manual fitting and reference reading do not constitute
+  exact anatomical segmentation or expert approval; catalog and app stay stable.

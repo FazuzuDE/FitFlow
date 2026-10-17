@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1312" height="1199" viewBox="0 0 1312 1199">
+<title>Пресс и косые — editable draft mask</title>
+<g id="abs" fill="currentColor">
+<path id="abs--front--right--0" data-side="right" data-structure="abs" data-view="front" d="M319 326 C332 325 349 329 361 333 L361 363 Q343 375 320 365 Z M320 374 Q341 383 362 373 L362 406 Q341 417 321 406 Z M322 416 Q342 425 362 416 L362 449 Q345 459 327 449 Z M329 459 Q344 469 362 457 L362 499 Q347 497 339 485 Z M284 336 L309 349 L307 399 Q311 442 328 481 L304 463 Q282 420 279 376 Z"/>
+<path id="abs--front--left--0" data-side="left" data-structure="abs" data-view="front" d="M319 326 C332 325 349 329 361 333 L361 363 Q343 375 320 365 Z M320 374 Q341 383 362 373 L362 406 Q341 417 321 406 Z M322 416 Q342 425 362 416 L362 449 Q345 459 327 449 Z M329 459 Q344 469 362 457 L362 499 Q347 497 339 485 Z M284 336 L309 349 L307 399 Q311 442 328 481 L304 463 Q282 420 279 376 Z" transform="translate(736 0) scale(-1 1)"/>
+</g>
+</svg>

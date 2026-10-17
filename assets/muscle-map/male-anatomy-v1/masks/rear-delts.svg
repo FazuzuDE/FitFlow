@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1312" height="1199" viewBox="0 0 1312 1199">
+<title>Задние дельты — editable draft mask</title>
+<g id="rear-delts" fill="currentColor">
+<path id="rear-delts--back--left--0" data-side="left" data-structure="rear-delts" data-view="back" d="M832 211 C811 211 792 227 786 248 C782 264 787 284 800 296 L835 278 L860 246 C854 226 845 217 832 211 Z"/>
+<path id="rear-delts--back--right--0" data-side="right" data-structure="rear-delts" data-view="back" d="M832 211 C811 211 792 227 786 248 C782 264 787 284 800 296 L835 278 L860 246 C854 226 845 217 832 211 Z" transform="translate(1878 0) scale(-1 1)"/>
+</g>
+</svg>
